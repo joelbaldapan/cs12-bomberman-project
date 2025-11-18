@@ -1,83 +1,89 @@
-from common_types import BlockInfo, BombInfo, EntityHandler, EntityInfo, ExplosionInfo, PlayerInfo, Board, PowerupInfo
+from __future__ import annotations
+from common_types import EventInfo, EntityInfo, ExplosionInfo, Board, SoundType, WorldInfo
+from typing import TypeVar
 
 
-class WorldBoard:
+T = TypeVar("T", bound=EntityInfo)
+
+class World:
     def __init__(self, rows: int, cols: int):
+        self._rows = rows
+        self._cols = cols
         self._board: Board = [
             [None for _ in range(cols)] for _ in range(rows)
         ]
         self._entities: set[EntityInfo] = set()
 
-    def place(self, entity: EntityInfo) -> None:
+    @property
+    def entities(self) -> set[EntityInfo]:
+        return set(self._entities)
+
+    def add_entity(self, entity: EntityInfo) -> None:
         self._entities.add(entity)
-        i, j = entity.i, entity.j
-        self._board[i][j] = entity
+        self._board[entity.row][entity.col] = entity
 
-    def remove(self, entity: EntityInfo) -> None:
+    def remove_entity(self, entity: EntityInfo) -> None:
         self._entities.discard(entity)
-        i, j = entity.i, entity.j
-        self._board[i][j] = None
+        if self._in_bounds(entity.row, entity.col):
+            self._board[entity.row][entity.col] = None
 
-# TODO: Crate WorldBoard Protocol^^ for DIP compliance
-
-class BombHandler:
-    def __init__(self, world: WorldBoard):
-        self._world = world
-        self._bombs: set[BombInfo] = set()
-
-    def update(self, dt: int):
-        # pa-implement lang guyss
-        # 1. Tick all bombs
-        # 2. Detonate expired bombs
-        #       - aka Spawn explosions
-        # 3. Remove those that have expired
-        ...
-
-    def add(self, entity: BombInfo):
-        self._bombs.add(entity)
- 
-    def get_all(self) -> set[BombInfo]:
-        return set(self._bombs)
-
-    def remove(self, entity: BombInfo):
-        return self._bombs.discard(entity)
-
-
-class ExplosionHandler:
-    def __init__(self, world: WorldBoard):
-        self._world = world
-        self._explosions: set[ExplosionInfo] = set()
-
-    def update(self, dt: int):
-        # 1. Tick all explosions
-        # 2. Remove those that have expired
-        ...
+    def get_entity_at(self, i: int, j: int) -> EntityInfo | None:
+        if self._in_bounds(i, j):
+            return self._board[i][j]
+        return None
     
-    def add(self, entity: ExplosionInfo):
-        self._explosions.add(entity)
- 
-    def get_all(self) -> set[ExplosionInfo]:
-        return set(self._explosions)
-
-    def remove(self, entity: ExplosionInfo):
-        return self._explosions.discard(entity)
-
-# TODO: add other handlers
-
+    def get_all_type(self, entity_type: type[T]) -> set[T]:
+        return {
+            entity for entity in self._entities 
+            if isinstance(entity, entity_type)
+        }
+    
+    def _in_bounds(self, i: int, j: int) -> bool:
+        return 0 <= i < self._rows and 0 <= j < self._cols
 
 class Model:
-    def __init__(self, world: WorldBoard):
-        self._world = world
+    def __init__(self, world: WorldInfo):
+        self._world: WorldInfo = world
+        self._event_buffer: list[EventInfo] = []
+        self._sfx_buffer: list[SoundType] = []
 
-        self._bombs: EntityHandler[BombInfo] = BombHandler(world)
-        self._explosions: EntityHandler[ExplosionInfo] = ExplosionHandler(world)
-        self._powerups: EntityHandler[PowerupInfo] = PowerupHandler(world)
-        self._blocks: EntityHandler[BlockInfo] = BlockHandler(world)
-        self._players: EntityHandler[PlayerInfo] = PlayerHandler(world)
+    # NOTE: main flow of model is:
+    # 1. handle input first
+    # 2. update all
+    #       - tick down bombs/explosions, have AI decide, etc.
+    # 3. create new entities if needed
+    # 4. check all `on_explosion` 
+    # 5. remove expired entities
 
     def handle_input(self): ...
 
     def update(self, dt: int):
-        self._bombs.update(dt)
-        self._explosions.update(dt)
-        # ...
+        self._update(dt)
+        self._check_explosions()
+        self._process_events()
+        self._remove_expired_entities()
+        self._process_events()
+
+    def _update(self, dt: int):
+        for entity in self._world.entities:
+            results = entity.update(dt)
+            self._event_buffer += results.events
+            self._sfx_buffer += results.sounds
+
+    def _check_explosions(self):
+        for explosion in self._world.get_all_type(ExplosionInfo):
+            # check if entity is hit. if so, then remove`
+            # implement pls
+            print(explosion)
+            pass
+
+    def _process_events(self):
+        for event in self._event_buffer:
+            event.execute(self._world)
+        self._event_buffer = []
+
+    def _remove_expired_entities(self):
+        for entity in self._world.entities:
+            if entity.is_expired:
+                self._world.remove_entity(entity)
+            
