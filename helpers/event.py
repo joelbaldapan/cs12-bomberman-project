@@ -18,13 +18,13 @@ class UpdateResult():
         self._sounds.append(cmd)
 
 @dataclass(frozen=True)
-class SpawnCommand:
+class SpawnEvent:
     _entity: EntityInfo
     def execute(self, world: WorldInfo) -> None:
         world.add_entity(self._entity)
 
 @dataclass(frozen=True)
-class DestroyCommand:
+class DestroyEvent:
     _entity: EntityInfo
     def execute(self, world: WorldInfo) -> None:
         world.remove_entity(self._entity)

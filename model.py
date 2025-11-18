@@ -48,12 +48,13 @@ class Model:
         self._sfx_buffer: list[SoundType] = []
 
     # NOTE: main flow of model is:
-    # 1. handle input first
-    # 2. update all
+    # controller calls: handle player input
+    # controller then `update` which does the following:
+    # 1. update all
     #       - tick down bombs/explosions, have AI decide, etc.
-    # 3. create new entities if needed
-    # 4. check all `on_explosion` 
-    # 5. remove expired entities
+    # 2. create new entities if needed
+    # 3. check all `on_explosion` 
+    # 4. remove expired entities
 
     def handle_input(self): ...
 
