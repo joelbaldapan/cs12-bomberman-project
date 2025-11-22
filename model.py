@@ -50,28 +50,29 @@ class Model:
     # NOTE: main flow of model is:
     # controller calls: handle player input
     # controller then `update` which does the following:
-    # 1. update all
+    # 1. update all entities
     #       - tick down bombs/explosions, have AI decide, etc.
     # 2. create new entities if needed
     # 3. check all `on_explosion` 
     # 4. remove expired entities
 
     def handle_input(self): ...
+        # for player input
 
     def update(self, dt: int):
-        self._update(dt)
-        self._check_explosions()
-        self._process_events()
-        self._remove_expired_entities()
-        self._process_events()
+        self._update_entities(dt)    # update all
+        self._process_events()  # add (e.g. new explosions); remove (e.g. timed out explosion/bomb)
+        self._check_explosion_collision() # check collisions
+        self._process_events() # add (e.g. powerup spawned from block); remove (e.g. dead player)
+        self._remove_expired_entities() # remove expired entities in general (idk if this is necessary.)
 
-    def _update(self, dt: int):
+    def _update_entities(self, dt: int):
         for entity in self._world.entities:
             results = entity.update(dt)
             self._event_buffer += results.events
             self._sfx_buffer += results.sounds
 
-    def _check_explosions(self):
+    def _check_explosion_collision(self):
         for explosion in self._world.get_all_type(ExplosionInfo):
             # check if entity is hit. if so, then remove`
             # implement pls
