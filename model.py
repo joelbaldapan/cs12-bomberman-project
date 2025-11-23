@@ -1,4 +1,4 @@
-`from __future__ import annotations
+from __future__ import annotations
 from common_types import EventInfo, EntityInfo, ExplosionInfo, Board, SoundType, EntityType, WorldInfo, BombInfo, PlayerInfo, BlockInfo, UpdateResultInfo, ExplosionOrientation, Direction
 from typing import TypeVar
 from helpers.grid_adapter import GridAdapter
