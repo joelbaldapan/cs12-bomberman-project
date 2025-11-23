@@ -24,7 +24,7 @@ class SpawnEvent:
         world.add_entity(self._entity)
 
 @dataclass(frozen=True)
-class DestroyEvent:
+class RemoveEvent:
     _entity: EntityInfo
     def execute(self, world: WorldInfo) -> None:
         world.remove_entity(self._entity)

@@ -1,7 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from common_types import GridCoords, PlayerInfo, EntityType, SoundType, UpdateResultInfo
-from helpers.event import DestroyEvent, UpdateResult
+from helpers.event import RemoveEvent, UpdateResult
 
 
 @dataclass
@@ -60,13 +60,13 @@ class Bomb:
 
         self._current_timer += dt
         if self._triggered:
-            result.add_event(DestroyEvent(self))
+            result.add_event(RemoveEvent(self))
             result.add_sound(SoundType.EXPLOSION)
             self._expired = True
 
         if not self._triggered and self._current_timer >= self._full_timer:
             self._triggered = True
-            result.add_event(DestroyEvent(self))
+            result.add_event(RemoveEvent(self))
             result.add_sound(SoundType.EXPLOSION)
             self._expired = True
 

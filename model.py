@@ -1,4 +1,4 @@
-from __future__ import annotations
+`from __future__ import annotations
 from common_types import EventInfo, EntityInfo, ExplosionInfo, Board, SoundType, EntityType, WorldInfo, BombInfo, PlayerInfo, BlockInfo, UpdateResultInfo, ExplosionOrientation, Direction
 from typing import TypeVar
 from helpers.grid_adapter import GridAdapter
@@ -51,9 +51,6 @@ class World:
     
     def _in_bounds(self, i: int, j: int) -> bool:
         return 0 <= i < self._rows and 0 <= j < self._cols
-    
-    def all_entities(self) -> set[EntityInfo]:
-        return set(self._entities)
     
     def is_cell_blocking(self, row: int, col: int) -> bool:
         
