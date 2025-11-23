@@ -1,8 +1,9 @@
 from __future__ import annotations
-from common_types import EventInfo, EntityInfo, ExplosionInfo, Board, SoundType, WorldInfo
+from common_types import EventInfo, EntityInfo, ExplosionInfo, Board, SoundType, EntityType, WorldInfo, BombInfo, PlayerInfo, BlockInfo, UpdateResultInfo, ExplosionOrientation, Direction
 from typing import TypeVar
-
-
+from helpers.grid_adapter import GridAdapter
+from helpers.event import UpdateResult, SpawnEvent
+from entities.explosion import Explosion, ExplosionFactory
 T = TypeVar("T", bound=EntityInfo)
 
 class World:
@@ -19,8 +20,18 @@ class World:
         return set(self._entities)
 
     def add_entity(self, entity: EntityInfo) -> None:
+
+        i, j = entity.row, entity.col
+        if not self._in_bounds(i, j):
+            return None
+        existing = self._board[i][j]
+        if existing is not None:
+            return None
         self._entities.add(entity)
         self._board[entity.row][entity.col] = entity
+
+        #Might need to add boolean return
+        #Issue with overlapping explosion with entities.....
 
     def remove_entity(self, entity: EntityInfo) -> None:
         self._entities.discard(entity)
@@ -40,12 +51,37 @@ class World:
     
     def _in_bounds(self, i: int, j: int) -> bool:
         return 0 <= i < self._rows and 0 <= j < self._cols
+    
+    def all_entities(self) -> set[EntityInfo]:
+        return set(self._entities)
+    
+    def is_cell_blocking(self, row: int, col: int) -> bool:
+        
+        if not self._in_bounds(row, col):
+            return True
+
+        entity = self._board[row][col]
+        if entity is None:
+            return False
+        
+        if entity.entity_type in (EntityType.BLOCK, EntityType.BOMB):
+            return True
+
+        # explosions and powerups are walkable, player not stored
+        return False
+    
+    def is_walkable(self, row: int, col: int) -> bool:
+        return not self.is_cell_blocking(row, col)
+
 
 class Model:
-    def __init__(self, world: WorldInfo):
+    def __init__(self, world: WorldInfo, grid: GridAdapter):
         self._world: WorldInfo = world
         self._event_buffer: list[EventInfo] = []
         self._sfx_buffer: list[SoundType] = []
+        self._players: list[PlayerInfo] = []
+        self._grid: GridAdapter = grid
+        self._tile_size: int = 16
 
     # NOTE: main flow of model is:
     # controller calls: handle player input
@@ -60,9 +96,10 @@ class Model:
         # for player input
 
     def update(self, dt: int):
-        self._update_entities(dt)    # update all
+        self._update_entities(dt) # update all and enqueue self sounds and removes
+        self._detonate_bombs() # detonate, pipeline for explosion and its results, enqueue explosion cells, next frame mag detonate ung hit bombs
         self._process_events()  # add (e.g. new explosions); remove (e.g. timed out explosion/bomb)
-        self._check_explosion_collision() # check collisions
+        self._check_explosion_collision() # check collision with player
         self._process_events() # add (e.g. powerup spawned from block); remove (e.g. dead player)
         self._remove_expired_entities() # remove expired entities in general (idk if this is necessary.)
 
@@ -71,13 +108,102 @@ class Model:
             results = entity.update(dt)
             self._event_buffer += results.events
             self._sfx_buffer += results.sounds
+        
+    def _player_overlaps_cell(self, player: PlayerInfo, row: int, col: int) -> bool:
+        # bounds in pixels
+        cell_x, cell_y, cell_w, cell_h = self._grid.cell_rect(row, col)
+        cell_x2 = cell_x + cell_w
+        cell_y2 = cell_y + cell_h
+
+        # player bounds in pixels (only bttomw 1616)
+        px1 = player.hitbox_x
+        py1 = player.hitbox_y 
+        px2 = px1 + self._tile_size   
+        py2 = py1 + self._tile_size
+
+        # true if hitbix overlap
+        if px2 <= cell_x or px1 >= cell_x2:
+            return False
+        if py2 <= cell_y or py1 >= cell_y2:
+            return False
+        return True
 
     def _check_explosion_collision(self):
-        for explosion in self._world.get_all_type(ExplosionInfo):
-            # check if entity is hit. if so, then remove`
-            # implement pls
-            print(explosion)
-            pass
+        # world matrix collisions with player
+        explosions = self._world.get_all_type(ExplosionInfo)
+
+        #collisions with players (16x16 box)
+        for player in self._players:
+            for explosion in explosions:
+                if self._player_overlaps_cell(player, explosion.row, explosion.col):
+                    player.on_explosion_hit()
+                    # NO enqueues, possible power up
+                    break
+    
+    def _detonate_bombs(self) -> None:
+        for entity in self._world.entities:
+            if isinstance(entity, BombInfo) and entity.should_detonate:
+                # create_explosions(bomb, world, result)
+                result = UpdateResult()
+                self.create_explosions(entity, self._world, result)
+
+                # event buffer
+                self._event_buffer += result.events
+
+    
+    def create_explosions(self, bomb: BombInfo, world: WorldInfo, result: UpdateResultInfo):
+        row, col = bomb.row, bomb.col
+        rng = bomb.explosion_range
+        center_explosion = ExplosionFactory.make(row,col, ExplosionOrientation.CENTER,None)
+        result.add_event(SpawnEvent(center_explosion))
+
+        def propagate(dr: int, dc: int, direction: Direction):
+            cells: list[tuple[int, int]] = [] # pang check if last cell of explosion lang
+
+            r, c = row, col
+
+            for _ in range(rng):
+                r += dr
+                c += dc
+
+                entity = world.get_entity_at(r, c)
+                if isinstance(entity, BlockInfo) and entity.is_hard:
+                    break
+
+                cells.append((r, c))
+
+                if entity is None:
+                    continue
+
+                if isinstance(entity, BlockInfo) and not entity.is_hard:
+                    # soft block burns but stops propagation
+                    entity.on_explosion_hit()
+                    break
+
+                if isinstance(entity, BombInfo): #add POWER-UP here
+                    # detonate bomb and continue propagation
+                    entity.on_explosion_hit()
+                    continue
+
+            
+            for i, (er, ec) in enumerate(cells):
+                # if last, basically different sprite 4 directions
+                is_last = (i == len(cells) - 1)
+
+                # orientation depends on direction axis
+                if direction in (Direction.NORTH, Direction.SOUTH):
+                    orient = ExplosionOrientation.VERTICAL
+                else:
+                    orient = ExplosionOrientation.HORIZONTAL
+
+                terminal = direction if is_last else None
+
+                result.add_event(SpawnEvent(Explosion(er, ec, orient, terminal)))
+
+        propagate(-1, 0, Direction.NORTH)
+        propagate(1, 0, Direction.SOUTH)
+        propagate(0, -1, Direction.WEST)
+        propagate(0, 1, Direction.EAST)
 
     def _process_events(self):
         for event in self._event_buffer:
