@@ -5,8 +5,6 @@ from helpers.event import UpdateResult
 from helpers.grid_adapter import GridAdapter
 
 
-
-
 @dataclass
 class Player():
     def __init__(self, x: float, y: float, world: WorldInfo, grid: GridAdapter, id: int):
@@ -30,6 +28,10 @@ class Player():
     @property
     def entity_type(self) -> EntityType:
         return EntityType.PLAYER
+
+    @property
+    def is_hard(self) -> bool:
+        return True
 
     @property
     def is_expired(self) -> bool:

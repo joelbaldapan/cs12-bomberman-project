@@ -1,5 +1,5 @@
 from __future__ import annotations
-from common_types import EventInfo, EntityInfo, ExplosionInfo, Board, SoundType, EntityType, WorldInfo, BombInfo, PlayerInfo, BlockInfo, UpdateResultInfo, ExplosionOrientation, Direction
+from common_types import EventInfo, EntityInfo, ExplosionInfo, Board, PowerupInfo, SoundType, EntityType, WorldInfo, BombInfo, PlayerInfo, BlockInfo, UpdateResultInfo, ExplosionOrientation, Direction
 from typing import TypeVar
 from helpers.grid_adapter import GridAdapter
 from helpers.event import UpdateResult, SpawnEvent
@@ -79,6 +79,7 @@ class Model:
         self._players: list[PlayerInfo] = []
         self._grid: GridAdapter = grid
         self._tile_size: int = 16
+        self._timer: int = 60 # in seconds, currently set to 1 minute
 
     # NOTE: main flow of model is:
     # controller calls: handle player input
@@ -98,7 +99,7 @@ class Model:
         self._process_events()  # add (e.g. new explosions); remove (e.g. timed out explosion/bomb)
         self._check_explosion_collision() # check collision with player
         self._process_events() # add (e.g. powerup spawned from block); remove (e.g. dead player)
-        self._remove_expired_entities() # remove expired entities in general (idk if this is necessary.)
+        # self._remove_expired_entities() # remove expired entities in general (idk if this is necessary.)
 
     def _update_entities(self, dt: int):
         for entity in self._world.entities:
@@ -112,7 +113,7 @@ class Model:
         cell_x2 = cell_x + cell_w
         cell_y2 = cell_y + cell_h
 
-        # player bounds in pixels (only bttomw 1616)
+        # player bounds in pixels (only bttomw 16x16)
         px1 = player.hitbox_x
         py1 = player.hitbox_y 
         px2 = px1 + self._tile_size   
@@ -164,23 +165,16 @@ class Model:
                 c += dc
 
                 entity = world.get_entity_at(r, c)
-                if isinstance(entity, BlockInfo) and entity.is_hard:
+                if isinstance(entity, BlockInfo) or isinstance(entity, BombInfo):
+                    entity.on_explosion_hit()
                     break
-
                 cells.append((r, c))
-
                 if entity is None:
                     continue
-
-                if isinstance(entity, BlockInfo) and not entity.is_hard:
-                    # soft block burns but stops propagation
-                    entity.on_explosion_hit()
-                    break
-
-                if isinstance(entity, BombInfo): #add POWER-UP here
+                if isinstance(entity, PowerupInfo): 
                     # detonate bomb and continue propagation
                     entity.on_explosion_hit()
-                    continue
+                    break
 
             
             for i, (er, ec) in enumerate(cells):
@@ -207,8 +201,8 @@ class Model:
             event.execute(self._world)
         self._event_buffer = []
 
-    def _remove_expired_entities(self):
-        for entity in self._world.entities:
-            if entity.is_expired:
-                self._world.remove_entity(entity)
+    # def _remove_expired_entities(self):
+    #     for entity in self._world.entities:
+    #         if entity.is_expired:
+    #             self._world.remove_entity(entity)
             
