@@ -4,6 +4,8 @@ from typing import TypeVar
 from helpers.grid_adapter import GridAdapter
 from helpers.event import UpdateResult, SpawnEvent
 from entities.explosion import Explosion, ExplosionFactory
+from copy import deepcopy
+
 T = TypeVar("T", bound=EntityInfo)
 
 class World:
@@ -16,13 +18,25 @@ class World:
         self._entities: set[EntityInfo] = set()
 
     @property
+    def rows(self) -> int:
+        return self._rows
+
+    @property
+    def cols(self) -> int:
+        return self._cols
+    
+    @property
     def entities(self) -> set[EntityInfo]:
         return set(self._entities)
+    
+    @property
+    def board(self) -> Board:
+        return deepcopy(self._board)
 
     def add_entity(self, entity: EntityInfo) -> None:
 
         i, j = entity.row, entity.col
-        if not self._in_bounds(i, j):
+        if not self.in_bounds(i, j):
             return None
         existing = self._board[i][j]
         if existing is not None:
@@ -35,11 +49,11 @@ class World:
 
     def remove_entity(self, entity: EntityInfo) -> None:
         self._entities.discard(entity)
-        if self._in_bounds(entity.row, entity.col):
+        if self.in_bounds(entity.row, entity.col):
             self._board[entity.row][entity.col] = None
 
     def get_entity_at(self, i: int, j: int) -> EntityInfo | None:
-        if self._in_bounds(i, j):
+        if self.in_bounds(i, j):
             return self._board[i][j]
         return None
     
@@ -49,12 +63,12 @@ class World:
             if isinstance(entity, entity_type)
         }
     
-    def _in_bounds(self, i: int, j: int) -> bool:
+    def in_bounds(self, i: int, j: int) -> bool:
         return 0 <= i < self._rows and 0 <= j < self._cols
     
     def is_cell_blocking(self, row: int, col: int) -> bool:
         
-        if not self._in_bounds(row, col):
+        if not self.in_bounds(row, col):
             return True
 
         entity = self._board[row][col]
