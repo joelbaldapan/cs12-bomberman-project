@@ -12,8 +12,7 @@ class Bomb:
     _range: int
     _owner: PlayerInfo
 
-    _current_timer: int = 0
-    _triggered: bool = False  
+    _current_timer: int = 0 
     _expired: bool = False
 
     @property
@@ -23,6 +22,10 @@ class Bomb:
     @property
     def col(self) -> int:
         return self._col
+
+    @property
+    def is_hard(self) -> bool:
+        return False
 
     @property
     def entity_type(self) -> EntityType:
@@ -39,9 +42,6 @@ class Bomb:
     @property
     def owner(self) -> PlayerInfo:
         return self._owner
-    @property
-    def power(self) -> int:
-        return self._range
     @property
     def explosion_range(self) -> int: 
         return self._range
@@ -75,14 +75,12 @@ class Bomb:
     def on_explosion_hit(self) -> None:
         if self._expired:
             return
-
-        self._triggered = True
         self._current_timer = self._full_timer
 
     def get_affected_cells(self) -> list[GridCoords]:
         """
         !!!
-        Right now it just returns yung range ng cells affected, not taking into account yung soft blocks and hard blocks blocking shit,
+        Right now it just returns yung range ng cells affected, not taking into account yung soft blocks and hard blocks blocking stuff,
         kailangan ng world dependency pa ung actual affected areas.
         """
         cells: list[GridCoords] = [(self._row, self._col)]
