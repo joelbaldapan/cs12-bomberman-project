@@ -1,23 +1,17 @@
-import { Schema as S } from "effect"
+import { Schema as S } from "effect";
 
 // common_types py -> ts
 
 // types
 
-export const EntityType = S.Literal(
-  "explosion",
-  "bomb",
-  "block",
-  "player",
-  "powerup"
+export const Direction = S.Union(
+  S.TaggedStruct("north", {}),
+  S.TaggedStruct("south", {}),
+  S.TaggedStruct("east", {}),
+  S.TaggedStruct("west", {})
 );
-export type EntityType = S.Schema.Type<typeof EntityType>;
-
-export const SoundType = S.Literal("explosion", "powerup_get");
-export type SoundType = S.Schema.Type<typeof SoundType>;
-
-export const Direction = S.Literal("north", "south", "east", "west");
-export type Direction = S.Schema.Type<typeof Direction>;
+export type Direction = typeof Direction.Type;
+export const [North, South, East, West] = Direction.members;
 
 export const DirectionVectors = {
   north: [-1, 0],
@@ -26,110 +20,102 @@ export const DirectionVectors = {
   west: [0, -1],
 } as const;
 
-export const ExplosionOrientation = S.Literal("center", "vertical", "horizontal");
-export type ExplosionOrientation = S.Schema.Type<typeof ExplosionOrientation>;
+export const ExplosionOrientation = S.Union(
+  S.TaggedStruct("center", {}),
+  S.TaggedStruct("vertical", {}),
+  S.TaggedStruct("horizontal", {})
+);
+
+export type ExplosionOrientation = typeof ExplosionOrientation.Type;
+export const [Center, Vertical, Horizontal] = ExplosionOrientation.members;
 
 export const GridCoords = S.Tuple(S.Number, S.Number);
 export type GridCoords = S.Schema.Type<typeof GridCoords>;
 
+export const Sound = S.Union(
+  S.TaggedStruct("Explosion", {}),
+  S.TaggedStruct("PowerupGet", {})
+);
+
+export type Sound = typeof Sound.Type;
+export const [ExplosionSound, PowerupGetSound] = Sound.members;
+
 // updates and events
 
-export interface EventInfo {
-    execute(world: WorldInfo): void;
-}
+export const EventInfo = S.Struct({
+// ...
+});
+export type EventInfo = S.Schema.Type<typeof EventInfo>;
 
-export interface UpdateResultInfo {
-    readonly events: EventInfo[];
-    readonly sounds: SoundType[];
-    addEvent(cmd: EventInfo): void;
-    addSound(cmd: SoundType): void;
-}
+export const UpdateResultInfo = S.Struct({
+  events: S.Array(EventInfo),
+  sounds: S.Array(Sound),
+});
 
-// wawrld
+export type UpdateResultInfo = S.Schema.Type<typeof UpdateResultInfo>;
 
-export interface WorldInfo {
-    readonly entities: Set<EntityInfo>;
-    addEntity(entity: EntityInfo): void;
-    removeEntity(entity: EntityInfo): void;
-    getEntityAt(i: number, j: number): EntityInfo | null;
-    getAllType(entityType: EntityType): Set<EntityInfo>;
-    isCellBlocking(row: number, col: number): boolean;
-}
-
-export type Board = (EntityInfo | null)[][];
-
-const BaseEntity = S.Struct({
-    row: S.Number,
-    col: S.Number,
-    isExpired: S.Boolean,
-})
 
 // entities
 
-export const Explosion = S.Struct({
-  ...BaseEntity.fields,
-  entityType: S.Literal("explosion"),
-  currentTimer: S.Number,
-});
-
-
-export const Bomb = S.Struct({
-  ...BaseEntity.fields,
-  entityType: S.Literal("bomb"),
-  currentTimer: S.Number,
-  power: S.Number,
-  shouldDetonate: S.Boolean,
-  explosionRange: S.Number,
-});
-
-export const Block = S.Struct({
-  ...BaseEntity.fields,
-  entityType: S.Literal("block"),
-  isHard: S.Boolean,
-});
-
-export const Player = S.Struct({
-  ...BaseEntity.fields,
-  entityType: S.Literal("player"),
-  x: S.Number,
-  y: S.Number,
-  width: S.Number,
-  height: S.Number,
-  hitboxX: S.Number,
-  hitboxY: S.Number,
-  speed: S.Number,
-});
-
-export const Powerup = S.Struct({
-  ...BaseEntity.fields,
-  entityType: S.Literal("powerup"),
-});
-
-export type ExplosionInfo = S.Schema.Type<typeof Explosion>;
-export type BombInfo = S.Schema.Type<typeof Bomb>;
-export type BlockInfo = S.Schema.Type<typeof Block>;
-export type PlayerInfo = S.Schema.Type<typeof Player>;
-export type PowerupInfo = S.Schema.Type<typeof Powerup>;
+const base = {
+  row: S.Number,
+  col: S.Number,
+  isExpired: S.Boolean,
+}
 
 export const Entity = S.Union(
-  Explosion,
-  Bomb,
-  Block,
-  Player,
-  Powerup
+  S.TaggedStruct("explosion", {
+    ...base,
+    currentTimer: S.Number,
+  }),
+  S.TaggedStruct("bomb", {
+    ...base,
+    currentTimer: S.Number,
+    power: S.Number,
+    shouldDetonate: S.Boolean,
+    explosionRange: S.Number,
+  }),
+  S.TaggedStruct("block", {
+    ...base,
+    isHard: S.Boolean,
+  }),
+  S.TaggedStruct("player", {
+    ...base,
+    x: S.Number,
+    y: S.Number,
+    width: S.Number,
+    height: S.Number,
+    hitboxX: S.Number,
+    hitboxY: S.Number,
+    speed: S.Number,
+  }),
+  S.TaggedStruct("powerup", {
+    ...base,
+  })
 );
 
-export type EntityInfo =
-  | ExplosionInfo
-  | BombInfo
-  | BlockInfo
-  | PlayerInfo
-  | PowerupInfo;
+export type EntityInfo = typeof Entity.Type;
+export const [Explosion, Bomb, Block, Player, Powerup] = Entity.members;
 
-// non-entities
+export type ExplosionInfo = typeof Explosion.Type;
+export type BombInfo = typeof Bomb.Type;
+export type BlockInfo = typeof Block.Type;
+export type PlayerInfo = typeof Player.Type;
+export type PowerupInfo = typeof Powerup.Type;
 
-export interface BotAIInfo {
-    getVisibleDistance(): Set<GridCoords>;
-    getShortestPath(goal: GridCoords): GridCoords[];
-    getNextInput(): Direction | null;   
-}
+// wawld
+
+export const WorldInfo = S.Struct({
+  entities: S.Array(Entity),
+});
+export type WorldInfo = S.Schema.Type<typeof WorldInfo>;
+
+export const Board = S.Array(S.Array(S.NullOr(Entity)));
+export type Board = S.Schema.Type<typeof Board>;
+
+// non-entity
+
+export const BotAIInfo = S.Struct({
+// ...
+});
+export type BotAIInfo = S.Schema.Type<typeof BotAIInfo>;
