@@ -26,7 +26,50 @@ class SpriteMap:
     BOMB_FRAME_3 = SpriteCoords(32, 16, 16, 16)
 
     # explosion
-    ...
+    EXPLOSION_MIDDLE_1 = SpriteCoords(32, 32, 16, 16, 1)
+    EXPLOSION_MIDDLE_2 = SpriteCoords(128, 32, 16, 16, 1)
+    EXPLOSION_MIDDLE_3 = SpriteCoords(32, 128, 16, 16, 1)
+    EXPLOSION_MIDDLE_4 = SpriteCoords(128, 128, 16, 16, 1)
+
+    EXPLOSION_NORTH_END_1 = SpriteCoords(32, 0, 16, 16, 1)
+    EXPLOSION_NORTH_END_2 = SpriteCoords(128, 0, 16, 16, 1)
+    EXPLOSION_NORTH_END_3 = SpriteCoords(32, 96, 16, 16, 1)
+    EXPLOSION_NORTH_END_4 = SpriteCoords(128, 96, 16, 16, 1)
+
+    EXPLOSION_NORTH_SEGMENT_1 = SpriteCoords(32, 16, 16, 16, 1)    
+    EXPLOSION_NORTH_SEGMENT_2 = SpriteCoords(128, 16, 16, 16, 1) 
+    EXPLOSION_NORTH_SEGMENT_3 = SpriteCoords(32, 112, 16, 16, 1) 
+    EXPLOSION_NORTH_SEGMENT_4 = SpriteCoords(128, 112, 16, 16, 1) 
+
+    EXPLOSION_SOUTH_END_1 = SpriteCoords(32, 64, 16, 16, 1)
+    EXPLOSION_SOUTH_END_2 = SpriteCoords(128, 64, 16, 16, 1)
+    EXPLOSION_SOUTH_END_3 = SpriteCoords(32, 160, 16, 16, 1)
+    EXPLOSION_SOUTH_END_4 = SpriteCoords(128, 160, 16, 16, 1)
+
+    EXPLOSION_SOUTH_SEGMENT_1 = SpriteCoords(32, 48, 16, 16, 1)    
+    EXPLOSION_SOUTH_SEGMENT_2 = SpriteCoords(128, 48, 16, 16, 1) 
+    EXPLOSION_SOUTH_SEGMENT_3 = SpriteCoords(32, 144, 16, 16, 1) 
+    EXPLOSION_SOUTH_SEGMENT_4 = SpriteCoords(128, 144, 16, 16, 1) 
+
+    EXPLOSION_WEST_END_1 = SpriteCoords(0, 32, 16, 16, 1)
+    EXPLOSION_WEST_END_2 = SpriteCoords(96, 32, 16, 16, 1)
+    EXPLOSION_WEST_END_3 = SpriteCoords(0, 128, 16, 16, 1)
+    EXPLOSION_WEST_END_4 = SpriteCoords(96, 128, 16, 16, 1)
+
+    EXPLOSION_WEST_SEGMENT_1 = SpriteCoords(16, 32, 16, 16, 1)    
+    EXPLOSION_WEST_SEGMENT_2 = SpriteCoords(112, 32, 16, 16, 1) 
+    EXPLOSION_WEST_SEGMENT_3 = SpriteCoords(16, 128, 16, 16, 1) 
+    EXPLOSION_WEST_SEGMENT_4 = SpriteCoords(112, 128, 16, 16, 1) 
+
+    EXPLOSION_EAST_END_1 = SpriteCoords(64, 32, 16, 16, 1)
+    EXPLOSION_EAST_END_2 = SpriteCoords(160, 32, 16, 16, 1)
+    EXPLOSION_EAST_END_3 = SpriteCoords(64, 128, 16, 16, 1)
+    EXPLOSION_EAST_END_4 = SpriteCoords(160, 128, 16, 16, 1)
+
+    EXPLOSION_EAST_SEGMENT_1 = SpriteCoords(48, 32, 16, 16, 1)    
+    EXPLOSION_EAST_SEGMENT_2 = SpriteCoords(144, 32, 16, 16, 1) 
+    EXPLOSION_EAST_SEGMENT_3 = SpriteCoords(48, 128, 16, 16, 1) 
+    EXPLOSION_EAST_SEGMENT_4 = SpriteCoords(144, 128, 16, 16, 1) 
 
     # powerups
     POWERUP_BOMB = SpriteCoords(48, 16, 16, 16)
