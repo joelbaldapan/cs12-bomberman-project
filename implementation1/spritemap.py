@@ -181,7 +181,7 @@ def init_sprites(cls): # type: ignore
     ...
 
 @staticmethod
-def get_player_sprite(cls: SpriteMap, player: int, direction: str) -> list[SpriteCoords]:
+def get_player_sprite(player: int, direction: str) -> list[SpriteCoords]:
     match player:
         case 1:
             match direction:
@@ -225,7 +225,7 @@ def get_player_sprite(cls: SpriteMap, player: int, direction: str) -> list[Sprit
                     return [SpriteMap.P4_WEST, SpriteMap.P4_WALK_WEST_1, SpriteMap.P4_WEST, SpriteMap.P4_WALK_WEST_2]
 
 @staticmethod
-def get_player_idle(cls: SpriteMap, player: int, direction: str) -> SpriteCoords:
+def get_player_idle(player: int, direction: str) -> SpriteCoords:
     match player:
         case 1:
             match direction:
@@ -269,28 +269,28 @@ def get_player_idle(cls: SpriteMap, player: int, direction: str) -> SpriteCoords
                     return SpriteMap.P4_WEST
 
 @staticmethod
-def get_player_death_sprite(cls: SpriteMap, player: int, frame: int) -> SpriteCoords: 
-    frame = 0 # to be implemented later, hindi ko pa maisip/may ganaps pa kami hehe
-    death_sprite_loop: list[SpriteCoords] = [] # type: ignore 
+def get_player_death_sprite(player: int, frame: int) -> SpriteCoords: 
+    frame = max(0, min(frame, 5))
+    death_sprite_loop: list[SpriteCoords] = []
 
     match player:
         case 1:
-            death_sprites = [SpriteMap.P1_DEATH_1, SpriteMap.P1_DEATH_2, SpriteMap.P1_DEATH_3,
+            death_sprite_loop = [SpriteMap.P1_DEATH_1, SpriteMap.P1_DEATH_2, SpriteMap.P1_DEATH_3,
                             SpriteMap.P1_DEATH_4, SpriteMap.P1_DEATH_5, SpriteMap.P1_DEATH_6]
         case 2:
-            death_sprites = [SpriteMap.P2_DEATH_1, SpriteMap.P2_DEATH_2, SpriteMap.P2_DEATH_3,
+            death_sprite_loop = [SpriteMap.P2_DEATH_1, SpriteMap.P2_DEATH_2, SpriteMap.P2_DEATH_3,
                             SpriteMap.P2_DEATH_4, SpriteMap.P2_DEATH_5, SpriteMap.P2_DEATH_6]
         case 3:
-            death_sprites= [SpriteMap.P3_DEATH_1, SpriteMap.P3_DEATH_2, SpriteMap.P3_DEATH_3,
+            death_sprite_loop = [SpriteMap.P3_DEATH_1, SpriteMap.P3_DEATH_2, SpriteMap.P3_DEATH_3,
                             SpriteMap.P3_DEATH_4, SpriteMap.P3_DEATH_5, SpriteMap.P3_DEATH_6]
         case _:  # player == 4
-            death_sprites = [SpriteMap.P4_DEATH_1, SpriteMap.P4_DEATH_2, SpriteMap.P4_DEATH_3,
+            death_sprite_loop = [SpriteMap.P4_DEATH_1, SpriteMap.P4_DEATH_2, SpriteMap.P4_DEATH_3,
                             SpriteMap.P4_DEATH_4, SpriteMap.P4_DEATH_5, SpriteMap.P4_DEATH_6]
     
-    return death_sprites[frame]
+    return death_sprite_loop[frame]
 
 @staticmethod
-def get_bomb_sprite(cls: SpriteMap, frame: int) -> SpriteCoords: 
+def get_bomb_sprite(frame: int) -> SpriteCoords: 
     frame = frame % 3 # needed in order to cycle the 3 animations
     match frame:
         case 0:
@@ -301,18 +301,120 @@ def get_bomb_sprite(cls: SpriteMap, frame: int) -> SpriteCoords:
             return SpriteMap.BOMB_FRAME_3
 
 @staticmethod
-def get_explosion_sprite(cls: SpriteMap, orientation: str, direction: str, frames: int  ) -> SpriteCoords: # 15 frames between animation change; 15 * 4 = 60 =2 seconds
-    # if orientation == "CENTER":
-    #     return ...
-    # elif orientation == "VERTICAL":
-    #     return ...
-    # else: # orientation == "HORIZONTAL"
-    #     return ...
-    ...
+def get_explosion_sprite(orientation: str, direction: str, frame: int) -> SpriteCoords:
+    frame = max(0, min(frame, 3))
+    match orientation:
+        case "CENTER":
+            match frame:
+                case 0: return SpriteMap.EXPLOSION_MIDDLE_1
+                case 1: return SpriteMap.EXPLOSION_MIDDLE_2
+                case 2: return SpriteMap.EXPLOSION_MIDDLE_3
+                case 3: return SpriteMap.EXPLOSION_MIDDLE_4
+                case _: return SpriteMap.EXPLOSION_MIDDLE_1  # Default
+        
+        case "VERTICAL":
+            match direction:
+                case "NORTH":
+                    match frame:
+                        case 0: return SpriteMap.EXPLOSION_NORTH_SEGMENT_1
+                        case 1: return SpriteMap.EXPLOSION_NORTH_SEGMENT_2
+                        case 2: return SpriteMap.EXPLOSION_NORTH_SEGMENT_3
+                        case 3: return SpriteMap.EXPLOSION_NORTH_SEGMENT_4
+                        case _: return SpriteMap.EXPLOSION_NORTH_SEGMENT_1
+                
+                case "SOUTH":
+                    match frame:
+                        case 0: return SpriteMap.EXPLOSION_SOUTH_SEGMENT_1
+                        case 1: return SpriteMap.EXPLOSION_SOUTH_SEGMENT_2
+                        case 2: return SpriteMap.EXPLOSION_SOUTH_SEGMENT_3
+                        case 3: return SpriteMap.EXPLOSION_SOUTH_SEGMENT_4
+                        case _: return SpriteMap.EXPLOSION_SOUTH_SEGMENT_1
+                
+                case _:  # Default vertical
+                    match frame:
+                        case 0: return SpriteMap.EXPLOSION_NORTH_SEGMENT_1
+                        case 1: return SpriteMap.EXPLOSION_NORTH_SEGMENT_2
+                        case 2: return SpriteMap.EXPLOSION_NORTH_SEGMENT_3
+                        case 3: return SpriteMap.EXPLOSION_NORTH_SEGMENT_4
+                        case _: return SpriteMap.EXPLOSION_NORTH_SEGMENT_1
+        
+        case "HORIZONTAL":
+            match direction:
+                case "WEST":
+                    match frame:
+                        case 0: return SpriteMap.EXPLOSION_WEST_SEGMENT_1
+                        case 1: return SpriteMap.EXPLOSION_WEST_SEGMENT_2
+                        case 2: return SpriteMap.EXPLOSION_WEST_SEGMENT_3
+                        case 3: return SpriteMap.EXPLOSION_WEST_SEGMENT_4
+                        case _: return SpriteMap.EXPLOSION_WEST_SEGMENT_1
+                
+                case _: # "EAST"
+                    match frame:
+                        case 0: return SpriteMap.EXPLOSION_EAST_SEGMENT_1
+                        case 1: return SpriteMap.EXPLOSION_EAST_SEGMENT_2
+                        case 2: return SpriteMap.EXPLOSION_EAST_SEGMENT_3
+                        case 3: return SpriteMap.EXPLOSION_EAST_SEGMENT_4
+                        case _: return SpriteMap.EXPLOSION_EAST_SEGMENT_1
+        
+        case "END":
+            match direction:
+                case "NORTH":
+                    match frame:
+                        case 0: return SpriteMap.EXPLOSION_NORTH_END_1
+                        case 1: return SpriteMap.EXPLOSION_NORTH_END_2
+                        case 2: return SpriteMap.EXPLOSION_NORTH_END_3
+                        case 3: return SpriteMap.EXPLOSION_NORTH_END_4
+                        case _: return SpriteMap.EXPLOSION_NORTH_END_1
+                
+                case "SOUTH":
+                    match frame:
+                        case 0: return SpriteMap.EXPLOSION_SOUTH_END_1
+                        case 1: return SpriteMap.EXPLOSION_SOUTH_END_2
+                        case 2: return SpriteMap.EXPLOSION_SOUTH_END_3
+                        case 3: return SpriteMap.EXPLOSION_SOUTH_END_4
+                        case _: return SpriteMap.EXPLOSION_SOUTH_END_1
+                
+                case "WEST":
+                    match frame:
+                        case 0: return SpriteMap.EXPLOSION_WEST_END_1
+                        case 1: return SpriteMap.EXPLOSION_WEST_END_2
+                        case 2: return SpriteMap.EXPLOSION_WEST_END_3
+                        case 3: return SpriteMap.EXPLOSION_WEST_END_4
+                        case _: return SpriteMap.EXPLOSION_WEST_END_1
+                
+                case _: # "EAST"
+                    match frame:
+                        case 0: return SpriteMap.EXPLOSION_EAST_END_1
+                        case 1: return SpriteMap.EXPLOSION_EAST_END_2
+                        case 2: return SpriteMap.EXPLOSION_EAST_END_3
+                        case 3: return SpriteMap.EXPLOSION_EAST_END_4
+                        case _: return SpriteMap.EXPLOSION_EAST_END_1
+        
+        case _:  # defaults to middle
+            match frame:
+                case 0: return SpriteMap.EXPLOSION_MIDDLE_1
+                case 1: return SpriteMap.EXPLOSION_MIDDLE_2
+                case 2: return SpriteMap.EXPLOSION_MIDDLE_3
+                case 3: return SpriteMap.EXPLOSION_MIDDLE_4
+                case _: return SpriteMap.EXPLOSION_MIDDLE_1
+        
 
 @staticmethod
-def get_soft_block_sprite(cls: SpriteMap, frame: int) -> SpriteCoords:
-    ...
+def get_soft_block_sprite(frame: int) -> SpriteCoords:
+    frame = max(0, min(frame, 4))
+    match frame:
+        case 0:
+            return SpriteMap.SOFT_BLOCK  
+        case 1:
+            return SpriteMap.SOFT_ON_HIT_2  
+        case 2:
+            return SpriteMap.SOFT_ON_HIT_3 
+        case 3:
+            return SpriteMap.SOFT_ON_HIT_4 
+        case 4:
+            return SpriteMap.SOFT_ON_HIT_5 
+        case _:
+            return SpriteMap.SOFT_BLOCK  # fallback frame
 
 class Animation:
     def __init__(self, fps: int = 30):
