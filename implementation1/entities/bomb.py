@@ -1,7 +1,8 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from common_types import GridCoords, PlayerInfo, EntityType, SoundType, UpdateResultInfo
-from helpers.event import RemoveEvent, UpdateResult
+from common_types import GridCoords, PlayerInfo, EntityType, SoundType, UpdateResultInfo, WorldInfo, Direction
+from helpers.event import RemoveEvent, UpdateResult, SpawnEvent
+from explosion import Explosion, ExplosionFactory, ExplosionOrientation
 
 
 @dataclass
@@ -24,10 +25,6 @@ class Bomb:
         return self._col
 
     @property
-    def is_hard(self) -> bool:
-        return False
-
-    @property
     def entity_type(self) -> EntityType:
         return EntityType.BOMB
 
@@ -48,28 +45,18 @@ class Bomb:
     
     @property
     def should_detonate(self) -> bool:
-        # one is for being caught in explosion, other is fuse running out
-        return self._triggered or self.current_timer >= self._full_timer
+        return self.current_timer >= self._full_timer
 
 
     def update(self, dt: int) -> UpdateResultInfo:
         result = UpdateResult()
-
         if self._expired:
             return result
-
         self._current_timer += dt
-        if self._triggered:
+        if self.should_detonate and not self._expired:
             result.add_event(RemoveEvent(self))
             result.add_sound(SoundType.EXPLOSION)
             self._expired = True
-
-        if not self._triggered and self._current_timer >= self._full_timer:
-            self._triggered = True
-            result.add_event(RemoveEvent(self))
-            result.add_sound(SoundType.EXPLOSION)
-            self._expired = True
-
         return result
 
     def on_explosion_hit(self) -> None:
@@ -77,21 +64,76 @@ class Bomb:
             return
         self._current_timer = self._full_timer
 
-    def get_affected_cells(self) -> list[GridCoords]:
-        """
-        !!!
-        Right now it just returns yung range ng cells affected, not taking into account yung soft blocks and hard blocks blocking stuff,
-        kailangan ng world dependency pa ung actual affected areas.
-        """
-        cells: list[GridCoords] = [(self._row, self._col)]
+    def get_affected_cells(self, world: WorldInfo)-> list[GridCoords]:
+        row, col = self.row, self.col
+        rng = self.explosion_range
+        
+        cells: list[GridCoords] = []
+        cells.append((row, col))
 
-        for d in range(1, self._range + 1):
-            cells.append((self._row - d, self._col))  #north
-            cells.append((self._row + d, self._col))  #south
-            cells.append((self._row, self._col - d))  #west
-            cells.append((self._row, self._col + d))  #east
+        def project(dr: int, dc: int):
+            r, c = row, col
+            
+            for _ in range(rng):
+                r += dr
+                c += dc
+                if not world.in_bounds(r, c):
+                    break
+                entity = world.get_entity_at(r, c)
+                if entity is None:
+                    cells.append((r, c))
+                    continue
+                else:
+                    return
 
+        project(-1, 0)
+        project(1, 0)
+        project(0, -1)
+        project(0, 1)
         return cells
+    
+    def create_explosions(self, world: WorldInfo, result: UpdateResultInfo):
+            row, col = self.row, self.col
+            rng = self.explosion_range
+            center_explosion = ExplosionFactory.make(row,col, ExplosionOrientation.CENTER,None)
+            result.add_event(SpawnEvent(center_explosion))
+    
+            def propagate(dr: int, dc: int, direction: Direction):
+                cells: list[tuple[int, int]] = [] # pang check if last cell of explosion lang
+    
+                r, c = row, col
+    
+                for _ in range(rng):
+                    r += dr
+                    c += dc
+                    if not world.in_bounds(r, c):
+                        break
+                    entity = world.get_entity_at(r, c)
+                    if entity is None:
+                        cells.append((r, c))
+                        continue
+                    else:
+                        entity.on_explosion_hit()
+                        break
+                
+                for i, (er, ec) in enumerate(cells):
+                    # if last, basically different sprite 4 directions
+                    is_last = (i == len(cells) - 1)
+    
+                    # orientation depends on direction axis
+                    if direction in (Direction.NORTH, Direction.SOUTH):
+                        orient = ExplosionOrientation.VERTICAL
+                    else:
+                        orient = ExplosionOrientation.HORIZONTAL
+    
+                    terminal = direction if is_last else None
+    
+                    result.add_event(SpawnEvent(Explosion(er, ec, orient, terminal)))
+    
+            propagate(-1, 0, Direction.NORTH)
+            propagate(1, 0, Direction.SOUTH)
+            propagate(0, -1, Direction.WEST)
+            propagate(0, 1, Direction.EAST)
 
 class BombFactory:
     @classmethod

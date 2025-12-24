@@ -39,9 +39,6 @@ class Explosion:
     def is_expired(self) -> bool:
         return self._expired
     
-    @property
-    def is_hard(self) -> bool:
-        return False
 
     def on_explosion_hit(self) -> None:
         return None

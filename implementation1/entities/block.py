@@ -21,14 +21,14 @@ class HardBlock:
     @property
     def entity_type(self) -> EntityType: 
         return EntityType.BLOCK
+    
+    @property
+    def is_hard(self)-> bool:
+        return True
 
     @property
     def is_expired(self) -> bool: 
         return self._expired
-
-    @property
-    def is_hard(self) -> bool: 
-        return True
 
     def on_explosion_hit(self) -> None:
         return
@@ -59,9 +59,9 @@ class SoftBlock:
     @property
     def is_expired(self) -> bool: 
         return self._expired
-
+    
     @property
-    def is_hard(self) -> bool: 
+    def is_hard(self)-> bool:
         return False
 
     def on_explosion_hit(self) -> None:

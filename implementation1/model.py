@@ -1,9 +1,8 @@
 from __future__ import annotations
-from common_types import EventInfo, EntityInfo, ExplosionInfo, Board, PowerupInfo, SoundType, EntityType, WorldInfo, BombInfo, PlayerInfo, BlockInfo, UpdateResultInfo, ExplosionOrientation, Direction
+from common_types import EventInfo, EntityInfo, ExplosionInfo, Board, SoundType, EntityType, WorldInfo, BombInfo, PlayerInfo
 from typing import TypeVar
 from helpers.grid_adapter import GridAdapter
-from helpers.event import UpdateResult, SpawnEvent
-from entities.explosion import Explosion, ExplosionFactory
+from helpers.event import UpdateResult
 from copy import deepcopy
 
 T = TypeVar("T", bound=EntityInfo)
@@ -44,8 +43,6 @@ class World:
         self._entities.add(entity)
         self._board[entity.row][entity.col] = entity
 
-        #Might need to add boolean return
-        #Issue with overlapping explosion with entities.....
 
     def remove_entity(self, entity: EntityInfo) -> None:
         self._entities.discard(entity)
@@ -157,58 +154,12 @@ class Model:
             if isinstance(entity, BombInfo) and entity.should_detonate:
                 # create_explosions(bomb, world, result)
                 result = UpdateResult()
-                self.create_explosions(entity, self._world, result)
+                entity.create_explosions(self._world, result)
 
                 # event buffer
                 self._event_buffer += result.events
 
     
-    def create_explosions(self, bomb: BombInfo, world: WorldInfo, result: UpdateResultInfo):
-        row, col = bomb.row, bomb.col
-        rng = bomb.explosion_range
-        center_explosion = ExplosionFactory.make(row,col, ExplosionOrientation.CENTER,None)
-        result.add_event(SpawnEvent(center_explosion))
-
-        def propagate(dr: int, dc: int, direction: Direction):
-            cells: list[tuple[int, int]] = [] # pang check if last cell of explosion lang
-
-            r, c = row, col
-
-            for _ in range(rng):
-                r += dr
-                c += dc
-
-                entity = world.get_entity_at(r, c)
-                if isinstance(entity, BlockInfo) or isinstance(entity, BombInfo):
-                    entity.on_explosion_hit()
-                    break
-                cells.append((r, c))
-                if entity is None:
-                    continue
-                if isinstance(entity, PowerupInfo): 
-                    # detonate bomb and continue propagation
-                    entity.on_explosion_hit()
-                    break
-
-            
-            for i, (er, ec) in enumerate(cells):
-                # if last, basically different sprite 4 directions
-                is_last = (i == len(cells) - 1)
-
-                # orientation depends on direction axis
-                if direction in (Direction.NORTH, Direction.SOUTH):
-                    orient = ExplosionOrientation.VERTICAL
-                else:
-                    orient = ExplosionOrientation.HORIZONTAL
-
-                terminal = direction if is_last else None
-
-                result.add_event(SpawnEvent(Explosion(er, ec, orient, terminal)))
-
-        propagate(-1, 0, Direction.NORTH)
-        propagate(1, 0, Direction.SOUTH)
-        propagate(0, -1, Direction.WEST)
-        propagate(0, 1, Direction.EAST)
 
     def _process_events(self):
         for event in self._event_buffer:

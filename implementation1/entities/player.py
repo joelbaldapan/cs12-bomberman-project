@@ -30,10 +30,6 @@ class Player():
         return EntityType.PLAYER
 
     @property
-    def is_hard(self) -> bool:
-        return True
-
-    @property
     def is_expired(self) -> bool:
         return self._expired
 
