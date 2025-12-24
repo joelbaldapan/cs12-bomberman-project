@@ -83,9 +83,9 @@ class SpriteMap:
     P1_WALK_SOUTH_1 = SpriteCoords(32, 32, 16, 24)
     P1_WALK_SOUTH_2 = SpriteCoords(0, 32, 16, 24)
 
-    P1_NORTH = (16, 80, 16, 24)
-    P1_WALK_NORTH_1 = (32, 80, 16, 24)
-    P1_WALK_NORTH_2 = (0, 80, 16, 24)
+    P1_NORTH = SpriteCoords(16, 80, 16, 24)
+    P1_WALK_NORTH_1 = SpriteCoords(32, 80, 16, 24)
+    P1_WALK_NORTH_2 = SpriteCoords(0, 80, 16, 24)
 
     P1_EAST = SpriteCoords(16, 56, 16, 24)
     P1_WALK_EAST_1 = SpriteCoords(32, 56, 16, 24)
@@ -107,9 +107,9 @@ class SpriteMap:
     P2_WALK_SOUTH_1 = SpriteCoords(80, 32, 16, 24)
     P2_WALK_SOUTH_2 = SpriteCoords(48, 32, 16, 24)
 
-    P2_NORTH = (64, 80, 16, 24)
-    P2_WALK_NORTH_1 = (80, 80, 16, 24)
-    P2_WALK_NORTH_2 = (48, 80, 16, 24)
+    P2_NORTH = SpriteCoords(64, 80, 16, 24)
+    P2_WALK_NORTH_1 = SpriteCoords(80, 80, 16, 24)
+    P2_WALK_NORTH_2 = SpriteCoords(48, 80, 16, 24)
 
     P2_EAST = SpriteCoords(64, 56, 16, 24)
     P2_WALK_EAST_1 = SpriteCoords(80, 56, 16, 24)
@@ -131,9 +131,9 @@ class SpriteMap:
     P3_WALK_SOUTH_1 = SpriteCoords(128, 32, 16, 24)
     P3_WALK_SOUTH_2 = SpriteCoords(96, 32, 16, 24)
 
-    P3_NORTH = (112, 80, 16, 24)
-    P3_WALK_NORTH_1 = (128, 80, 16, 24)
-    P3_WALK_NORTH_2 = (96, 80, 16, 24)
+    P3_NORTH = SpriteCoords(112, 80, 16, 24)
+    P3_WALK_NORTH_1 = SpriteCoords(128, 80, 16, 24)
+    P3_WALK_NORTH_2 = SpriteCoords(96, 80, 16, 24)
 
     P3_EAST = SpriteCoords(112, 56, 16, 24)
     P3_WALK_EAST_1 = SpriteCoords(128, 56, 16, 24)
@@ -155,9 +155,9 @@ class SpriteMap:
     P4_WALK_SOUTH_1 = SpriteCoords(176, 32, 16, 24)
     P4_WALK_SOUTH_2 = SpriteCoords(144, 32, 16, 24)
 
-    P4_NORTH = (160, 80, 16, 24)
-    P4_WALK_NORTH_1 = (176, 80, 16, 24)
-    P4_WALK_NORTH_2 = (144, 80, 16, 24)
+    P4_NORTH = SpriteCoords(160, 80, 16, 24)
+    P4_WALK_NORTH_1 = SpriteCoords(176, 80, 16, 24)
+    P4_WALK_NORTH_2 = SpriteCoords(144, 80, 16, 24)
 
     P4_EAST = SpriteCoords(160, 56, 16, 24)
     P4_WALK_EAST_1 = SpriteCoords(176, 56, 16, 24)
@@ -180,24 +180,101 @@ class SpriteMap:
 def init_sprites(cls): # type: ignore
     ...
 
-@classmethod
-def get_player_spite(cls, player: int, direction: str, frame: int) -> SpriteCoords: # type: ignore
+@staticmethod
+def get_player_sprite(cls: SpriteMap, player: int, direction: str, frame: int) -> list[SpriteCoords]:
+    if player == 1:
+        if direction == "NORTH":
+            return [cls.P1_NORTH, cls.P1_WALK_NORTH_1, cls.P1_NORTH, cls.P1_WALK_NORTH_2]
+        elif direction == "SOUTH":
+            return [cls.P1_SOUTH, cls.P1_WALK_SOUTH_1, cls.P1_SOUTH, cls.P1_WALK_SOUTH_2]
+        elif direction == "EAST":
+            return [cls.P1_EAST, cls.P1_WALK_EAST_1, cls.P1_EAST, cls.P1_WALK_EAST_2]
+        else: # "WEST"
+            return [cls.P1_WEST, cls.P1_WALK_WEST_1, cls.P1_WEST, cls.P1_WALK_WEST_2]
+
+    elif player == 2:
+        if direction == "NORTH":
+            return [cls.P2_NORTH, cls.P2_WALK_NORTH_1, cls.P2_NORTH, cls.P2_WALK_NORTH_2]
+        elif direction == "SOUTH":
+            return [cls.P2_SOUTH, cls.P2_WALK_SOUTH_1, cls.P2_SOUTH, cls.P2_WALK_SOUTH_2]
+        elif direction == "EAST":
+            return [cls.P2_EAST, cls.P2_WALK_EAST_1, cls.P2_EAST, cls.P2_WALK_EAST_2]
+        else: # "WEST"
+            return [cls.P2_WEST, cls.P2_WALK_WEST_1, cls.P2_WEST, cls.P2_WALK_WEST_2]
+        
+    elif player == 3:
+        if direction == "NORTH":
+            return [cls.P3_NORTH, cls.P3_WALK_NORTH_1, cls.P3_NORTH, cls.P3_WALK_NORTH_2]
+        elif direction == "SOUTH":
+            return [cls.P3_SOUTH, cls.P3_WALK_SOUTH_1, cls.P3_SOUTH, cls.P3_WALK_SOUTH_2]
+        elif direction == "EAST":
+            return [cls.P3_EAST, cls.P3_WALK_EAST_1, cls.P3_EAST, cls.P3_WALK_EAST_2]
+        else: # "WEST"
+            return [cls.P3_WEST, cls.P3_WALK_WEST_1, cls.P3_WEST, cls.P3_WALK_WEST_2]
+    
+    else: # player == 4
+        if direction == "NORTH":
+            return [cls.P4_NORTH, cls.P4_WALK_NORTH_1, cls.P4_NORTH, cls.P4_WALK_NORTH_2]
+        elif direction == "SOUTH":
+            return [cls.P4_SOUTH, cls.P4_WALK_SOUTH_1, cls.P4_SOUTH, cls.P4_WALK_SOUTH_2]
+        elif direction == "EAST":
+            return [cls.P4_EAST, cls.P4_WALK_EAST_1, cls.P4_EAST, cls.P4_WALK_EAST_2]
+        else: # "WEST"
+            return [cls.P4_WEST, cls.P4_WALK_WEST_1, cls.P4_WEST, cls.P4_WALK_WEST_2]
+
+@staticmethod
+def get_player_idle(cls: SpriteMap, player: int, direction: str, frame: int) -> SpriteCoords:
+    if player == 1:
+        if direction == "NORTH":
+            return cls.P1_NORTH
+        elif direction == "SOUTH":
+            return cls.P1_SOUTH
+        elif direction == "EAST":
+            return cls.P1_EAST
+        else: # "WEST"
+            return cls.P1_WEST
+    elif player == 2:
+        if direction == "NORTH":
+            return cls.P2_NORTH
+        elif direction == "SOUTH":
+            return cls.P2_SOUTH
+        elif direction == "EAST":
+            return cls.P2_EAST
+        else: # "WEST"
+            return cls.P2_WEST    
+    elif player == 3:
+        if direction == "NORTH":
+            return cls.P3_NORTH
+        elif direction == "SOUTH":
+            return cls.P3_SOUTH
+        elif direction == "EAST":
+            return cls.P3_EAST
+        else: # "WEST"
+            return cls.P3_WEST    
+    else: # player == 4
+        if direction == "NORTH":
+            return cls.P4_NORTH
+        elif direction == "SOUTH":
+            return cls.P4_SOUTH
+        elif direction == "EAST":
+            return cls.P4_EAST
+        else: # "WEST"
+            return cls.P4_WEST
+
+@staticmethod
+def get_player_death_sprite(cls: SpriteCoords, player: int, frame: int) -> SpriteCoords: 
     ...
 
-@classmethod
-def get_player_death_sprite(cls, player: int, frame: int) -> SpriteCoords: # type: ignore
+@staticmethod
+def get_bomb_sprite(cls: SpriteCoords, frame: int) -> SpriteCoords: 
     ...
 
-@classmethod
-def get_bomb_sprite(cls, frame) -> SpriteCoords: # type: ignore
+@staticmethod
+def get_explosion_sprite(cls: SpriteCoords, orientation: str, direction: str) -> SpriteCoords:
     ...
 
-@classmethod
-def get_explosion_sprite(cls, orientation, direction) -> SpriteCoords: # type: ignore
-    ...
-
-@classmethod
-def get_soft_block_sprite(cls, frame: int) -> SpriteCoords: # type: ignore
+@staticmethod
+def get_soft_block_sprite(cls: SpriteCoords, frame: int) -> SpriteCoords:
     ...
 
 class Animation:
