@@ -181,7 +181,7 @@ def init_sprites(cls): # type: ignore
     ...
 
 @staticmethod
-def get_player_sprite(cls: SpriteMap, player: int, direction: str, frame: int) -> list[SpriteCoords]:
+def get_player_sprite(cls: SpriteMap, player: int, direction: str) -> list[SpriteCoords]:
     if player == 1:
         if direction == "NORTH":
             return [cls.P1_NORTH, cls.P1_WALK_NORTH_1, cls.P1_NORTH, cls.P1_WALK_NORTH_2]
@@ -223,7 +223,7 @@ def get_player_sprite(cls: SpriteMap, player: int, direction: str, frame: int) -
             return [cls.P4_WEST, cls.P4_WALK_WEST_1, cls.P4_WEST, cls.P4_WALK_WEST_2]
 
 @staticmethod
-def get_player_idle(cls: SpriteMap, player: int, direction: str, frame: int) -> SpriteCoords:
+def get_player_idle(cls: SpriteMap, player: int, direction: str) -> SpriteCoords:
     if player == 1:
         if direction == "NORTH":
             return cls.P1_NORTH
@@ -262,19 +262,40 @@ def get_player_idle(cls: SpriteMap, player: int, direction: str, frame: int) -> 
             return cls.P4_WEST
 
 @staticmethod
-def get_player_death_sprite(cls: SpriteCoords, player: int, frame: int) -> SpriteCoords: 
-    ...
+def get_player_death_sprite(cls: SpriteMap, player: int, frame: int) -> SpriteCoords: 
+    frame = 0 # to be implemented later, hindi ko pa maisip/may ganaps pa kami hehe
+    death_sprite_loop: list[SpriteCoords] = []
+
+    if player == 1:
+        death_sprite_loop = [cls.P1_DEATH_1, cls.P1_DEATH_2, cls.P1_DEATH_3,cls.P1_DEATH_4, cls.P1_DEATH_5, cls. P1_DEATH_6]
+    elif player == 2:
+        death_sprite_loop =  [cls.P2_DEATH_1, cls.P2_DEATH_2, cls.P2_DEATH_3,cls.P2_DEATH_4, cls.P2_DEATH_5, cls. P2_DEATH_6]
+    elif player == 3:
+        death_sprite_loop = [cls.P3_DEATH_1, cls.P3_DEATH_2, cls.P3_DEATH_3,cls.P3_DEATH_4, cls.P3_DEATH_5, cls. P3_DEATH_6]
+    else: # player == 4
+        death_sprite_loop = [cls.P4_DEATH_1, cls.P4_DEATH_2, cls.P4_DEATH_3,cls.P4_DEATH_4, cls.P4_DEATH_5, cls. P4_DEATH_6]
+
+    return death_sprite_loop[frame]
+@staticmethod
+def get_bomb_sprite(cls: SpriteMap, frame: int) -> SpriteCoords: 
+    frame = frame % 3 # needed in order to cycle the 3 animations
+    if frame == 0:
+        return cls.BOMB_FRAME_1
+    elif frame == 1:
+        return cls.BOMB_FRAME_2
+    else: # frame == 2
+        return cls.BOMB_FRAME_3
 
 @staticmethod
-def get_bomb_sprite(cls: SpriteCoords, frame: int) -> SpriteCoords: 
-    ...
-
+def get_explosion_sprite(cls: SpriteMap, orientation: str, direction: str, frames: int  ) -> SpriteCoords: # 15 frames between animation change; 15 * 4 = 60 =2 seconds
+    if orientation == "CENTER":
+        return ...
+    elif orientation == "VERTICAL":
+        return ...
+    else: # orientation == "HORIZONTAL"
+        return ...
 @staticmethod
-def get_explosion_sprite(cls: SpriteCoords, orientation: str, direction: str) -> SpriteCoords:
-    ...
-
-@staticmethod
-def get_soft_block_sprite(cls: SpriteCoords, frame: int) -> SpriteCoords:
+def get_soft_block_sprite(cls: SpriteMap, frame: int) -> SpriteCoords:
     ...
 
 class Animation:
