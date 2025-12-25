@@ -174,12 +174,6 @@ class SpriteMap:
     P4_DEATH_5 = SpriteCoords(64, 200, 16, 24)
     P4_DEATH_6 = SpriteCoords(80, 200, 16, 24)
 
-
-# for animations might be able to think of a better implementation for later
-@classmethod
-def init_sprites(cls): # type: ignore
-    ...
-
 @staticmethod
 def get_player_sprite(player: int, direction: str) -> list[SpriteCoords]:
     match player:
@@ -310,7 +304,7 @@ def get_explosion_sprite(orientation: str, direction: str, frame: int) -> Sprite
                 case 1: return SpriteMap.EXPLOSION_MIDDLE_2
                 case 2: return SpriteMap.EXPLOSION_MIDDLE_3
                 case 3: return SpriteMap.EXPLOSION_MIDDLE_4
-                case _: return SpriteMap.EXPLOSION_MIDDLE_1  # Default
+                case _: return SpriteMap.EXPLOSION_MIDDLE_1 
         
         case "VERTICAL":
             match direction:
