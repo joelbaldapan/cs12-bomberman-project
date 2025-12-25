@@ -1,11 +1,10 @@
 import pyxel
-from common_types import WorldInfo, EntityType, PlayerInfo, BombInfo, BlockInfo, ExplosionInfo, PowerupInfo, Direction, ExplosionOrientation # type: ignore
-from spritemap import SpriteMap, SpriteCoords, Animation, get_player_sprite, get_player_idle, get_bomb_sprite # type: ignore
+from common_types import WorldInfo, EntityType, PlayerInfo, BombInfo, BlockInfo, ExplosionInfo, ExplosionOrientation, PowerupInfo, Direction #type: ignore
+from spritemap import SpriteMap, Animation, get_player_sprite, get_player_idle, get_bomb_sprite, get_explosion_sprite, get_soft_block_sprite, get_player_death_sprite #type: ignore
+from entities.block import HardBlock, SoftBlock
+from entities.bomb import Bomb #type: ignore
 from entities.explosion import Explosion
-from entities.block import HardBlock, SoftBlock # type: ignore
-from entities.bomb import Bomb # type: ignore
-from entities.explosion import Explosion
-from entities.player import Player # type: ignore
+from entities.player import Player
 
 class View:
     # handle all rendering logic based sa state ng world
@@ -20,15 +19,19 @@ class View:
 
         #pyxel & load resource file
         pyxel.init(self._display_width, self._display_height, fps=30)
+        pyxel.load("view.pyxres")
 
-        #setup sprites
-        ...
+        self._animation = Animation(fps=30)
+
+        # track player movement for animation
+        self._player_positions: dict[int, tuple[float, float]] = {}
 
     def draw(self, timer: int = 60):
         pyxel.cls(0)
         self._draw_grid()
         self._draw_entities()
         self._draw_ui(timer)
+        self._animation.update()
 
     def draw_game_over(self, message: str):
         pyxel.cls(0)
@@ -49,83 +52,71 @@ class View:
                 pyxel.blt(x, y, sprite.img, sprite.u, sprite.v, sprite.w, sprite.h, 0)
     
     def _draw_entities(self):
-        ...
-        # for entity in self._world.entities:
-        #     match entity:
-        #         case HardBlock() | SoftBlock():
-        #             self._draw_block(entity)
+        for entity in self._world.entities:
+            if isinstance(entity, (HardBlock, SoftBlock)):
+                self._draw_block(entity)
         
         # for entity in self._world.entities:
-        #     match entity:
-        #         case Powerup():
-        #             self._draw_powerup(entity)  
+        #     if entity.entity_type == EntityType.POWERUP:
+        #         self._draw_powerup(entity)
   
         # for entity in self._world.entities:
-        #     match entity:
-        #         case Bomb():
-        #             self._draw_bomb(entity)
+        #     if isinstance(entity, Bomb):
+        #         self._draw_bomb(entity)
 
-        # for entity in self._world.entities:
-        #     match entity:
-        #         case Explosion():
-        #             self._draw_explosion(entity) 
+        for entity in self._world.entities:
+            if isinstance(entity, Explosion):
+                self._draw_explosion(entity)
 
-        # for entity in self._world.entities:
-        #     match entity:
-        #         case Player():
-        #             self._draw_player(entity)
+        for entity in self._world.entities:
+            if isinstance(entity, Player):
+                self._draw_player(entity)
 
     # methods for _draw_entities
     def _draw_block(self, block: BlockInfo):
         x = block.col * self._cell_size
         y = block.row * self._cell_size
         
-        match block.is_hard:
-            case True:
-                sprite = SpriteMap.HARD_BLOCK
-            case False:
-                sprite = SpriteMap.SOFT_BLOCK
-
-        pyxel.blt(x, y, sprite.img, sprite.u, sprite.v, sprite.w, sprite.h, 0)
+        if block.is_hard:
+            sprite = SpriteMap.HARD_BLOCK
+            pyxel.blt(x, y, sprite.img, sprite.u, sprite.v, sprite.w, sprite.h, 0)
+        else:
+            sprite = SpriteMap.SOFT_BLOCK
+            pyxel.blt(x, y, sprite.img, sprite.u, sprite.v, sprite.w, sprite.h, 0)
 
     def _draw_bomb(self, bomb: BombInfo):
-        # get current animation frame 
-        ... 
+        x = bomb.col * self._cell_size
+        y = bomb.row * self._cell_size
+        
+        frame = self._animation.get_bomb_frame()
+        sprite = get_bomb_sprite(frame)
+        
+        pyxel.blt(x, y, sprite.img, sprite.u, sprite.v, sprite.w, sprite.h, 0)
 
     def _draw_explosion(self, explosion: ExplosionInfo):
         x = explosion.col * self._cell_size
         y = explosion.row * self._cell_size
         
         if isinstance(explosion, Explosion):
-            sprite = self._get_explosion_sprite(explosion.orientation, explosion.terminal_direction)
+            frame = min(self._animation.frame // 7, 3)  # 4 frames, change every 7 ticks
+            
+            orientation_str = self._orientation_to_str(explosion.orientation)
+            direction_str = self._direction_to_str(explosion.terminal_direction) if explosion.terminal_direction else None
+            
+            sprite = get_explosion_sprite(orientation_str, direction_str or "", frame)
         else:
             sprite = SpriteMap.EXPLOSION_MIDDLE_1
         
-        pyxel.blt(x, y, sprite.img, sprite.u, sprite.v, 
-                 sprite.w, sprite.h, 0)
+        pyxel.blt(x, y, sprite.img, sprite.u, sprite.v, sprite.w, sprite.h, 0)
 
-    def _get_explosion_sprite(self, orientation: ExplosionOrientation, terminal: Direction | None) -> SpriteCoords:
-        match orientation:
-            case ExplosionOrientation.CENTER:
-                return SpriteMap.EXPLOSION_MIDDLE_1
-            
-            case ExplosionOrientation.VERTICAL:
-                match terminal:
-                    case Direction.NORTH:
-                        return SpriteMap.EXPLOSION_NORTH_END_1
-                    case Direction.SOUTH:
-                        return SpriteMap.EXPLOSION_SOUTH_END_1
-                    case _:
-                        return SpriteMap.EXPLOSION_NORTH_SEGMENT_1
-            
-            case ExplosionOrientation.HORIZONTAL:
-                match terminal:
-                    case Direction.WEST:
-                        return SpriteMap.EXPLOSION_WEST_END_1
-                    case Direction.EAST:
-                        return SpriteMap.EXPLOSION_EAST_END_1
-                    case _:
-                        return SpriteMap.EXPLOSION_WEST_SEGMENT_1
+    def _orientation_to_str(self, orientation: ExplosionOrientation) -> str:
+        if orientation == ExplosionOrientation.CENTER:
+            return "CENTER"
+        elif orientation == ExplosionOrientation.VERTICAL:
+            return "VERTICAL"
+        elif orientation == ExplosionOrientation.HORIZONTAL:
+            return "HORIZONTAL"
+        return "CENTER"
 
     def _draw_player(self, player: PlayerInfo):
         # 16 x 24, but hitbox is 16 x 16
@@ -159,4 +150,6 @@ class View:
 
     def _draw_ui(self, timer: int):
         ...
-    
+
+    def update_animation(self):
+        self._animation.update()
