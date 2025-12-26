@@ -117,7 +117,9 @@ class Model:
             if player.active_bombs >= player.max_bombs:
                 continue
             row, col = player.row, player.col
-            if self._world.get_entity_at(row, col) is not None and (row, col) not in reserved_cells:
+            if (row, col) in reserved_cells:
+                continue
+            if self._world.get_entity_at(row, col) is not None: 
                 continue
             new_bomb: BombInfo = BombFactory.make(row, col, 3*self.fps, player.range, player)
             player.add(new_bomb)
