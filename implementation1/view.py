@@ -1,10 +1,12 @@
 import pyxel
-from common_types import WorldInfo, EntityType, PlayerInfo, BombInfo, BlockInfo, ExplosionInfo, PowerupInfo, Direction, ExplosionOrientation # type: ignore
+from common_types import WorldInfo, PlayerInfo, BombInfo, BlockInfo, ExplosionInfo, PowerupInfo, PowerUpType, Direction, ExplosionOrientation # type: ignore
 from spritemap import SpriteMap, Animation, get_player_sprite, get_player_idle, get_bomb_sprite, get_explosion_sprite, get_soft_block_sprite, get_player_death_sprite # type: ignore
 from entities.block import HardBlock, SoftBlock
-from entities.bomb import Bomb # type: ignore
+from entities.bomb import Bomb
 from entities.explosion import Explosion
 from entities.player import Player
+from entities.powerup import Powerup
+
 class View:
     # handle all rendering logic based sa state ng world
     def __init__(self, world: WorldInfo, cell_size: int = 16):
@@ -16,7 +18,7 @@ class View:
         self._display_width = self._cols * cell_size
         self._display_height = 20 + self._rows * cell_size # estimate lang for UI, feel free to change!
 
-        #pyxel & load resource file
+        # load resource file
         pyxel.init(self._display_width, self._display_height, fps=30)
         pyxel.load("view.pyxres")
 
@@ -68,13 +70,13 @@ class View:
             if isinstance(entity, (HardBlock, SoftBlock)):
                 self._draw_block(entity)
         
-        # for entity in self._world.entities:
-        #     if entity.entity_type == EntityType.POWERUP:
-        #         self._draw_powerup(entity)
+        for entity in self._world.entities:
+            if isinstance(entity, Powerup):
+                self._draw_powerup(entity)
   
-        # for entity in self._world.entities:
-        #     if isinstance(entity, Bomb):
-        #         self._draw_bomb(entity)
+        for entity in self._world.entities:
+            if isinstance(entity, Bomb):
+                self._draw_bomb(entity)
 
         for entity in self._world.entities:
             if isinstance(entity, Explosion):
@@ -94,6 +96,7 @@ class View:
                 sprite = SpriteMap.HARD_BLOCK
             case False:
                 sprite = SpriteMap.SOFT_BLOCK
+
         pyxel.blt(x, y, sprite.img, sprite.u, sprite.v, sprite.w, sprite.h, 0)
 
     def _draw_bomb(self, bomb: BombInfo):
@@ -193,7 +196,22 @@ class View:
                 return "WEST"
 
     def _draw_powerup(self, powerup: PowerupInfo):
-        ...
+        x = powerup.col * self._cell_size
+        y = powerup.row * self._cell_size
+        
+        powerup_type = powerup.powerup_type
+        
+        match powerup_type:
+            case PowerUpType.FIRE:
+                sprite = SpriteMap.POWERUP_FIRE
+            case PowerUpType.BOMB:
+                sprite = SpriteMap.POWERUP_BOMB
+            case PowerUpType.SPEED:
+                sprite = SpriteMap.POWERUP_SPEED
+            case _:
+                sprite = SpriteMap.POWERUP_FIRE 
+        
+        pyxel.blt(x, y, sprite.img, sprite.u, sprite.v, sprite.w, sprite.h, 0)
 
     def _draw_ui(self, timer: int):
         minutes = timer // 60
