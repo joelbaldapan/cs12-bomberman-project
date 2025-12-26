@@ -221,6 +221,9 @@ class Model:
                 bomb.create_explosions(self._world, result)
                 # event buffer
                 self._event_buffer += result.events
+        expired = [entity for entity in self._world.entities if entity.is_expired]
+        for entity in expired:
+            self._world.remove_entity(entity)
 
     def _player_by_id(self, id: int) -> PlayerInfo|None:
         for player in self._players:
