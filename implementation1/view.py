@@ -25,6 +25,19 @@ class View:
         # track player movement for animation
         self._player_positions: dict[int, tuple[float, float]] = {}
 
+    @property
+    def key(self) -> dict[str, bool]:
+        return {"UP": pyxel.btn(pyxel.KEY_UP), 
+                "DOWN": pyxel.btn(pyxel.KEY_DOWN),
+                "LEFT": pyxel.btn(pyxel.KEY_LEFT),
+                "RIGHT": pyxel.btn(pyxel.KEY_RIGHT),
+                "SPACEBAR": pyxel.btnp(pyxel.KEY_SPACE),
+                "W": pyxel.btn(pyxel.KEY_W),
+                "S": pyxel.btn(pyxel.KEY_S),
+                "A": pyxel.btn(pyxel.KEY_A),
+                "D": pyxel.btn(pyxel.KEY_D),
+                "X": pyxel.btnp(pyxel.KEY_X),}
+    
     def draw(self, timer: int = 60):
         pyxel.cls(0)
         self._draw_grid()
