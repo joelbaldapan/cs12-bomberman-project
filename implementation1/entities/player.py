@@ -40,6 +40,10 @@ class Player():
     @property
     def y(self) -> float:
         return self._y
+    
+    @property
+    def id(self) -> int:
+        return self._id
 
     @property
     def width(self) -> int:

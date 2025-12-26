@@ -15,6 +15,7 @@ class Bomb:
 
     _current_timer: int = 0 
     _expired: bool = False
+    move_away_ids: set[int] = set()
 
     @property
     def row(self) -> int:
@@ -23,7 +24,7 @@ class Bomb:
     @property
     def col(self) -> int:
         return self._col
-
+    
     @property
     def entity_type(self) -> EntityType:
         return EntityType.BOMB

@@ -63,23 +63,22 @@ class World:
     def in_bounds(self, i: int, j: int) -> bool:
         return 0 <= i < self._rows and 0 <= j < self._cols
     
-    def is_cell_blocking(self, row: int, col: int) -> bool:
+    def is_cell_blocking(self, row: int, col: int, player_id: int) -> bool:
         
         if not self.in_bounds(row, col):
             return True
 
-        entity = self._board[row][col]
+        entity = self.get_entity_at(row, col)
         if entity is None:
             return False
         
-        if entity.entity_type in (EntityType.BLOCK, EntityType.BOMB):
-            return True
-
-        # explosions and powerups are walkable, player not stored
-        return False
+        if isinstance(entity, BombInfo):
+            return player_id not in entity.move_away_ids
+        
+        return entity.entity_type == EntityType.BLOCK # explosions and powerups are walkable, player not stored
     
-    def is_walkable(self, row: int, col: int) -> bool:
-        return not self.is_cell_blocking(row, col)
+    def is_walkable(self, row: int, col: int, player_id: int) -> bool:
+        return not self.is_cell_blocking(row, col, player_id)
 
 
 class Model:
@@ -103,6 +102,9 @@ class Model:
 
     def handle_input(self): ...
         # for player input
+        # for spawning use current player row and column, spawn there if none, else do nothing
+        # after spawning, add bomb.move_away_ids = {p.id for p in players if model._player_overlaps_cell(p, r, c)}
+
 
     def update(self, dt: int):
         self._update_entities(dt) # update all and enqueue self sounds and removes
@@ -117,6 +119,8 @@ class Model:
             results = entity.update(dt)
             self._event_buffer += results.events
             self._sfx_buffer += results.sounds
+        self._update_bomb_pass_through() # update bomb movement logic after movement
+        self._timer -= dt
         
     def _player_overlaps_cell(self, player: PlayerInfo, row: int, col: int) -> bool:
         # bounds in pixels
@@ -130,12 +134,24 @@ class Model:
         px2 = px1 + self._tile_size   
         py2 = py1 + self._tile_size
 
-        # true if hitbix overlap
+        # true if hitbox overlap
         if px2 <= cell_x or px1 >= cell_x2:
             return False
         if py2 <= cell_y or py1 >= cell_y2:
             return False
         return True
+    
+    def _update_bomb_pass_through(self) -> None:
+        for ent in self._world.entities:
+            if isinstance(ent, BombInfo):
+                if not ent.move_away_ids: 
+                    continue
+                to_remove: set[int] = set()
+                for pid in ent.move_away_ids:
+                    player: PlayerInfo|None = self._player_by_id(pid) 
+                    if player is None or not self._player_overlaps_cell(player, ent.row, ent.col):
+                        to_remove.add(pid)
+                ent.move_away_ids.difference_update(to_remove)
 
     def _check_explosion_collision(self):
         # world matrix collisions with player
@@ -159,7 +175,10 @@ class Model:
                 # event buffer
                 self._event_buffer += result.events
 
-    
+    def _player_by_id(self, id: int) -> PlayerInfo|None:
+        for player in self._players:
+            if player.id == id:
+                return player    
 
     def _process_events(self):
         for event in self._event_buffer:
