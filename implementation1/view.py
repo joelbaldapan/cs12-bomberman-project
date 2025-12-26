@@ -6,17 +6,19 @@ from entities.bomb import Bomb
 from entities.explosion import Explosion
 from entities.player import Player
 from entities.powerup import Powerup
+from helpers.grid_adapter import GridAdapter
 
 class View:
     # handle all rendering logic based sa state ng world
-    def __init__(self, world: WorldInfo, cell_size: int = 16):
+    def __init__(self, world: WorldInfo, grid: GridAdapter, cell_size: int = 16):
         self._world = world
+        self._grid = grid
         self._cell_size = cell_size
 
         self._rows = 13
         self._cols = 15
         self._display_width = self._cols * cell_size
-        self._display_height = 20 + self._rows * cell_size # estimate lang for UI, feel free to change!
+        self._display_height = grid.offset_y + self._rows * cell_size
 
         # load resource file
         pyxel.init(self._display_width, self._display_height, fps=30)
@@ -59,8 +61,7 @@ class View:
     def _draw_grid(self):
         for row in range(self._rows):
             for col in range(self._cols):
-                x = col * self._cell_size
-                y = row * self._cell_size
+                x, y = self._grid.cell_to_pixel(row, col)
                 
                 sprite = SpriteMap.WALKABLE_TILE
                 pyxel.blt(x, y, sprite.img, sprite.u, sprite.v, sprite.w, sprite.h, 0)
@@ -88,20 +89,18 @@ class View:
 
     # methods for _draw_entities
     def _draw_block(self, block: BlockInfo):
-        x = block.col * self._cell_size
-        y = block.row * self._cell_size
+        x, y = self._grid.cell_to_pixel(block.row, block.col)
         
         match block.is_hard:
             case True:
                 sprite = SpriteMap.HARD_BLOCK
             case False:
                 sprite = SpriteMap.SOFT_BLOCK
-
+            
         pyxel.blt(x, y, sprite.img, sprite.u, sprite.v, sprite.w, sprite.h, 0)
 
     def _draw_bomb(self, bomb: BombInfo):
-        x = bomb.col * self._cell_size
-        y = bomb.row * self._cell_size
+        x, y = self._grid.cell_to_pixel(bomb.row, bomb.col)
         
         frame = self._animation.get_bomb_frame()
         sprite = get_bomb_sprite(frame)
@@ -109,8 +108,7 @@ class View:
         pyxel.blt(x, y, sprite.img, sprite.u, sprite.v, sprite.w, sprite.h, 0)
 
     def _draw_explosion(self, explosion: ExplosionInfo): # still not sure about this one, please help DUHAHDAHA
-        x = explosion.col * self._cell_size
-        y = explosion.row * self._cell_size
+        x, y = self._grid.cell_to_pixel(explosion.row, explosion.col)
         
         match (hasattr(explosion, 'orientation'), hasattr(explosion, 'terminal_direction')):
             case (True, True):
@@ -196,8 +194,7 @@ class View:
                 return "WEST"
 
     def _draw_powerup(self, powerup: PowerupInfo):
-        x = powerup.col * self._cell_size
-        y = powerup.row * self._cell_size
+        x, y = self._grid.cell_to_pixel(powerup.row, powerup.col)
         
         powerup_type = powerup.powerup_type
         
@@ -209,8 +206,8 @@ class View:
             case PowerUpType.SPEED:
                 sprite = SpriteMap.POWERUP_SPEED
             case _:
-                sprite = SpriteMap.POWERUP_FIRE 
-        
+                sprite = SpriteMap.POWERUP_FIRE
+
         pyxel.blt(x, y, sprite.img, sprite.u, sprite.v, sprite.w, sprite.h, 0)
 
     def _draw_ui(self, timer: int):
