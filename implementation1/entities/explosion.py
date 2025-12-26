@@ -5,7 +5,7 @@ from helpers.event import UpdateResult, RemoveEvent
 
 
 
-@dataclass
+@dataclass(eq=False)
 class Explosion:
     _row: int
     _col: int

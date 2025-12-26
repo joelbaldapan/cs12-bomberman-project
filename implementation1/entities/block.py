@@ -4,7 +4,7 @@ from common_types import BlockInfo, EntityType, UpdateResultInfo
 from helpers.event import UpdateResult, RemoveEvent
 
 
-@dataclass
+@dataclass(eq=False)
 class HardBlock:
     _row: int
     _col: int
@@ -38,7 +38,7 @@ class HardBlock:
         return result
 
 
-@dataclass
+@dataclass(eq=False)
 class SoftBlock:
     _row: int
     _col: int

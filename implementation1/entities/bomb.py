@@ -5,7 +5,7 @@ from helpers.event import RemoveEvent, UpdateResult, SpawnEvent
 from explosion import ExplosionFactory, ExplosionOrientation
 
 
-@dataclass
+@dataclass(eq=False)
 class Bomb:
     def __init__(self, row: int, col: int, timer: int, range: int, owner: PlayerInfo):
         self._row: int = row

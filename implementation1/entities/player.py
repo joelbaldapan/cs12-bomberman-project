@@ -5,7 +5,7 @@ from helpers.event import UpdateResult
 from helpers.grid_adapter import GridAdapter
 
 
-@dataclass
+@dataclass(eq=False)
 class Player():
     def __init__(self, x: float, y: float, world: WorldInfo, grid: GridAdapter, id: int):
         self._x: float = x
@@ -18,11 +18,11 @@ class Player():
         self._base_speed: float = 2.0
         self._base_max_bombs: int = 1
         self._base_range: int = 1
-        self._effects: list[EffectInfo] = list()
+        self._effects: set[EffectInfo] = set()
 
         self._expired: bool = False
         self._alive: bool = True
-        self._active_bombs: list[BombInfo] = list()
+        self._active_bombs: set[BombInfo] = set()
         self.direction_facing: Direction = Direction.SOUTH
         self._snap_tolerance: int = 4  
 
@@ -185,6 +185,8 @@ class Player():
         return 0
 
     def handle_input(self, inputs: dict[str, bool]) -> int:
+        if not self._alive:
+            return 0
         direction: Optional[Direction] = None
         key = self.id - 1
         map: tuple[str, str, str, str, str] = self._control_mapping[key]
@@ -207,10 +209,10 @@ class Player():
         return Direction.NORTH
 
     def remove_bomb(self, bomb: BombInfo) -> None:
-        self._active_bombs.remove(bomb)
+        self._active_bombs.discard(bomb)
 
     def add_bomb(self, bomb: BombInfo) -> None:
-        self._active_bombs.append(bomb)
+        self._active_bombs.add(bomb)
 
     def on_explosion_hit(self) -> None:
         if not self._alive:
@@ -229,10 +231,10 @@ class Player():
         return UpdateResult()
     
     def add_effect(self, effect: EffectInfo):
-        self._effects.append(effect)
+        self._effects.add(effect)
 
     def remove_effect(self, effect: EffectInfo):
-        self._effects.remove(effect)
+        self._effects.discard(effect)
 
 
 class PlayerFactory:

@@ -4,7 +4,7 @@ from common_types import EffectInfo, EntityType, PowerupInfo, SoundType, UpdateR
 from helpers.event import RemoveEvent, UpdateResult
 
 
-@dataclass
+@dataclass(eq=False)
 class Powerup: 
     def __init__(self, row: int, col: int, duration: int|None):
         self._row: int = row
@@ -46,24 +46,24 @@ class Powerup:
             result.add_event(RemoveEvent(self))
         return result
 
-@dataclass
+@dataclass(eq=False)
 class FireUp(Powerup):
     def __init__(self, row: int, col: int, duration: int | None):
         super().__init__(row, col, duration)
         self._effect: EffectInfo = EffectFactory.make(duration, 0, 0, 1)
 
-@dataclass
+@dataclass(eq=False)
 class BombUp(Powerup):
     def __init__(self, row: int, col: int, duration: int | None):
         super().__init__(row, col, duration)
         self._effect: EffectInfo = EffectFactory.make(duration, 0, 1, 0)
-@dataclass
+@dataclass(eq=False)
 class SpeedUp(Powerup):
     def __init__(self, row: int, col: int, duration: int | None):
         super().__init__(row, col, duration)
         self._effect: EffectInfo = EffectFactory.make(duration, 0.2, 0, 0)
 
-@dataclass
+@dataclass(eq=False)
 class Effect:
     time_remaining: int|None
     speed_delta: float

@@ -88,7 +88,7 @@ class Model:
         self._world: WorldInfo = world
         self._event_buffer: list[EventInfo] = []
         self._sfx_buffer: list[SoundType] = []
-        self._players: list[PlayerInfo] = []
+        self._players: set[PlayerInfo] = set()
         self._grid: GridAdapter = grid
         self._tile_size: int = 16
         self._timer: int = 60*fps # in seconds, currently set to 1 minute
@@ -119,6 +119,8 @@ class Model:
             row, col = player.row, player.col
             if (row, col) in reserved_cells:
                 continue
+            if not self._world.in_bounds(row, col):
+                continue
             if self._world.get_entity_at(row, col) is not None: 
                 continue
             new_bomb: BombInfo = BombFactory.make(row, col, 3*self.fps, player.range, player)
@@ -132,7 +134,6 @@ class Model:
         # for player input
         # for spawning use current player row and column, spawn there if none, else do nothing
         # after spawning, add bomb.move_away_ids = {p.id for p in players if model._player_overlaps_cell(p, r, c)}
-        ...
 
     def update(self, dt: int):
         # controller -> model.handle_inputs
@@ -148,6 +149,8 @@ class Model:
             results = entity.update(dt)
             self._event_buffer += results.events
             self._sfx_buffer += results.sounds
+        for player in self._players:
+            player.update(dt)
         self._update_bomb_pass_through() # update bomb movement logic after movement
         self._timer -= dt
         
@@ -195,7 +198,11 @@ class Model:
                     break
         picked: set[GridCoords] = set()
         for player in self._players:
+            if player.is_expired:
+                continue
             for powerup in powerups:
+                if powerup.is_expired:
+                    continue
                 pos = (powerup.row, powerup.col)
                 if pos in picked:
                     continue
@@ -208,10 +215,10 @@ class Model:
                     break
     
     def _detonate_bombs(self) -> None:
-        for entity in self._world.entities:
-            if isinstance(entity, BombInfo) and entity.should_detonate:
+        bombs: list[BombInfo] = [b for b in self._world.entities if isinstance(b, BombInfo) and b.should_detonate]
+        for bomb in bombs:
                 result = UpdateResult()
-                entity.create_explosions(self._world, result)
+                bomb.create_explosions(self._world, result)
                 # event buffer
                 self._event_buffer += result.events
 
