@@ -190,3 +190,4 @@ class Model:
     #         if entity.is_expired:
     #             self._world.remove_entity(entity)
             
+Model(World(13, 15), GridAdapter(0, 24)) # for world type-checking lang muna

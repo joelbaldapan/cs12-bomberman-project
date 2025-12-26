@@ -122,7 +122,7 @@ class Player():
             res = self._grid.pixel_to_cell(int(px), int(py))
             if res:
                 row, col = res
-                if self._world.is_cell_blocking(row, col):
+                if self._world.is_cell_blocking(row, col, self.id):
                     return False
             else:
                 return False
