@@ -7,7 +7,7 @@ class UpdateResult():
     def __init__(self):
         self._events: list[EventInfo] = []
         self._sounds: list[SoundType] = []
-        self._animations: list[AnimationCmd]
+        self._animations: list[AnimationCmd] = []
     @property
     def events(self) -> list[EventInfo]:
         return self._events[:]
