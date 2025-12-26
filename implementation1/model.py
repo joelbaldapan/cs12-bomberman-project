@@ -1,8 +1,8 @@
 from __future__ import annotations
-from common_types import EventInfo, EntityInfo, ExplosionInfo, Board, GridCoords, PowerupInfo, SoundType, EntityType, WorldInfo, BombInfo, PlayerInfo
+from common_types import AnimationCmd, AnimationType, BlockInfo, CoordMode, EventInfo, EntityInfo, ExplosionInfo, Board, GridCoords, PowerupInfo, SoundType, EntityType, WorldInfo, BombInfo, PlayerInfo
 from typing import TypeVar
 from helpers.grid_adapter import GridAdapter
-from helpers.event import SpawnEvent, UpdateResult
+from helpers.event import RemoveEvent, SpawnEvent, UpdateResult
 from copy import deepcopy
 
 from implementation1.entities.bomb import BombFactory
@@ -88,6 +88,7 @@ class Model:
         self._world: WorldInfo = world
         self._event_buffer: list[EventInfo] = []
         self._sfx_buffer: list[SoundType] = []
+        self._vfx_buffer: list[AnimationCmd] = []
         self._players: set[PlayerInfo] = set()
         self._grid: GridAdapter = grid
         self._tile_size: int = 16
@@ -150,7 +151,11 @@ class Model:
             self._event_buffer += results.events
             self._sfx_buffer += results.sounds
         for player in self._players:
-            player.update(dt)
+            if player.is_expired:
+                continue
+            result = player.update(dt)
+            self._sfx_buffer += result.sounds
+            self._vfx_buffer += result.animations
         self._update_bomb_pass_through() # update bomb movement logic after movement
         self._timer -= dt
         
@@ -223,8 +228,12 @@ class Model:
                 self._event_buffer += result.events
         expired = [entity for entity in self._world.entities if entity.is_expired]
         for entity in expired:
-            self._world.remove_entity(entity)
-
+            self._event_buffer.append(RemoveEvent(entity))
+            if isinstance(entity, BlockInfo):
+                self._vfx_buffer.append(AnimationCmd(AnimationType.SOFT_BREAK, CoordMode.CELL, entity.row, entity.col, self.fps, None, None))
+            if isinstance(entity, PowerupInfo):
+                self._vfx_buffer.append(AnimationCmd(AnimationType.POWERUP_BREAK, CoordMode.CELL, entity.row, entity.col, self.fps, None, entity.powerup_type))
+            
     def _player_by_id(self, id: int) -> PlayerInfo|None:
         for player in self._players:
             if player.id == id:

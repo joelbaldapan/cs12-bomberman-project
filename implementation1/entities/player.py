@@ -1,18 +1,19 @@
 from dataclasses import dataclass
 from typing import Optional
-from common_types import BombInfo, EffectInfo, WorldInfo, Direction, EntityType, UpdateResultInfo
+from common_types import AnimationCmd, AnimationType, BombInfo, CoordMode, EffectInfo, SoundType, WorldInfo, Direction, EntityType, UpdateResultInfo
 from helpers.event import UpdateResult
 from helpers.grid_adapter import GridAdapter
 
 
 @dataclass(eq=False)
 class Player():
-    def __init__(self, x: float, y: float, world: WorldInfo, grid: GridAdapter, id: int):
+    def __init__(self, x: float, y: float, world: WorldInfo, grid: GridAdapter, id: int, fps: int):
         self._x: float = x
         self._y: float = y
         self._world: WorldInfo = world
         self._grid: GridAdapter = grid
         self._id: int = id
+        self._fps: int = fps
 
         # BASE STATS
         self._base_speed: float = 2.0
@@ -218,17 +219,21 @@ class Player():
         if not self._alive:
             return
         self._alive = False
-        self._expired = True
 
     def update(self, dt: int) -> UpdateResultInfo:
         expired: list[EffectInfo] = []
+        result = UpdateResult()
         for effect in self._effects:
             effect.tick(dt)
             if effect.time_remaining is not None and effect.time_remaining <= 0:
                 expired.append(effect)
         for effect in expired:
             self.remove_effect(effect)
-        return UpdateResult()
+        if not self._alive:
+            result.add_sound(SoundType.DEATH)
+            result.add_animation(AnimationCmd(AnimationType.DEATH, CoordMode.PIXEL, self.x, self.y, self._fps, self.id, None))
+            self._expired = True
+        return result
     
     def add_effect(self, effect: EffectInfo):
         self._effects.add(effect)
@@ -240,5 +245,5 @@ class Player():
 class PlayerFactory:
 
     @classmethod
-    def make(cls, x: float, y: float, world: WorldInfo, grid: GridAdapter, id: int) -> Player:
-        return Player(x, y, world, grid, id)
+    def make(cls, x: float, y: float, world: WorldInfo, grid: GridAdapter, id: int, fps: int) -> Player:
+        return Player(x, y, world, grid, id, fps)

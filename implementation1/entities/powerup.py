@@ -1,6 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from common_types import EffectInfo, EntityType, PowerupInfo, SoundType, UpdateResultInfo, PlayerInfo
+from common_types import EffectInfo, EntityType, PowerUpType, PowerupInfo, SoundType, UpdateResultInfo, PlayerInfo
 from helpers.event import RemoveEvent, UpdateResult
 
 
@@ -28,6 +28,10 @@ class Powerup:
     def effect(self) -> EffectInfo:
         return self._effect
     
+    @property
+    def powerup_type(self) -> PowerUpType:
+        return PowerUpType.FIRE
+    
     def on_explosion_hit(self) -> None:
         self._expired = True
         return
@@ -51,17 +55,27 @@ class FireUp(Powerup):
     def __init__(self, row: int, col: int, duration: int | None):
         super().__init__(row, col, duration)
         self._effect: EffectInfo = EffectFactory.make(duration, 0, 0, 1)
+    @property
+    def powerup_type(self) -> PowerUpType:
+        return PowerUpType.FIRE
 
 @dataclass(eq=False)
 class BombUp(Powerup):
     def __init__(self, row: int, col: int, duration: int | None):
         super().__init__(row, col, duration)
         self._effect: EffectInfo = EffectFactory.make(duration, 0, 1, 0)
+    @property
+    def powerup_type(self) -> PowerUpType:
+        return PowerUpType.BOMB
+    
 @dataclass(eq=False)
 class SpeedUp(Powerup):
     def __init__(self, row: int, col: int, duration: int | None):
         super().__init__(row, col, duration)
         self._effect: EffectInfo = EffectFactory.make(duration, 0.2, 0, 0)
+    @property
+    def powerup_type(self) -> PowerUpType:
+        return PowerUpType.SPEED
 
 @dataclass(eq=False)
 class Effect:

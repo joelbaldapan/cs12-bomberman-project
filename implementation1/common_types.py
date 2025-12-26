@@ -1,4 +1,5 @@
 from __future__ import annotations
+from dataclasses import dataclass
 from typing import Protocol, TypeVar, runtime_checkable
 from enum import Enum, StrEnum, auto
 
@@ -15,7 +16,32 @@ class EntityType(StrEnum):
 class SoundType(Enum):
     EXPLOSION = auto()
     POWERUP_GET = auto()
+    DEATH = auto()
     # ... to add
+
+class AnimationType(Enum):
+    DEATH = auto()
+    SOFT_BREAK = auto()
+    POWERUP_BREAK = auto()
+
+class CoordMode(Enum):
+    CELL = auto()
+    PIXEL = auto()
+
+class PowerUpType(Enum):
+    FIRE = auto()
+    BOMB = auto()
+    SPEED = auto()
+
+@dataclass(frozen=True)
+class AnimationCmd:
+    type: AnimationType
+    mode: CoordMode
+    a: float|int # x if pixel, row if grid
+    b: float|int # y if pixel, col if grid
+    duration_frames: int
+    id: int|None
+    powerup_type: PowerUpType|None
 
 # note: inaassume lang neto that we have only one entity per grid
 T = TypeVar("T", bound=EntityInfo)
@@ -45,8 +71,11 @@ class UpdateResultInfo(Protocol):
     def events(self) -> list[EventInfo]: ...
     @property
     def sounds(self) -> list[SoundType]: ...
+    @property
+    def animations(self) -> list[AnimationCmd]: ...
     def add_event(self, cmd: EventInfo): ...
     def add_sound(self, cmd: SoundType): ...
+    def add_animation(self, cmd: AnimationCmd): ...
 
 # The World
 
@@ -208,6 +237,8 @@ class PowerupInfo(Protocol): # to implement pahelp lang hehe
     def entity_type(self) -> EntityType: ...
     @property
     def is_expired(self) -> bool: ...
+    @property
+    def powerup_type(self) -> PowerUpType: ...
     def on_explosion_hit(self) -> None: ...
     def update(self, dt: int) -> UpdateResultInfo: ...
     def on_pickup(self, player: PlayerInfo) -> UpdateResultInfo: ...
