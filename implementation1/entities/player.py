@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import Optional
-from common_types import BombInfo, WorldInfo, Direction, EntityType, UpdateResultInfo
+from common_types import BombInfo, EffectInfo, WorldInfo, Direction, EntityType, UpdateResultInfo
 from helpers.event import UpdateResult
 from helpers.grid_adapter import GridAdapter
 
@@ -13,17 +13,30 @@ class Player():
         self._world: WorldInfo = world
         self._grid: GridAdapter = grid
         self._id: int = id
-        self._speed: float = 2.0
+
+        # BASE STATS
+        self._base_speed: float = 2.0
+        self._base_max_bombs: int = 1
+        self._base_range: int = 1
+        self._effects: list[EffectInfo] = list()
+
         self._expired: bool = False
         self._alive: bool = True
         self._active_bombs: set[BombInfo] = set()
         self.direction_facing: Direction = Direction.SOUTH
         self._snap_tolerance: int = 2  
+
+
         self._hitbox_width = 16
         self._hitbox_height = 16
         self._sprite_width = 16
         self._sprite_height = 24
         self._hitbox_offset_y = self._sprite_height - self._hitbox_height
+
+        self._control_mapping: tuple[tuple[str, str, str, str, str],tuple[str, str, str, str, str]] = (
+            ("UP","DOWN","LEFT","RIGHT", "SPACEBAR"), 
+            ("W","S","A","D", "X"),
+        )
 
     @property
     def entity_type(self) -> EntityType:
@@ -54,10 +67,6 @@ class Player():
         return self._sprite_height
 
     @property
-    def speed(self) -> float:
-        return self._speed
-
-    @property
     def hitbox_x(self) -> float:
         return self._x
 
@@ -84,9 +93,29 @@ class Player():
             return res[1]
         else:
             return -1
-
-    def set_speed(self, ds: int) -> None:
-        self._speed = max(0.0, self._speed + ds)
+    
+    @property
+    def active_bombs(self) -> int:
+        return len(self._active_bombs)
+    @property
+    def range(self) -> int:
+        range_value: int = self._base_range
+        for effect in self._effects:
+            range_value += effect.range_delta
+        return range_value
+    @property
+    def max_bombs(self) -> int:
+        max_value: int = self._base_max_bombs
+        for effect in self._effects:
+            max_value += effect.bombs_delta
+        return max_value
+    
+    @property
+    def speed(self) -> float:
+        speed_value: float = self._base_speed
+        for effect in self._effects:
+            speed_value += effect.speed_delta
+        return speed_value
 
     def _snap_axis(self, new_x: float, new_y: float, direction: Direction) -> tuple[float, float]:
 
@@ -135,13 +164,13 @@ class Player():
 
         dx = dy = 0.0
         if direction == Direction.NORTH:
-            dy = -self._speed
+            dy = -self.speed
         elif direction == Direction.SOUTH:
-            dy = self._speed
+            dy = self.speed
         elif direction == Direction.WEST:
-            dx = -self._speed
+            dx = -self.speed
         elif direction == Direction.EAST:
-            dx = self._speed
+            dx = self.speed
 
         new_x = self._x + dx
         new_y = self._y + dy
@@ -155,31 +184,30 @@ class Player():
 
         return 0
 
-    def handle_input(self, inputs: dict[str, bool]) -> None:
+    def handle_input(self, inputs: dict[str, bool]) -> int:
         direction: Optional[Direction] = None
-
-        if inputs.get("UP"):
+        key = self.id - 1
+        map: tuple[str, str, str, str, str] = self._control_mapping[key]
+        if inputs.get(map[0]):
             direction = Direction.NORTH
-        elif inputs.get("DOWN"):
+        elif inputs.get(map[1]):
             direction = Direction.SOUTH
-        elif inputs.get("LEFT"):
+        elif inputs.get(map[2]):
             direction = Direction.WEST
-        elif inputs.get("RIGHT"):
+        elif inputs.get(map[3]):
             direction = Direction.EAST
 
         if direction is not None:
             self.direction_facing = direction # kung saan naka harap ung player
             self.move(direction)
+        return 1 if inputs.get(map[4]) else 0
 
 
     def decide_move(self) -> Direction:
         return Direction.NORTH
 
     def remove(self, bomb: BombInfo) -> None:
-        try:
-            self._active_bombs.remove(bomb)
-        except ValueError:
-            pass
+        self._active_bombs.discard(bomb)
 
     def add(self, bomb: BombInfo) -> None:
         self._active_bombs.add(bomb)
@@ -191,7 +219,20 @@ class Player():
         self._expired = True
 
     def update(self, dt: int) -> UpdateResultInfo:
+        expired: list[EffectInfo] = []
+        for effect in self._effects:
+            effect.tick(dt)
+            if effect.time_remaining == 0:
+                expired.append(effect)
+        for effect in expired:
+            self.remove_effect(effect)
         return UpdateResult()
+    
+    def add_effect(self, effect: EffectInfo):
+        self._effects.append(effect)
+
+    def remove_effect(self, effect: EffectInfo):
+        self._effects.remove(effect)
 
 
 class PlayerFactory:

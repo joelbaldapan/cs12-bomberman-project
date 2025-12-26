@@ -2,20 +2,20 @@ from __future__ import annotations
 from dataclasses import dataclass
 from common_types import GridCoords, PlayerInfo, EntityType, SoundType, UpdateResultInfo, WorldInfo, Direction
 from helpers.event import RemoveEvent, UpdateResult, SpawnEvent
-from explosion import Explosion, ExplosionFactory, ExplosionOrientation
+from explosion import ExplosionFactory, ExplosionOrientation
 
 
 @dataclass
 class Bomb:
-    _row: int
-    _col: int
-    _full_timer: int
-    _range: int
-    _owner: PlayerInfo
-
-    _current_timer: int = 0 
-    _expired: bool = False
-    move_away_ids: set[int] = set()
+    def __init__(self, row: int, col: int, timer: int, range: int, owner: PlayerInfo):
+        self._row: int = row
+        self._col: int = col
+        self._full_timer: int = timer
+        self._range: int = range
+        self._owner: PlayerInfo = owner
+        self._current_timer: int = 0 
+        self._expired: bool = False
+        self.move_away_ids: set[int] = set()
 
     @property
     def row(self) -> int:
@@ -58,6 +58,7 @@ class Bomb:
             result.add_event(RemoveEvent(self))
             result.add_sound(SoundType.EXPLOSION)
             self._expired = True
+            self.owner.remove(self)
         return result
 
     def on_explosion_hit(self) -> None:
@@ -129,7 +130,7 @@ class Bomb:
     
                     terminal = direction if is_last else None
     
-                    result.add_event(SpawnEvent(Explosion(er, ec, orient, terminal)))
+                    result.add_event(SpawnEvent(ExplosionFactory.make(er, ec, orient, terminal)))
     
             propagate(-1, 0, Direction.NORTH)
             propagate(1, 0, Direction.SOUTH)

@@ -1,7 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from common_types import BlockInfo, EntityType, UpdateResultInfo
-from helpers.event import UpdateResult
+from helpers.event import UpdateResult, RemoveEvent
 
 
 @dataclass
@@ -70,6 +70,8 @@ class SoftBlock:
 
     def update(self, dt: int) -> UpdateResultInfo:
         result = UpdateResult()
+        if self._expired:
+            result.add_event(RemoveEvent(self))
         return result
 
 

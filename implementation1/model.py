@@ -1,9 +1,11 @@
 from __future__ import annotations
-from common_types import EventInfo, EntityInfo, ExplosionInfo, Board, SoundType, EntityType, WorldInfo, BombInfo, PlayerInfo
+from common_types import EventInfo, EntityInfo, ExplosionInfo, Board, GridCoords, SoundType, EntityType, WorldInfo, BombInfo, PlayerInfo
 from typing import TypeVar
 from helpers.grid_adapter import GridAdapter
-from helpers.event import UpdateResult
+from helpers.event import SpawnEvent, UpdateResult
 from copy import deepcopy
+
+from implementation1.entities.bomb import BombFactory
 
 T = TypeVar("T", bound=EntityInfo)
 
@@ -82,14 +84,15 @@ class World:
 
 
 class Model:
-    def __init__(self, world: WorldInfo, grid: GridAdapter):
+    def __init__(self, world: WorldInfo, grid: GridAdapter, fps: int):
         self._world: WorldInfo = world
         self._event_buffer: list[EventInfo] = []
         self._sfx_buffer: list[SoundType] = []
         self._players: list[PlayerInfo] = []
         self._grid: GridAdapter = grid
         self._tile_size: int = 16
-        self._timer: int = 60 # in seconds, currently set to 1 minute
+        self._timer: int = 60*fps # in seconds, currently set to 1 minute
+        self._fps: int = fps
 
     # NOTE: main flow of model is:
     # controller calls: handle player input
@@ -100,13 +103,37 @@ class Model:
     # 3. check all `on_explosion` 
     # 4. remove expired entities
 
-    def handle_input(self): ...
+    @property
+    def fps(self)-> int:
+        return self._fps
+
+    def handle_input(self, inputs: dict[str, bool]):
+        events: list[BombInfo] = []
+        reserved_cells: set[GridCoords] = set()
+        for player in self._players:
+            plants = player.handle_input(inputs)
+            if not plants:
+                continue
+            if player.active_bombs >= player.max_bombs:
+                continue
+            row, col = player.row, player.col
+            if self._world.get_entity_at(row, col) is not None and (row, col) not in reserved_cells:
+                continue
+            new_bomb: BombInfo = BombFactory.make(row, col, 3*self.fps, player.range, player)
+            player.add(new_bomb)
+            events.append(new_bomb)
+            reserved_cells.add((row, col))
+
+        for bomb in events:
+            bomb.move_away_ids = {p.id for p in self._players if self._player_overlaps_cell(p, bomb.row, bomb.col)}
+            self._event_buffer.append(SpawnEvent(bomb))
         # for player input
         # for spawning use current player row and column, spawn there if none, else do nothing
         # after spawning, add bomb.move_away_ids = {p.id for p in players if model._player_overlaps_cell(p, r, c)}
-
+        ...
 
     def update(self, dt: int):
+        # controller -> model.handle_inputs
         self._update_entities(dt) # update all and enqueue self sounds and removes
         self._detonate_bombs() # detonate, pipeline for explosion and its results, enqueue explosion cells, next frame mag detonate ung hit bombs
         self._process_events()  # add (e.g. new explosions); remove (e.g. timed out explosion/bomb)
@@ -128,7 +155,7 @@ class Model:
         cell_x2 = cell_x + cell_w
         cell_y2 = cell_y + cell_h
 
-        # player bounds in pixels (only bttomw 16x16)
+        # player bounds in pixels (only bottom 16x16)
         px1 = player.hitbox_x
         py1 = player.hitbox_y 
         px2 = px1 + self._tile_size   
@@ -168,10 +195,8 @@ class Model:
     def _detonate_bombs(self) -> None:
         for entity in self._world.entities:
             if isinstance(entity, BombInfo) and entity.should_detonate:
-                # create_explosions(bomb, world, result)
                 result = UpdateResult()
                 entity.create_explosions(self._world, result)
-
                 # event buffer
                 self._event_buffer += result.events
 
@@ -190,4 +215,4 @@ class Model:
     #         if entity.is_expired:
     #             self._world.remove_entity(entity)
             
-Model(World(13, 15), GridAdapter(0, 24)) # for world type-checking lang muna
+Model(World(13, 15), GridAdapter(0, 24), 30) # for world type-checking lang muna

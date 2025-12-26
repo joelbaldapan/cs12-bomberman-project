@@ -1,7 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from common_types import EntityType, Direction, UpdateResultInfo, ExplosionOrientation
-from helpers.event import UpdateResult
+from helpers.event import UpdateResult, RemoveEvent
 
 
 
@@ -49,11 +49,13 @@ class Explosion:
 
         suggest q gawin pass the frames or something para integer lang lahat
         """
+        results: UpdateResultInfo = UpdateResult()
         self._current_timer += dt
         if self._current_timer >= self._full_timer:
             self._expired = True
+            results.add_event(RemoveEvent(self))
 
-        return UpdateResult()
+        return results
 
 class ExplosionFactory:
 
