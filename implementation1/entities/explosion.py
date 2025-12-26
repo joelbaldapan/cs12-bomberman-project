@@ -13,7 +13,7 @@ class Explosion:
     terminal_direction: Direction | None = None
 
     # how long this explosion lasts, in seconds OR frames (imo mas better frames since discrete)
-    _full_timer: int = 1
+    _full_timer: int = 1 #multiplied by frames
 
     # state
     _current_timer: int = 0

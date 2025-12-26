@@ -58,7 +58,7 @@ class Bomb:
             result.add_event(RemoveEvent(self))
             result.add_sound(SoundType.EXPLOSION)
             self._expired = True
-            self.owner.remove(self)
+            self.owner.remove_bomb(self)
         return result
 
     def on_explosion_hit(self) -> None:

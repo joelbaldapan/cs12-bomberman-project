@@ -22,9 +22,9 @@ class Player():
 
         self._expired: bool = False
         self._alive: bool = True
-        self._active_bombs: set[BombInfo] = set()
+        self._active_bombs: list[BombInfo] = list()
         self.direction_facing: Direction = Direction.SOUTH
-        self._snap_tolerance: int = 2  
+        self._snap_tolerance: int = 4  
 
 
         self._hitbox_width = 16
@@ -206,11 +206,11 @@ class Player():
     def decide_move(self) -> Direction:
         return Direction.NORTH
 
-    def remove(self, bomb: BombInfo) -> None:
-        self._active_bombs.discard(bomb)
+    def remove_bomb(self, bomb: BombInfo) -> None:
+        self._active_bombs.remove(bomb)
 
-    def add(self, bomb: BombInfo) -> None:
-        self._active_bombs.add(bomb)
+    def add_bomb(self, bomb: BombInfo) -> None:
+        self._active_bombs.append(bomb)
 
     def on_explosion_hit(self) -> None:
         if not self._alive:
@@ -222,7 +222,7 @@ class Player():
         expired: list[EffectInfo] = []
         for effect in self._effects:
             effect.tick(dt)
-            if effect.time_remaining == 0:
+            if effect.time_remaining is not None and effect.time_remaining <= 0:
                 expired.append(effect)
         for effect in expired:
             self.remove_effect(effect)

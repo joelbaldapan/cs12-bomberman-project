@@ -1,5 +1,5 @@
 from __future__ import annotations
-from common_types import EventInfo, EntityInfo, ExplosionInfo, Board, GridCoords, SoundType, EntityType, WorldInfo, BombInfo, PlayerInfo
+from common_types import EventInfo, EntityInfo, ExplosionInfo, Board, GridCoords, PowerupInfo, SoundType, EntityType, WorldInfo, BombInfo, PlayerInfo
 from typing import TypeVar
 from helpers.grid_adapter import GridAdapter
 from helpers.event import SpawnEvent, UpdateResult
@@ -122,7 +122,7 @@ class Model:
             if self._world.get_entity_at(row, col) is not None: 
                 continue
             new_bomb: BombInfo = BombFactory.make(row, col, 3*self.fps, player.range, player)
-            player.add(new_bomb)
+            player.add_bomb(new_bomb)
             events.append(new_bomb)
             reserved_cells.add((row, col))
 
@@ -139,7 +139,7 @@ class Model:
         self._update_entities(dt) # update all and enqueue self sounds and removes
         self._detonate_bombs() # detonate, pipeline for explosion and its results, enqueue explosion cells, next frame mag detonate ung hit bombs
         self._process_events()  # add (e.g. new explosions); remove (e.g. timed out explosion/bomb)
-        self._check_explosion_collision() # check collision with player
+        self._check_explosion_powerup_collision() # check collision with player
         self._process_events() # add (e.g. powerup spawned from block); remove (e.g. dead player)
         # self._remove_expired_entities() # remove expired entities in general (idk if this is necessary.)
 
@@ -182,16 +182,29 @@ class Model:
                         to_remove.add(pid)
                 ent.move_away_ids.difference_update(to_remove)
 
-    def _check_explosion_collision(self):
+    def _check_explosion_powerup_collision(self):
         # world matrix collisions with player
         explosions = self._world.get_all_type(ExplosionInfo)
-
+        powerups = self._world.get_all_type(PowerupInfo)
         #collisions with players (16x16 box)
         for player in self._players:
             for explosion in explosions:
                 if self._player_overlaps_cell(player, explosion.row, explosion.col):
                     player.on_explosion_hit()
                     # NO enqueues, possible power up
+                    break
+        picked: set[GridCoords] = set()
+        for player in self._players:
+            for powerup in powerups:
+                pos = (powerup.row, powerup.col)
+                if pos in picked:
+                    continue
+
+                if self._player_overlaps_cell(player, powerup.row, powerup.col):
+                    result = powerup.on_pickup(player)
+                    self._event_buffer += result.events
+                    self._sfx_buffer += result.sounds
+                    picked.add(pos)
                     break
     
     def _detonate_bombs(self) -> None:
