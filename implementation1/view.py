@@ -10,22 +10,22 @@ from helpers.grid_adapter import GridAdapter
 
 class View:
     # handle all rendering logic based sa state ng world
-    def __init__(self, world: WorldInfo, grid: GridAdapter, cell_size: int = 16):
+    def __init__(self, world: WorldInfo, grid: GridAdapter, fps: int, cell_size: int = 16):
         self._world = world
         self._grid = grid
         self._cell_size = cell_size
-
+        self._fps = fps
         self._rows = 13
         self._cols = 15
         self._display_width = self._cols * cell_size
         self._display_height = grid.offset_y + self._rows * cell_size
 
         # load resource file
-        pyxel.init(self._display_width, self._display_height, fps=30)
+        pyxel.init(self._display_width, self._display_height, fps=self._fps)
         pyxel.load("view.pyxres")
         pyxel.load("music.pyxres", exclude_images = True, exclude_tilemaps = True)
 
-        self._animation = Animation(fps=30)
+        self._animation = Animation(fps=self._fps)
 
         # track player movement for animation
         self._player_positions: dict[int, tuple[float, float]] = {}
@@ -335,8 +335,9 @@ class View:
             pyxel.blt(x, y, sprite.img, sprite.u, sprite.v, sprite.w, sprite.h, 14)
 
     def _draw_ui(self, timer: int):
-        minutes = timer // 60
-        seconds = timer % 60
+        in_seconds = timer // self._fps
+        minutes = in_seconds // 60
+        seconds = in_seconds % 60
         timer_text = f"{minutes:02d}:{seconds:02d}"
         
         # adjust the timer wherever HDUAHWDAH
