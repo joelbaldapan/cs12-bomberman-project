@@ -195,7 +195,7 @@ class BotConfig:
     
     # Danger Sensing
     danger_radius: int      # 'D'
-    danger_check_type: DangerPolicy  # 'bomb_only' (Hostile) or 'prediction' (Careful/Greedy)
+    danger_check_type: DangerPolicy
     
     # Policies
     attack_policy: PathfindingPolicy

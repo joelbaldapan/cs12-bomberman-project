@@ -38,10 +38,20 @@ class BotState(Protocol):
 
 
 class PathfindingPolicy(Protocol):
-    def get_goal(self) -> GridCoords | None: ...
+    def get_goal(
+        self, world: WorldInfo, bot: PlayerInfo, max_distance: int | None, reachable_only: bool
+    ) -> GridCoords | None:
+        ...
+    def get_path(
+        self, world: WorldInfo, bot: PlayerInfo, max_distance: int | None, reachable_only: bool
+    ) -> list[GridCoords]:
+        ...
+
 
 class DangerPolicy(Protocol):
-    def is_in_danger(self) -> bool: ...
+    def is_in_danger(self, world: WorldInfo, bot: PlayerInfo, radius: int) -> bool:
+        ...
+
 
 
 class BotMemoryInfo(Protocol):
