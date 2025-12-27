@@ -25,3 +25,41 @@ GetPowerupState:
 - similar to WANDER but goal is powerup cell.
 """
 
+
+from bot_behavior.bot_types import ActionInfo, BotContextInfo
+from common_types import PlayerInfo, WorldInfo
+
+# TEMPORARY; TO IMPLEMENT!
+class WanderState():
+    def on_enter(self, bot: BotContextInfo, world: WorldInfo, entity: PlayerInfo) -> None:
+        ...
+    def on_tick(self, bot: BotContextInfo, world: WorldInfo, entity: PlayerInfo) -> None:
+        ...
+    def decide_action(self, bot: BotContextInfo, world: WorldInfo, entity: PlayerInfo) -> ActionInfo | None:
+        ...
+
+class EscapeState():
+    def on_enter(self, bot: BotContextInfo, world: WorldInfo, entity: PlayerInfo) -> None:
+        ...
+    def on_tick(self, bot: BotContextInfo, world: WorldInfo, entity: PlayerInfo) -> None:
+        ...
+    def decide_action(self, bot: BotContextInfo, world: WorldInfo, entity: PlayerInfo) -> ActionInfo | None:
+        ...
+
+
+class GetPowerupState():
+    def on_enter(self, bot: BotContextInfo, world: WorldInfo, entity: PlayerInfo) -> None:
+        ...
+    def on_tick(self, bot: BotContextInfo, world: WorldInfo, entity: PlayerInfo) -> None:
+        ...
+    def decide_action(self, bot: BotContextInfo, world: WorldInfo, entity: PlayerInfo) -> ActionInfo | None:
+        ...
+
+
+class AttackState():
+    def on_enter(self, bot: BotContextInfo, world: WorldInfo, entity: PlayerInfo) -> None:
+        ...
+    def on_tick(self, bot: BotContextInfo, world: WorldInfo, entity: PlayerInfo) -> None:
+        ...
+    def decide_action(self, bot: BotContextInfo, world: WorldInfo, entity: PlayerInfo) -> ActionInfo | None:
+        ...
