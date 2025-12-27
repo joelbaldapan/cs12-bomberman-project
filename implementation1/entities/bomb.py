@@ -2,7 +2,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from common_types import BombInfo, GridCoords, PlayerInfo, EntityType, PowerupInfo, SoundType, UpdateResultInfo, WorldInfo, Direction
 from helpers.event import RemoveEvent, UpdateResult, SpawnEvent
-from explosion import ExplosionFactory, ExplosionOrientation
+from .explosion import ExplosionFactory, ExplosionOrientation
 
 
 @dataclass(eq=False)

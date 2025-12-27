@@ -1,12 +1,15 @@
 from __future__ import annotations
-from common_types import AnimationCmd, AnimationType, BlockInfo, ConfigInfo, CoordMode, EventInfo, EntityInfo, ExplosionInfo, Board, GridCoords, ModelState, PowerupInfo, SoundType, EntityType, WorldInfo, BombInfo, PlayerInfo
+from common_types import AnimationCmd, AnimationType, BlockInfo, ConfigInfo, CoordMode, DrawType, EventInfo, EntityInfo, ExplosionInfo, Board, GridCoords, ModelState, PowerupInfo, PowerupSpawner, RoundResult, SoundType, EntityType, WorldInfo, BombInfo, PlayerInfo
 from typing import TypeVar
 from helpers.grid_adapter import GridAdapter
 from helpers.event import RemoveEvent, SpawnEvent, UpdateResult
 from copy import deepcopy
 from entities.bomb import BombFactory
 from entities.block import BlockFactory
-from random import shuffle, randint
+from entities.powerup import Powerup_Factories
+from random import choice, shuffle, randint
+
+from implementation1.entities.player import PlayerFactory
 
 T = TypeVar("T", bound=EntityInfo)
 
@@ -104,7 +107,8 @@ class Model:
         self._temp_winner: int = 0
         self._state: ModelState = ModelState.COUNTDOWN
         self._debug: bool = False
-        self._round_result = None #IMPLEMEEEENT
+        self._round_result: RoundResult|None = None #IMPLEMEEEENT
+        self._winner: PlayerInfo|None = None # FINAL WINNER
 
         # grid helpers
         self._cols: int = self._world.cols
@@ -173,18 +177,21 @@ class Model:
         return list(self._players)
     @property
     def alive_players(self) -> list[PlayerInfo]:
-        return [p for p in self._players if not p.is_expired]\
+        return [p for p in self._players if not p.is_expired]
+    @property
+    def is_game_over(self):
+        return self._winner is not None
         
     def _add_players(self) -> None:
-        # for i in range(self._config.num_human_players):
-        #     self._players.append
-        ...
+        for i in range(self._config.num_human_players):
+            self._players.add(PlayerFactory.make(0, 0, self._world, self._grid, i+1, self._fps))
+
     def handle_input(self, inputs: dict[str, bool]):
-        if self._state == ModelState.TRANSITION:
+        if self._state == ModelState.TRANSITION and not self.is_game_over:
             if inputs["ESC"]:
                 self._start_new_round()
 
-        if self._state != ModelState.PLAYING:
+        if self._state not in (ModelState.PLAYING, ModelState.END_DELAY):
             return
         
         events: list[BombInfo] = []
@@ -343,9 +350,11 @@ class Model:
         return [p for p in self._players if not p.is_expired]
 
     def _check_round_end_conditions(self) -> None:
+        if self._state == ModelState.TRANSITION:
+            return
         # timer ran out, draw
         if self._timer <= 0:
-            self._round_result = ...
+            self._round_result = RoundResult.round_draw(DrawType.TIME)
             self._enter_transition()
             return
 
@@ -353,7 +362,7 @@ class Model:
 
         # draw if all dead(checked within 1 second only)
         if len(alive) == 0:
-            self._round_result = ...
+            self._round_result = RoundResult.round_draw(DrawType.DEATH)
             self._enter_transition()
             return
 
@@ -369,18 +378,22 @@ class Model:
 
         #  draw
         if len(alive) != 1:
-            self._round_result = ...
+            self._round_result = RoundResult.round_draw(DrawType.DEATH)
             self._enter_transition()
             return
 
         winner = alive[0].id
         self._scores[winner] = self._scores.get(winner, 0) + 1
-        self._round_result = ...
+        self._round_result = RoundResult.round_win(winner)
         self._enter_transition()
     
     def _enter_transition(self)-> None:
         self._state = ModelState.TRANSITION
         self._debug = False
+        for id, score in self._scores.items():
+            if score >= self._rounds_to_win and self._round_result is not None:
+                self._round_result.game_over(id)
+                self._winner = self._player_by_id(id)
     
     def _start_new_round(self) -> None:
         self._transition_screen = False
@@ -434,6 +447,11 @@ class Model:
         for p in self._players:
             p.reset_for_new_round()
 
+    def _powerup_spawn(self, row: int, col: int)-> None:
+        k: int = self._config.powerup_spawn_chance
+        if randint(1, 100) <= k:
+            pu: PowerupSpawner = choice(Powerup_Factories)
+            self._event_buffer.append(SpawnEvent(pu.make(row, col)))
 
     def _process_events(self):
         for event in self._event_buffer:

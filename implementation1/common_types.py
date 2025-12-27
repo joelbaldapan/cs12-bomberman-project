@@ -12,6 +12,33 @@ class ModelState(Enum):
     PLAYING = auto()
     END_DELAY = auto()
 
+class ResultType(Enum):
+    WIN = auto()
+    DRAW = auto()
+
+class DrawType(Enum):
+    TIME = auto()
+    DEATH = auto() 
+
+@dataclass(frozen=True)
+class RoundResult:
+    outcome: ResultType
+    winner_id: int | None = None
+    draw_type: DrawType | None = None
+
+    match_over: bool = False
+    overall_winner_id: int | None = None
+    @staticmethod
+    def round_win(winner_id: int) -> RoundResult:
+        return RoundResult(outcome=ResultType.WIN, winner_id=winner_id)
+
+    @staticmethod
+    def round_draw(type: DrawType) -> RoundResult:
+        return RoundResult(outcome=ResultType.DRAW, draw_type=type)
+
+    def game_over(self, overall_winner_id: int | None) -> RoundResult:
+        return RoundResult(outcome=self.outcome, winner_id=self.winner_id, draw_type=self.draw_type, match_over=True, overall_winner_id=overall_winner_id,)
+
 class EntityType(StrEnum):
     EXPLOSION = auto()
     BOMB = auto()
@@ -249,6 +276,10 @@ class PowerupInfo(Protocol): # to implement pahelp lang hehe
     def update(self, dt: int) -> UpdateResultInfo: ...
     def on_pickup(self, player: PlayerInfo) -> UpdateResultInfo: ...
 
+class PowerupSpawner(Protocol):
+    @staticmethod
+    def make(row: int, col: int) -> PowerupInfo: ...
+
 @runtime_checkable
 class EffectInfo(Protocol):
     time_remaining: int|None
@@ -280,3 +311,4 @@ class ConfigInfo(Protocol):
     def bot_types(self) -> list[str] | None: ...
     @property
     def rounds_to_win(self) -> int: ...
+

@@ -1,16 +1,16 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from common_types import EffectInfo, EntityType, PowerUpType, PowerupInfo, SoundType, UpdateResultInfo, PlayerInfo
+from common_types import EffectInfo, EntityType, PowerUpType, PowerupInfo, PowerupSpawner, SoundType, UpdateResultInfo, PlayerInfo
 from helpers.event import RemoveEvent, UpdateResult
 
 
 @dataclass(eq=False)
 class Powerup: 
-    def __init__(self, row: int, col: int, duration: int|None):
+    def __init__(self, row: int, col: int):
         self._row: int = row
         self._col: int = col
         self._expired: bool = False
-        self._effect: EffectInfo = EffectFactory.make(duration, 0, 0, 0)
+        self._effect: EffectInfo = EffectFactory.make(None, 0, 0, 0)
     @property
     def row(self) -> int:
         return self._row
@@ -52,27 +52,27 @@ class Powerup:
 
 @dataclass(eq=False)
 class FireUp(Powerup):
-    def __init__(self, row: int, col: int, duration: int | None):
-        super().__init__(row, col, duration)
-        self._effect: EffectInfo = EffectFactory.make(duration, 0, 0, 1)
+    def __init__(self, row: int, col: int):
+        super().__init__(row, col)
+        self._effect: EffectInfo = EffectFactory.make(None, 0, 0, 1)
     @property
     def powerup_type(self) -> PowerUpType:
         return PowerUpType.FIRE
 
 @dataclass(eq=False)
 class BombUp(Powerup):
-    def __init__(self, row: int, col: int, duration: int | None):
-        super().__init__(row, col, duration)
-        self._effect: EffectInfo = EffectFactory.make(duration, 0, 1, 0)
+    def __init__(self, row: int, col: int):
+        super().__init__(row, col, )
+        self._effect: EffectInfo = EffectFactory.make(None, 0, 1, 0)
     @property
     def powerup_type(self) -> PowerUpType:
         return PowerUpType.BOMB
     
 @dataclass(eq=False)
 class SpeedUp(Powerup):
-    def __init__(self, row: int, col: int, duration: int | None):
-        super().__init__(row, col, duration)
-        self._effect: EffectInfo = EffectFactory.make(duration, 0.2, 0, 0)
+    def __init__(self, row: int, col: int):
+        super().__init__(row, col)
+        self._effect: EffectInfo = EffectFactory.make(None, 0.2, 0, 0)
     @property
     def powerup_type(self) -> PowerUpType:
         return PowerUpType.SPEED
@@ -89,18 +89,20 @@ class Effect:
             return
         self.time_remaining -= dt
 
+class FireUpFactory():
+    @staticmethod
+    def make(row: int, col: int) -> PowerupInfo:
+        return FireUp(row, col)
+class BombUpFactory():
+    @staticmethod
+    def make(row: int, col: int) -> PowerupInfo:
+        return BombUp(row, col)
+class SpeedUpFactory():
+    @staticmethod
+    def make(row: int, col: int) -> PowerupInfo:
+        return SpeedUp(row, col)
 
-
-class PowerupFactory():
-    @classmethod
-    def make_fire(cls, row: int, col: int, duration: None|int) -> PowerupInfo:
-        return FireUp(row, col, duration)
-    @classmethod
-    def make_bomb(cls, row: int, col: int, duration: None|int) -> PowerupInfo:
-        return BombUp(row, col, duration)
-    @classmethod
-    def make_speed(cls, row: int, col: int, duration: None|int) -> PowerupInfo:
-        return SpeedUp(row, col, duration)
+Powerup_Factories: list[PowerupSpawner] = [FireUpFactory, BombUpFactory, SpeedUpFactory]
 
 
 class EffectFactory():
