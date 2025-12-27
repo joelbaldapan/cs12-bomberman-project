@@ -29,11 +29,11 @@ class ActionInfo(Protocol):
 
 
 class BotState(Protocol):
-    def on_enter(self, bot: BotContextInfo, world: WorldInfo, entity: PlayerInfo) -> None: ...
+    def on_enter(self, bot: BotMemoryInfo, world: WorldInfo, entity: PlayerInfo) -> None: ...
     
-    def on_tick(self, bot: BotContextInfo, world: WorldInfo, entity: PlayerInfo) -> None: ...
+    def on_tick(self, bot: BotMemoryInfo, world: WorldInfo, entity: PlayerInfo) -> None: ...
     
-    def decide_action(self, bot: BotContextInfo, world: WorldInfo, entity: PlayerInfo) -> ActionInfo | None: ...
+    def decide_action(self, bot: BotMemoryInfo, world: WorldInfo, entity: PlayerInfo) -> ActionInfo | None: ...
 
 
 
@@ -43,30 +43,10 @@ class PathfindingPolicy(Protocol):
 class DangerPolicy(Protocol):
     def is_in_danger(self) -> bool: ...
 
-# temporary
-class AttackPolicy1:
-    def __init__(self, reachable_only: bool, max_distance: int): ...
-    def get_goal(self) -> GridCoords | None: ...
-class AttackPolicy2:
-    # def __init__(self, reachable_only: bool, max_distance: int): ...
-    def get_goal(self) -> GridCoords | None: ...
-class PowerupPolicy1:
-    def get_goal(self) -> GridCoords | None: ...
-class PowerupPolicy2:
-    def get_goal(self) -> GridCoords | None: ...
 
-
-class BombOnlyDangerPolicy:
-    def is_in_danger(self) -> bool: ...
-
-class ExplosionPredictionDangerPolicy:
-    def is_in_danger(self) -> bool: ...
-
-# temporary
-
-class BotContextInfo(Protocol):
+class BotMemoryInfo(Protocol):
     @property
-    def config(self) -> BotConfig: ...
+    def config(self) -> BotConfigInfo: ...
     
     @property
     def reeval_timer(self) -> float: ...
@@ -81,14 +61,15 @@ class BotContextInfo(Protocol):
     def set_goal(self, goal: GridCoords | None) -> None: ...
     
     @property
-    def target_entity_id(self) -> int | None: ...
-    def set_target_entity_id(self, entity_id: int | None) -> None: ...
-    
-    @property
     def debug_danger_cells(self) -> set[GridCoords]: ...
     def set_debug_danger_cells(self, cells: set[GridCoords]) -> None: ...
 
+    def tick_reeval(self, dt: float) -> bool: ...
 
+class BotControllerInfo(Protocol):
+    def update(self, dt: float, host_entity: PlayerInfo, world: WorldInfo) -> None: ...
+    def decide_action(self, host_entity: PlayerInfo, world: WorldInfo) -> ActionInfo: ...
+    def transition_to(self, new_state: BotState, world: WorldInfo, entity: PlayerInfo): ...
 
 # bot configs
 # need to make protocol?
@@ -97,81 +78,6 @@ class BotType(StrEnum):
     HOSTILE = auto()
     CAREFUL = auto()
     GREEDY = auto()
-
-
-class BotConfigFactory():
-    @classmethod
-    def create_bot_config(cls, bot_type: BotType) -> BotConfig:
-        match bot_type:
-            case BotType.HOSTILE:
-                return BotConfig(
-                    # Reevaluation
-                    reeval_interval=0.5,
-                    reeval_chance=0.25,
-
-                    # Danger sensing
-                    danger_radius=0,  # only current cell
-                    danger_check_type=BombOnlyDangerPolicy(),
-
-                    # Attack
-                    attack_policy=AttackPolicy2(),
-                    attack_range_trigger=2,
-                    attack_search_radius=0,  # unused by policy 2
-
-                    # Powerups
-                    powerup_policy=PowerupPolicy2(),
-                    powerup_chance=0.20,
-                )
-
-            case BotType.CAREFUL:
-                return BotConfig(
-                    # Reevaluation
-                    reeval_interval=0.25,
-                    reeval_chance=1.0,
-
-                    # Danger sensing
-                    danger_radius=4,
-                    danger_check_type=ExplosionPredictionDangerPolicy(),
-
-                    # Attack
-                    attack_policy=AttackPolicy1(
-                        reachable_only=True,
-                        max_distance=3,
-                    ),
-                    attack_range_trigger=4,
-                    attack_search_radius=3,
-
-                    # Powerups
-                    powerup_policy=PowerupPolicy2(),
-                    powerup_chance=1.0,
-                )
-
-            case BotType.GREEDY:
-                return BotConfig(
-                    # Reevaluation
-                    reeval_interval=1.0,
-                    reeval_chance=1.0,
-
-                    # Danger sensing
-                    danger_radius=2,
-                    danger_check_type=ExplosionPredictionDangerPolicy(),
-
-                    # Attack
-                    attack_policy=AttackPolicy1(
-                        reachable_only=True,
-                        max_distance=6,
-                    ),
-                    attack_range_trigger=3,
-                    attack_search_radius=6,
-
-                    # Powerups
-                    powerup_policy=PowerupPolicy1(),
-                    powerup_chance=1.0,
-                )
-
-            case _:
-                raise ValueError(f"Unknown bot type: {bot_type}")
-
 
 
 class BotConfigInfo(Protocol):
@@ -202,20 +108,3 @@ class BotConfigInfo(Protocol):
     @property
     def powerup_chance(self) -> float: ...
 
-@dataclass
-class BotConfig:
-    # Reevaluation Settings
-    reeval_interval: float  # Seconds
-    reeval_chance: float    # 0.0 to 1.0 (percent/100)
-    
-    # Danger Sensing
-    danger_radius: int      # 'D'
-    danger_check_type: DangerPolicy  # 'bomb_only' (Hostile) or 'prediction' (Careful/Greedy)
-    
-    # Policies
-    attack_policy: PathfindingPolicy
-    attack_range_trigger: int # 'R' (Plant bomb if enemy within this distance)
-    attack_search_radius: int # 'A' (For Policy 1: check players within this dist)
-    
-    powerup_policy: PathfindingPolicy
-    powerup_chance: float   # 0.0 to 1.0 (Chance to use Policy 2)
