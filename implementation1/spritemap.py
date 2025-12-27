@@ -21,9 +21,9 @@ class SpriteMap:
     SOFT_ON_HIT_5 = SpriteCoords(96, 0, 16, 16)
 
     # bomb animation
-    BOMB_FRAME_1 = SpriteCoords(0, 16, 16, 16)
-    BOMB_FRAME_2 = SpriteCoords(16, 16, 16, 16)
-    BOMB_FRAME_3 = SpriteCoords(32, 16, 16, 16)
+    BOMB_FRAME_1 = SpriteCoords(128, 16, 16, 16)
+    BOMB_FRAME_2 = SpriteCoords(144, 16, 16, 16)
+    BOMB_FRAME_3 = SpriteCoords(160, 16, 16, 16)
 
     # explosion
     EXPLOSION_MIDDLE_1 = SpriteCoords(32, 32, 16, 16, 1)
