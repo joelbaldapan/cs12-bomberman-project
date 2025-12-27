@@ -99,9 +99,12 @@ class Model:
     # controller then `update` which does the following:
     # 1. update all entities
     #       - tick down bombs/explosions, have AI decide, etc.
-    # 2. create new entities if needed
-    # 3. check all `on_explosion` 
-    # 4. remove expired entities
+    # 2. detonate bombs
+    #       - check all `on_explosion` 
+    # 3. create new entities if needed
+    #       - remove expired entities
+    # 4. check player collision on explosions and powerups
+    # 5. repeat 3
 
     @property
     def fps(self)-> int:
