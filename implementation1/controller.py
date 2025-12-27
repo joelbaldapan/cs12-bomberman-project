@@ -28,5 +28,6 @@ class Controller:
             ... # different draw type of view, shows result screen
             return
         timer = self._model.timer
-        self._view.draw(timer)
+        players = self._model.alive_players
+        self._view.draw(players, timer)
         # model and view share the same world, no need to pass entities, except Players

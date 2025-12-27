@@ -5,7 +5,6 @@ from spritemap import SpriteMap, Animation, get_player_sprite, get_player_idle, 
 from entities.block import HardBlock, SoftBlock
 from entities.bomb import Bomb
 from entities.explosion import Explosion
-from entities.player import Player
 from entities.powerup import Powerup
 from helpers.grid_adapter import GridAdapter
 
@@ -60,10 +59,10 @@ class View:
             case SoundType.DEATH:
                 pyxel.playm(2)
     
-    def draw(self, timer: int = 60):
+    def draw(self, players: list[PlayerInfo], timer: int = 60):
         pyxel.cls(0)
         self._draw_grid()
-        self._draw_entities()
+        self._draw_entities(players)
         self._draw_animations()
         self._draw_ui(timer)
         self._animation.update()
@@ -86,7 +85,7 @@ class View:
                 sprite = SpriteMap.WALKABLE_TILE
                 pyxel.blt(x, y, sprite.img, sprite.u, sprite.v, sprite.w, sprite.h, 0)
     
-    def _draw_entities(self):
+    def _draw_entities(self, players: list[PlayerInfo]):
         for entity in self._world.entities:
             if isinstance(entity, (HardBlock, SoftBlock)):
                 if not self._has_animation_at_cell(entity.row, entity.col, AnimationType.SOFT_BREAK):
@@ -105,11 +104,10 @@ class View:
             if isinstance(entity, Explosion):
                 self._draw_explosion(entity)
 
-        for entity in self._world.entities:
-            if isinstance(entity, Player):
-                player_id = getattr(entity, '_id', 1)
-                if not self._has_player_death_animation(player_id):
-                    self._draw_player(entity)
+        for entity in players:
+            player_id = entity.id
+            if not self._has_player_death_animation(player_id):
+                self._draw_player(entity)
 
     # methods for _draw_entities
     def _has_animation_at_cell(self, row: int, col: int, anim_type: AnimationType) -> bool:

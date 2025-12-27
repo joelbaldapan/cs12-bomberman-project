@@ -7,9 +7,9 @@ from copy import deepcopy
 from entities.bomb import BombFactory
 from entities.block import BlockFactory
 from entities.powerup import Powerup_Factories
+from entities.player import PlayerFactory
 from random import choice, shuffle, randint
 
-from implementation1.entities.player import PlayerFactory
 
 T = TypeVar("T", bound=EntityInfo)
 
@@ -85,6 +85,10 @@ class World:
     
     def is_walkable(self, row: int, col: int, player_id: int) -> bool:
         return not self.is_cell_blocking(row, col, player_id)
+    
+    def clear(self) -> None:
+        self._board = [[None for _ in range(self.cols)] for _ in range(self.rows)]
+        self._entities = set()
 
 
 class Model:
@@ -337,6 +341,7 @@ class Model:
         for entity in expired:
             self._event_buffer.append(RemoveEvent(entity))
             if isinstance(entity, BlockInfo):
+                self._powerup_spawn(entity.row, entity.col)
                 self._vfx_buffer.append(AnimationCmd(AnimationType.SOFT_BREAK, CoordMode.CELL, entity.row, entity.col, self.fps, None, None))
             if isinstance(entity, PowerupInfo):
                 self._vfx_buffer.append(AnimationCmd(AnimationType.POWERUP_BREAK, CoordMode.CELL, entity.row, entity.col, self.fps, None, entity.powerup_type))
@@ -413,7 +418,7 @@ class Model:
         self._state = ModelState.COUNTDOWN
     
     def _reset_world_and_round_entities(self):
-        self._world = World(13, 15) # new hardcoded 13x15
+        self._world.clear()
         hard_blocks: list[GridCoords] = self._spaced_block_coords + self._border_block_coords
         for (r, c) in hard_blocks:
             self._world.add_entity(BlockFactory.make_hard(r, c))
@@ -462,5 +467,3 @@ class Model:
     #     for entity in self._world.entities:
     #         if entity.is_expired:
     #             self._world.remove_entity(entity)
-            
-Model(World(13, 15), GridAdapter(0, 24), 30, Settings()) # type: ignore , for world type-checking lang muna

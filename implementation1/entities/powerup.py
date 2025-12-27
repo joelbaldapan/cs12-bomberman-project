@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from common_types import EffectInfo, EntityType, PowerUpType, PowerupInfo, PowerupSpawner, SoundType, UpdateResultInfo, PlayerInfo
 from helpers.event import RemoveEvent, UpdateResult
 
+Powerup_Factories: list[PowerupSpawner] = []
 
 @dataclass(eq=False)
 class Powerup: 
@@ -93,16 +94,19 @@ class FireUpFactory():
     @staticmethod
     def make(row: int, col: int) -> PowerupInfo:
         return FireUp(row, col)
+Powerup_Factories.append(FireUpFactory)
 class BombUpFactory():
     @staticmethod
     def make(row: int, col: int) -> PowerupInfo:
         return BombUp(row, col)
+Powerup_Factories.append(BombUpFactory)
 class SpeedUpFactory():
     @staticmethod
     def make(row: int, col: int) -> PowerupInfo:
         return SpeedUp(row, col)
+Powerup_Factories.append(SpeedUpFactory)
 
-Powerup_Factories: list[PowerupSpawner] = [FireUpFactory, BombUpFactory, SpeedUpFactory]
+
 
 
 class EffectFactory():
