@@ -1,7 +1,7 @@
 from typing import Callable
 import pyxel
-from common_types import WorldInfo, PlayerInfo, BombInfo, BlockInfo, ExplosionInfo, PowerupInfo, PowerUpType, Direction, ExplosionOrientation # type: ignore
-from spritemap import SpriteMap, Animation, get_player_sprite, get_player_idle, get_bomb_sprite, get_explosion_sprite, get_soft_block_sprite, get_player_death_sprite # type: ignore
+from common_types import AnimationCmd, AnimationType, CoordMode, WorldInfo, PlayerInfo, BombInfo, BlockInfo, ExplosionInfo, PowerupInfo, PowerUpType, Direction, ExplosionOrientation
+from spritemap import SpriteMap, Animation, get_player_sprite, get_player_idle, get_bomb_sprite, get_explosion_sprite, get_soft_block_sprite, get_player_death_sprite
 from entities.block import HardBlock, SoftBlock
 from entities.bomb import Bomb
 from entities.explosion import Explosion
@@ -30,6 +30,9 @@ class View:
         # track player movement for animation
         self._player_positions: dict[int, tuple[float, float]] = {}
 
+        # track active animations
+        self._active_animations: list[tuple[AnimationCmd, int]] = []
+
     @property
     def key(self) -> dict[str, bool]:
         return {"UP": pyxel.btn(pyxel.KEY_UP), 
@@ -44,12 +47,20 @@ class View:
                 "X": pyxel.btnp(pyxel.KEY_X),
                 "ESC": pyxel.btnp(pyxel.KEY_ESCAPE)}
     
+    def start_animation(self, cmd: AnimationCmd):
+        self._active_animations.append((cmd, 0))
+
+    def play_sound(self):
+        pass # palagay ng sfx implementation here robb or wherever
+    
     def draw(self, timer: int = 60):
         pyxel.cls(0)
         self._draw_grid()
         self._draw_entities()
+        self._draw_animations()
         self._draw_ui(timer)
         self._animation.update()
+        self._update_animations()
 
     def draw_game_over(self, message: str):
         pyxel.cls(0)
@@ -71,11 +82,13 @@ class View:
     def _draw_entities(self):
         for entity in self._world.entities:
             if isinstance(entity, (HardBlock, SoftBlock)):
-                self._draw_block(entity)
+                if not self._has_animation_at_cell(entity.row, entity.col, AnimationType.SOFT_BREAK):
+                    self._draw_block(entity)
         
         for entity in self._world.entities:
             if isinstance(entity, Powerup):
-                self._draw_powerup(entity)
+                if not self._has_animation_at_cell(entity.row, entity.col, AnimationType.POWERUP_BREAK):
+                    self._draw_powerup(entity)
   
         for entity in self._world.entities:
             if isinstance(entity, Bomb):
@@ -87,9 +100,109 @@ class View:
 
         for entity in self._world.entities:
             if isinstance(entity, Player):
-                self._draw_player(entity)
+                player_id = getattr(entity, '_id', 1)
+                if not self._has_player_death_animation(player_id):
+                    self._draw_player(entity)
 
     # methods for _draw_entities
+    def _has_animation_at_cell(self, row: int, col: int, anim_type: AnimationType) -> bool:
+        for cmd, _ in self._active_animations:
+            if cmd.type == anim_type and cmd.mode == CoordMode.CELL:
+                if cmd.a == row and cmd.b == col:
+                    return True
+        return False
+    
+    def _has_player_death_animation(self, player_id: int) -> bool:
+        for cmd, _ in self._active_animations:
+            if cmd.type == AnimationType.DEATH and cmd.id == player_id:
+                return True
+        return False
+
+    def _update_animations(self):
+        updated: list[tuple[AnimationCmd, int]] = []
+        for cmd, frame in self._active_animations:
+            new_frame = frame + 1
+            
+            max_frames = self._get_max_frames(cmd)
+            
+            if new_frame < max_frames:
+                updated.append((cmd, new_frame))
+        
+        self._active_animations = updated
+    
+    def _get_max_frames(self, cmd: AnimationCmd) -> int:
+        if cmd.type == AnimationType.DEATH:
+            return 30  # 6 frames * 5 ticks per frame
+        elif cmd.type == AnimationType.SOFT_BREAK:
+            return 15  # 5 frames * 3 ticks per frame
+        elif cmd.type == AnimationType.POWERUP_BREAK:
+            return 15  # similar to soft break
+        return cmd.duration_frames
+
+    def _draw_animations(self):
+        for cmd, frame in self._active_animations:
+            if cmd.type == AnimationType.DEATH:
+                self._draw_death_animation(cmd, frame)
+            elif cmd.type == AnimationType.SOFT_BREAK:
+                self._draw_soft_break_animation(cmd, frame)
+            elif cmd.type == AnimationType.POWERUP_BREAK:
+                self._draw_powerup_break_animation(cmd, frame)
+
+    def _draw_death_animation(self, cmd: AnimationCmd, frame: int):
+        if cmd.id is None:
+            return
+
+        if cmd.mode == CoordMode.PIXEL:
+            x = int(cmd.a)
+            y = int(cmd.b)
+        else: 
+            x, y = self._grid.cell_to_pixel(int(cmd.a), int(cmd.b))
+        
+        # 5 ticks per frame, 6 frames total
+        sprite_frame = min(frame // 5, 5)
+        sprite = get_player_death_sprite(cmd.id, sprite_frame)
+        
+        pyxel.blt(x, y, sprite.img, sprite.u, sprite.v, sprite.w, sprite.h, 11)
+
+    def _draw_soft_break_animation(self, cmd: AnimationCmd, frame: int):
+        if cmd.mode == CoordMode.PIXEL:
+            x = int(cmd.a)
+            y = int(cmd.b)
+        else:
+            x, y = self._grid.cell_to_pixel(int(cmd.a), int(cmd.b))
+        
+        # 3 ticks per frame, 5 frames total
+        sprite_frame = min(frame // 3, 4)
+        sprite = get_soft_block_sprite(sprite_frame)
+        
+        pyxel.blt(x, y, sprite.img, sprite.u, sprite.v, sprite.w, sprite.h, 11)
+
+    def _draw_powerup_break_animation(self, cmd: AnimationCmd, frame: int):
+        if cmd.powerup_type is None:
+            return
+            
+        if cmd.mode == CoordMode.PIXEL:
+            x = int(cmd.a)
+            y = int(cmd.b)
+        else:
+            x, y = self._grid.cell_to_pixel(int(cmd.a), int(cmd.b))
+        
+        sprite_frame = min(frame // 3, 4)
+        
+        # get powerup sprite
+        match cmd.powerup_type:
+            case PowerUpType.FIRE:
+                sprite = SpriteMap.POWERUP_FIRE
+            case PowerUpType.BOMB:
+                sprite = SpriteMap.POWERUP_BOMB
+            case PowerUpType.SPEED:
+                sprite = SpriteMap.POWERUP_SPEED
+            case _:
+                sprite = SpriteMap.POWERUP_FIRE
+        
+        if sprite_frame < 3 and frame % 4 < 2:
+            pyxel.blt(x, y, sprite.img, sprite.u, sprite.v, sprite.w, sprite.h, 14)
+
     def _draw_block(self, block: BlockInfo):
         x, y = self._grid.cell_to_pixel(block.row, block.col)
         
@@ -109,7 +222,7 @@ class View:
         
         pyxel.blt(x, y, sprite.img, sprite.u, sprite.v, sprite.w, sprite.h, 11)
 
-    def _draw_explosion(self, explosion: ExplosionInfo): # still not sure about this one, please help DUHAHDAHA
+    def _draw_explosion(self, explosion: ExplosionInfo):
         x, y = self._grid.cell_to_pixel(explosion.row, explosion.col)
         
         match (hasattr(explosion, 'orientation'), hasattr(explosion, 'terminal_direction')):
@@ -200,17 +313,21 @@ class View:
         
         powerup_type = powerup.powerup_type
         
-        match powerup_type:
-            case PowerUpType.FIRE:
-                sprite = SpriteMap.POWERUP_FIRE
-            case PowerUpType.BOMB:
-                sprite = SpriteMap.POWERUP_BOMB
-            case PowerUpType.SPEED:
-                sprite = SpriteMap.POWERUP_SPEED
-            case _:
-                sprite = SpriteMap.POWERUP_FIRE
+        # magppulse ung powerups with this
+        show_powerup = (self._animation.frame // 10) % 2 == 0 or (self._animation.frame // 10) % 3 == 0
+        
+        if show_powerup:
+            match powerup_type:
+                case PowerUpType.FIRE:
+                    sprite = SpriteMap.POWERUP_FIRE
+                case PowerUpType.BOMB:
+                    sprite = SpriteMap.POWERUP_BOMB
+                case PowerUpType.SPEED:
+                    sprite = SpriteMap.POWERUP_SPEED
+                case _:
+                    sprite = SpriteMap.POWERUP_FIRE
 
-        pyxel.blt(x, y, sprite.img, sprite.u, sprite.v, sprite.w, sprite.h, 14)
+            pyxel.blt(x, y, sprite.img, sprite.u, sprite.v, sprite.w, sprite.h, 14)
 
     def _draw_ui(self, timer: int):
         minutes = timer // 60
