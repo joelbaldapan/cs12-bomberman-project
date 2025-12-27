@@ -111,6 +111,10 @@ class Model:
         return self._fps
     
     @property
+    def timer(self)-> int:
+        return self._timer
+    
+    @property
     def pop_sfx(self) -> list[SoundType]:
         out = self._sfx_buffer[:]
         self._sfx_buffer = []

@@ -1,3 +1,4 @@
+from typing import Callable
 import pyxel
 from common_types import WorldInfo, PlayerInfo, BombInfo, BlockInfo, ExplosionInfo, PowerupInfo, PowerUpType, Direction, ExplosionOrientation # type: ignore
 from spritemap import SpriteMap, Animation, get_player_sprite, get_player_idle, get_bomb_sprite, get_explosion_sprite, get_soft_block_sprite, get_player_death_sprite # type: ignore
@@ -223,3 +224,6 @@ class View:
         
     def update_animation(self):
         self._animation.update()
+
+    def run(self, update: Callable[..., None], draw: Callable[..., None])-> None:
+        pyxel.run(update, draw)

@@ -1,6 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from common_types import BombInfo, GridCoords, PlayerInfo, EntityType, SoundType, UpdateResultInfo, WorldInfo, Direction
+from common_types import BombInfo, GridCoords, PlayerInfo, EntityType, PowerupInfo, SoundType, UpdateResultInfo, WorldInfo, Direction
 from helpers.event import RemoveEvent, UpdateResult, SpawnEvent
 from explosion import ExplosionFactory, ExplosionOrientation
 
@@ -120,6 +120,9 @@ class Bomb:
                         continue
                     else:
                         entity.on_explosion_hit()
+                        if isinstance(entity, PowerupInfo):
+                            cells.append((r, c))
+                            result.add_event(RemoveEvent(entity))
                         break
                 
                 for i, (er, ec) in enumerate(cells):
