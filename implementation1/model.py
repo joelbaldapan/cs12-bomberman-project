@@ -4,8 +4,7 @@ from typing import TypeVar
 from helpers.grid_adapter import GridAdapter
 from helpers.event import RemoveEvent, SpawnEvent, UpdateResult
 from copy import deepcopy
-
-from implementation1.entities.bomb import BombFactory
+from entities.bomb import BombFactory
 
 T = TypeVar("T", bound=EntityInfo)
 
