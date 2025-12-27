@@ -104,7 +104,7 @@ class Model:
         self._temp_winner: int = 0
         self._state: ModelState = ModelState.COUNTDOWN
         self._debug: bool = False
-        self._round_result = None 
+        self._round_result = None #IMPLEMEEEENT
 
         # grid helpers
         self._cols: int = self._world.cols
@@ -113,6 +113,9 @@ class Model:
         self._border_block_coords: list[GridCoords] =  [(0, c) for c in range(self._cols)] + [(self._rows - 1, c) for c in range(self._cols)] + [(r, 0) for r in range(1, self._rows - 1)] + [(r, self._cols - 1) for r in range(1, self._rows - 1)]
         self._protected_coords: list[GridCoords] =  [(1,1), (2, 1), (1,2), (1, 13), (2, 13), (1, 12), (11, 1), (10, 1), (11, 2), (11, 13), (10, 13), (11, 12)]
     
+        # ADD PLAYERS HERE, simply add, no need to place down
+        self._add_players()
+
         self._start_new_round()
     
     # NOTE: main flow of model is:
@@ -168,7 +171,14 @@ class Model:
     @property
     def players(self) -> list[PlayerInfo]:
         return list(self._players)
-
+    @property
+    def alive_players(self) -> list[PlayerInfo]:
+        return [p for p in self._players if not p.is_expired]\
+        
+    def _add_players(self) -> None:
+        # for i in range(self._config.num_human_players):
+        #     self._players.append
+        ...
     def handle_input(self, inputs: dict[str, bool]):
         if self._state == ModelState.TRANSITION:
             if inputs["ESC"]:
@@ -226,13 +236,14 @@ class Model:
                 self._finalize_round()
 
         # PLAYING:
-
+        self._timer -= dt
         self._update_entities(dt) # update all and enqueue self sounds and removes
         self._detonate_bombs() # detonate, pipeline for explosion and its results, enqueue explosion cells, next frame mag detonate ung hit bombs
         self._process_events()  # add (e.g. new explosions); remove (e.g. timed out explosion/bomb)
         self._check_explosion_powerup_collision() # check collision with player
         self._process_events() # add (e.g. powerup spawned from block); remove (e.g. dead player)
         # self._remove_expired_entities() # remove expired entities in general (idk if this is necessary.)
+        self._check_round_end_conditions()
 
     def _update_entities(self, dt: int):
         for entity in self._world.entities:
@@ -246,7 +257,7 @@ class Model:
             self._sfx_buffer += result.sounds
             self._vfx_buffer += result.animations
         self._update_bomb_pass_through() # update bomb movement logic after movement
-        self._timer -= dt
+
         
     def _player_overlaps_cell(self, player: PlayerInfo, row: int, col: int) -> bool:
         # bounds in pixels
@@ -363,7 +374,7 @@ class Model:
             return
 
         winner = alive[0].id
-        self._scores[winner] = self._scores[winner] + 1
+        self._scores[winner] = self._scores.get(winner, 0) + 1
         self._round_result = ...
         self._enter_transition()
     

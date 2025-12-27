@@ -10,7 +10,7 @@ class Bomb:
     def __init__(self, row: int, col: int, timer: int, range: int, owner: PlayerInfo):
         self._row: int = row
         self._col: int = col
-        self._full_timer: int = timer
+        self._fuse: int = timer
         self._range: int = range
         self._owner: PlayerInfo = owner
         self._current_timer: int = 0 
@@ -46,11 +46,11 @@ class Bomb:
     
     @property
     def should_detonate(self) -> bool:
-        return self.current_timer >= self._full_timer
+        return self.current_timer >= self._fuse
     
     @property
     def explosion_duration(self) -> int:
-        return self._full_timer//3
+        return self._fuse//3
 
 
     def update(self, dt: int) -> UpdateResultInfo:
@@ -68,7 +68,7 @@ class Bomb:
     def on_explosion_hit(self) -> None:
         if self._expired:
             return
-        self._current_timer = self._full_timer
+        self._current_timer = self._fuse
 
     def get_affected_cells(self, world: WorldInfo)-> list[GridCoords]:
         row, col = self.row, self.col
@@ -148,5 +148,5 @@ class Bomb:
 
 class BombFactory:
     @classmethod
-    def make(cls, row: int, col: int, full_timer: int, range: int, owner: PlayerInfo,) -> BombInfo:
-        return Bomb(row, col,full_timer, range, owner)
+    def make(cls, row: int, col: int, fuse: int, range: int, owner: PlayerInfo,) -> BombInfo:
+        return Bomb(row, col,fuse, range, owner)

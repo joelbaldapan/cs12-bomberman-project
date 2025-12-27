@@ -246,7 +246,7 @@ class Player():
     def reset_for_new_round(self) -> None:
         x, y = self._grid.cell_to_pixel(self._initial_row[self._id], self._initial_col[self._id])
         self._x = x
-        self._y = y
+        self._y = y - 8
         self._base_speed: float = 2.0
         self._base_max_bombs: int = 1
         self._base_range: int = 1

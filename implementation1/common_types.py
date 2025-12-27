@@ -49,11 +49,6 @@ class AnimationCmd:
     id: int|None
     powerup_type: PowerUpType|None
 
-# note: inaassume lang neto that we have only one entity per grid
-T = TypeVar("T", bound=EntityInfo)
-type Board = list[list[EntityInfo | None]]
-type GridCoords = tuple[int, int]
-
 class Direction(Enum):
     NORTH = (-1, 0)
     SOUTH = (1, 0)
@@ -113,6 +108,10 @@ class EntityInfo(Protocol):
     def on_explosion_hit(self) -> None: ...
     def update(self, dt: int) -> UpdateResultInfo: ...
 
+# note: inaassume lang neto that we have only one entity per grid
+T = TypeVar("T", bound=EntityInfo)
+type Board = list[list[EntityInfo | None]]
+type GridCoords = tuple[int, int]
 
 # ENTITIES:
 
@@ -143,7 +142,7 @@ class BombInfo(Protocol):
     @property
     def col(self) -> int: ...
 
-    _full_timer: int # PRIVATE: we store the full countdown till the bomb explodes
+    _fuse: int # PRIVATE: we store the full countdown till the bomb explodes
 
     @property
     def current_timer(self) -> int: ...
