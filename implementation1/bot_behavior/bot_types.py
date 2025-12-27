@@ -31,7 +31,7 @@ class ActionInfo(Protocol):
 class BotState(Protocol):
     def on_enter(self, bot: BotMemoryInfo, world: WorldInfo, entity: PlayerInfo) -> None: ...
     
-    def on_tick(self, bot: BotMemoryInfo, world: WorldInfo, entity: PlayerInfo) -> None: ...
+    def on_tick(self, bot: BotMemoryInfo, world: WorldInfo, entity: PlayerInfo) -> BotState | None: ...
     
     def decide_action(self, bot: BotMemoryInfo, world: WorldInfo, entity: PlayerInfo) -> ActionInfo | None: ...
 
@@ -39,11 +39,13 @@ class BotState(Protocol):
 
 class PathfindingPolicy(Protocol):
     def get_goal(
-        self, world: WorldInfo, bot: PlayerInfo, max_distance: int | None, reachable_only: bool
+        self, world: WorldInfo, bot: PlayerInfo
     ) -> GridCoords | None:
         ...
+        
+    # UPDATE: Added 'memory' parameter so we can access memory.goal
     def get_path(
-        self, world: WorldInfo, bot: PlayerInfo, max_distance: int | None, reachable_only: bool
+        self, world: WorldInfo, bot: PlayerInfo, memory: BotMemoryInfo
     ) -> list[GridCoords]:
         ...
 

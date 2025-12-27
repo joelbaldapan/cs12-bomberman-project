@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from bot_behavior.bot_policy import AttackPolicy1, AttackPolicy2, BombOnlyDangerPolicy, ExplosionPredictionDangerPolicy, PowerupPolicy1, PowerupPolicy2
 from common_types import PlayerInfo, WorldInfo, GridCoords
 from .bot_types import BotConfigInfo, BotMemoryInfo, BotControllerInfo, BotState, BotType, ActionInfo, Action, DangerPolicy, PathfindingPolicy, PlayerAction
-from .bot_state import WanderState, EscapeState, GetPowerupState
+from .bot_state import WanderState
 import random
 
 
@@ -78,19 +78,17 @@ class BotController:
             self._initialized = True
 
         # 1 - tick the state
-        self.current_state.on_tick(self.context, world, host_entity)
+        next_state = self.current_state.on_tick(self.context, world, host_entity)
+                
+        if next_state:
+            self.transition_to(next_state, world, host_entity)
+            return
 
         # 2 - tick the reevaluation timer
         if self.context.tick_reeval(dt):
             # to implement
             # perform_global_reevaluation(self, world, host_entity)
             ...
-            
-        # 3 - check if we should transition; e.g. Escape/Powerup success
-        # To improve (temporary for now)
-        if isinstance(self.current_state, (EscapeState, GetPowerupState)):
-            if self.context.goal and (host_entity.row, host_entity.col) == self.context.goal:
-                self.transition_to(WanderState(), world, host_entity)
 
     def decide_action(self, host_entity: PlayerInfo, world: WorldInfo) -> ActionInfo:
         action = self.current_state.decide_action(self.context, world, host_entity)
@@ -149,7 +147,6 @@ class BotFactory:
 
                     # Attack
                     attack_policy=AttackPolicy1(
-                        reachable_only=True,
                         max_distance=3,
                     ),
                     attack_range_trigger=4,
@@ -172,7 +169,6 @@ class BotFactory:
 
                     # Attack
                     attack_policy=AttackPolicy1(
-                        reachable_only=True,
                         max_distance=6,
                     ),
                     attack_range_trigger=3,
