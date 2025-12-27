@@ -99,7 +99,7 @@ class View:
             case False:
                 sprite = SpriteMap.SOFT_BLOCK
             
-        pyxel.blt(x, y, sprite.img, sprite.u, sprite.v, sprite.w, sprite.h, 0)
+        pyxel.blt(x, y, sprite.img, sprite.u, sprite.v, sprite.w, sprite.h, 11)
 
     def _draw_bomb(self, bomb: BombInfo):
         x, y = self._grid.cell_to_pixel(bomb.row, bomb.col)
@@ -107,7 +107,7 @@ class View:
         frame = self._animation.get_bomb_frame()
         sprite = get_bomb_sprite(frame)
         
-        pyxel.blt(x, y, sprite.img, sprite.u, sprite.v, sprite.w, sprite.h, 0)
+        pyxel.blt(x, y, sprite.img, sprite.u, sprite.v, sprite.w, sprite.h, 11)
 
     def _draw_explosion(self, explosion: ExplosionInfo): # still not sure about this one, please help DUHAHDAHA
         x, y = self._grid.cell_to_pixel(explosion.row, explosion.col)
@@ -126,7 +126,7 @@ class View:
             case _:
                 sprite = SpriteMap.EXPLOSION_MIDDLE_1
         
-        pyxel.blt(x, y, sprite.img, sprite.u, sprite.v, sprite.w, sprite.h, 0)
+        pyxel.blt(x, y, sprite.img, sprite.u, sprite.v, sprite.w, sprite.h, 11)
 
     def _orientation_to_str(self, orientation: ExplosionOrientation) -> str:
         match orientation:
@@ -150,7 +150,7 @@ class View:
         
         sprite = self._get_player_sprite(player_id, direction, is_moving)
         
-        pyxel.blt(x, y, sprite.img, sprite.u, sprite.v, sprite.w, sprite.h, 0)
+        pyxel.blt(x, y, sprite.img, sprite.u, sprite.v, sprite.w, sprite.h, 11)
         
         # draw the player lanbel
         label = f"P{player_id}"
@@ -210,7 +210,7 @@ class View:
             case _:
                 sprite = SpriteMap.POWERUP_FIRE
 
-        pyxel.blt(x, y, sprite.img, sprite.u, sprite.v, sprite.w, sprite.h, 0)
+        pyxel.blt(x, y, sprite.img, sprite.u, sprite.v, sprite.w, sprite.h, 14)
 
     def _draw_ui(self, timer: int):
         minutes = timer // 60
