@@ -1,6 +1,6 @@
 from typing import Callable
 import pyxel
-from common_types import AnimationCmd, AnimationType, CoordMode, WorldInfo, PlayerInfo, BombInfo, BlockInfo, ExplosionInfo, PowerupInfo, PowerUpType, Direction, ExplosionOrientation
+from common_types import AnimationCmd, AnimationType, CoordMode, WorldInfo, PlayerInfo, BombInfo, BlockInfo, ExplosionInfo, PowerupInfo, PowerUpType, Direction, ExplosionOrientation, SoundType
 from spritemap import SpriteMap, Animation, get_player_sprite, get_player_idle, get_bomb_sprite, get_explosion_sprite, get_soft_block_sprite, get_player_death_sprite
 from entities.block import HardBlock, SoftBlock
 from entities.bomb import Bomb
@@ -24,6 +24,7 @@ class View:
         # load resource file
         pyxel.init(self._display_width, self._display_height, fps=30)
         pyxel.load("view.pyxres")
+        pyxel.load("music.pyxres", exclude_images = True, exclude_tilemaps = True)
 
         self._animation = Animation(fps=30)
 
@@ -50,8 +51,14 @@ class View:
     def start_animation(self, cmd: AnimationCmd):
         self._active_animations.append((cmd, 0))
 
-    def play_sound(self):
-        pass # palagay ng sfx implementation here robb or wherever
+    def play_sound(self, sound_type: SoundType):
+        match sound_type:
+            case SoundType.EXPLOSION:
+                pyxel.playm(0)
+            case SoundType.POWERUP_GET:
+                pyxel.playm(1)
+            case SoundType.DEATH:
+                pyxel.playm(2)
     
     def draw(self, timer: int = 60):
         pyxel.cls(0)
