@@ -41,7 +41,8 @@ class View:
                 "S": pyxel.btn(pyxel.KEY_S),
                 "A": pyxel.btn(pyxel.KEY_A),
                 "D": pyxel.btn(pyxel.KEY_D),
-                "X": pyxel.btnp(pyxel.KEY_X),}
+                "X": pyxel.btnp(pyxel.KEY_X),
+                "ESC": pyxel.btnp(pyxel.KEY_ESCAPE)}
     
     def draw(self, timer: int = 60):
         pyxel.cls(0)

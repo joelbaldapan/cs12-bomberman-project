@@ -6,6 +6,12 @@ from enum import Enum, StrEnum, auto
 
 # new types for readabilityy
 
+class ModelState(Enum):
+    TRANSITION = auto()
+    COUNTDOWN = auto()
+    PLAYING = auto()
+    END_DELAY = auto()
+
 class EntityType(StrEnum):
     EXPLOSION = auto()
     BOMB = auto()
@@ -219,6 +225,7 @@ class PlayerInfo(Protocol):
     def add_bomb(self, bomb: BombInfo): ...
     def remove_effect(self, effect: EffectInfo): ...
     def add_effect(self, effect: EffectInfo): ...
+    def reset_for_new_round(self) -> None: ...
 
     @property
     def entity_type(self) -> EntityType: ...

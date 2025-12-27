@@ -1,10 +1,12 @@
 from __future__ import annotations
-from common_types import AnimationCmd, AnimationType, BlockInfo, CoordMode, EventInfo, EntityInfo, ExplosionInfo, Board, GridCoords, PowerupInfo, SoundType, EntityType, WorldInfo, BombInfo, PlayerInfo
+from common_types import AnimationCmd, AnimationType, BlockInfo, ConfigInfo, CoordMode, EventInfo, EntityInfo, ExplosionInfo, Board, GridCoords, ModelState, PowerupInfo, SoundType, EntityType, WorldInfo, BombInfo, PlayerInfo
 from typing import TypeVar
 from helpers.grid_adapter import GridAdapter
 from helpers.event import RemoveEvent, SpawnEvent, UpdateResult
 from copy import deepcopy
 from entities.bomb import BombFactory
+from entities.block import BlockFactory
+from random import shuffle, randint
 
 T = TypeVar("T", bound=EntityInfo)
 
@@ -83,17 +85,36 @@ class World:
 
 
 class Model:
-    def __init__(self, world: WorldInfo, grid: GridAdapter, fps: int):
+    def __init__(self, world: WorldInfo, grid: GridAdapter, fps: int, config: ConfigInfo):
         self._world: WorldInfo = world
+        self._config: ConfigInfo = config
         self._event_buffer: list[EventInfo] = []
         self._sfx_buffer: list[SoundType] = []
         self._vfx_buffer: list[AnimationCmd] = []
         self._players: set[PlayerInfo] = set()
         self._grid: GridAdapter = grid
         self._tile_size: int = 16
-        self._timer: int = 60*fps # in seconds, currently set to 1 minute
+        self._timer: int = self._config.timer_seconds*fps # in seconds, currently set to 1 minute
+        self._win_countdown: int = fps # NOTE: 1 second countdown before declaring a player as a winner
         self._fps: int = fps
+        self._draw: bool = False
+        self._scores: dict[int, int] = {}
+        self._rounds_to_win: int = config.rounds_to_win
+        self._round_start_timer: int = 3*fps
+        self._temp_winner: int = 0
+        self._state: ModelState = ModelState.COUNTDOWN
+        self._debug: bool = False
+        self._round_result = None 
 
+        # grid helpers
+        self._cols: int = self._world.cols
+        self._rows: int = self._world.rows
+        self._spaced_block_coords: list[GridCoords] = [(r, c)for r in (2, 4, 6, 8, 10) for c in (2, 4, 6, 8, 10, 12)]
+        self._border_block_coords: list[GridCoords] =  [(0, c) for c in range(self._cols)] + [(self._rows - 1, c) for c in range(self._cols)] + [(r, 0) for r in range(1, self._rows - 1)] + [(r, self._cols - 1) for r in range(1, self._rows - 1)]
+        self._protected_coords: list[GridCoords] =  [(1,1), (2, 1), (1,2), (1, 13), (2, 13), (1, 12), (11, 1), (10, 1), (11, 2), (11, 13), (10, 13), (11, 12)]
+    
+        self._start_new_round()
+    
     # NOTE: main flow of model is:
     # controller calls: handle player input
     # controller then `update` which does the following:
@@ -124,12 +145,43 @@ class Model:
         out = self._vfx_buffer[:]
         self._vfx_buffer = []
         return out
+    @property
+    def transition_screen(self) -> bool:
+        return self._state == ModelState.TRANSITION
+    
+    @property
+    def state(self) -> ModelState:
+        return self._state
 
+    @property
+    def countdown_frames(self) -> int:
+        return self._round_start_timer
+
+    @property
+    def scores(self) -> dict[int, int]:
+        return dict(self._scores)
+
+    @property
+    def round_result(self):
+        return self._round_result
+
+    @property
+    def players(self) -> list[PlayerInfo]:
+        return list(self._players)
 
     def handle_input(self, inputs: dict[str, bool]):
+        if self._state == ModelState.TRANSITION:
+            if inputs["ESC"]:
+                self._start_new_round()
+
+        if self._state != ModelState.PLAYING:
+            return
+        
         events: list[BombInfo] = []
         reserved_cells: set[GridCoords] = set()
         for player in self._players:
+            if player.is_expired:
+                continue
             plants = player.handle_input(inputs)
             if not plants:
                 continue
@@ -156,6 +208,25 @@ class Model:
 
     def update(self, dt: int):
         # controller -> model.handle_inputs
+        # TRANSITION
+        if self._state == ModelState.TRANSITION:
+            return
+
+        # COUNTDOWN
+        if self._state == ModelState.COUNTDOWN:
+            self._round_start_timer -= dt
+            if self._round_start_timer <= 0:
+                self._state = ModelState.PLAYING
+            return
+
+        # END_DELAY
+        if self._state == ModelState.END_DELAY:
+            self._win_countdown -= dt
+            if self._win_countdown <= 0:
+                self._finalize_round()
+
+        # PLAYING:
+
         self._update_entities(dt) # update all and enqueue self sounds and removes
         self._detonate_bombs() # detonate, pipeline for explosion and its results, enqueue explosion cells, next frame mag detonate ung hit bombs
         self._process_events()  # add (e.g. new explosions); remove (e.g. timed out explosion/bomb)
@@ -255,7 +326,103 @@ class Model:
     def _player_by_id(self, id: int) -> PlayerInfo|None:
         for player in self._players:
             if player.id == id:
-                return player    
+                return player  
+
+    def _alive_players(self) -> list[PlayerInfo]:
+        return [p for p in self._players if not p.is_expired]
+
+    def _check_round_end_conditions(self) -> None:
+        # timer ran out, draw
+        if self._timer <= 0:
+            self._round_result = ...
+            self._enter_transition()
+            return
+
+        alive = self._alive_players()
+
+        # draw if all dead(checked within 1 second only)
+        if len(alive) == 0:
+            self._round_result = ...
+            self._enter_transition()
+            return
+
+        # begin 1-second end delay, to check if win or draw
+        if len(alive) == 1 and self._state != ModelState.END_DELAY:
+            self._temp_winner = alive[0].id   
+            self._state = ModelState.END_DELAY
+            self._win_countdown = self._fps   
+            return
+
+    def _finalize_round(self) -> None:
+        alive = self._alive_players()
+
+        #  draw
+        if len(alive) != 1:
+            self._round_result = ...
+            self._enter_transition()
+            return
+
+        winner = alive[0].id
+        self._scores[winner] = self._scores[winner] + 1
+        self._round_result = ...
+        self._enter_transition()
+    
+    def _enter_transition(self)-> None:
+        self._state = ModelState.TRANSITION
+        self._debug = False
+    
+    def _start_new_round(self) -> None:
+        self._transition_screen = False
+
+        # reset world 
+        self._reset_world_and_round_entities()
+
+        # reset timers
+        self._timer = self._config.timer_seconds * self._fps
+        self._round_start_timer = 3 * self._fps
+        self._win_countdown = self._fps
+
+        # reset players
+        self._reset_players_to_spawn()
+
+        # go into countdown state
+        self._state = ModelState.COUNTDOWN
+    
+    def _reset_world_and_round_entities(self):
+        self._world = World(13, 15) # new hardcoded 13x15
+        hard_blocks: list[GridCoords] = self._spaced_block_coords + self._border_block_coords
+        for (r, c) in hard_blocks:
+            self._world.add_entity(BlockFactory.make_hard(r, c))
+
+        soft_spawnable: list[tuple[int, int]] = []
+        for r in range(1, self._rows - 1):
+            for c in range(1, self._cols - 1):
+                if (r, c) in self._protected_coords:
+                    continue
+                if self._world.get_entity_at(r, c) is not None:
+                    continue
+                soft_spawnable.append((r, c))
+
+        shuffle(soft_spawnable)
+
+        k = self._config.soft_block_spawn_chance
+        placed = 0
+        for (r, c) in soft_spawnable:
+            if randint(1, 100) <= k:
+                self._world.add_entity(BlockFactory.make_soft(r, c))
+                placed += 1
+        if placed < 10:
+            for (r, c) in soft_spawnable:
+                if placed >= 10:
+                    break
+                if self._world.get_entity_at(r, c) is None:
+                    self._world.add_entity(BlockFactory.make_soft(r, c))
+                    placed += 1
+
+    def _reset_players_to_spawn(self) -> None:
+        for p in self._players:
+            p.reset_for_new_round()
+
 
     def _process_events(self):
         for event in self._event_buffer:
@@ -267,4 +434,4 @@ class Model:
     #         if entity.is_expired:
     #             self._world.remove_entity(entity)
             
-Model(World(13, 15), GridAdapter(0, 24), 30) # for world type-checking lang muna
+Model(World(13, 15), GridAdapter(0, 24), 30, Settings()) # type: ignore , for world type-checking lang muna

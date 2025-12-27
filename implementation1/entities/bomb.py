@@ -90,6 +90,8 @@ class Bomb:
                     cells.append((r, c))
                     continue
                 else:
+                    if isinstance(entity, PowerupInfo):
+                        cells.append((r, c))
                     return
 
         project(-1, 0)

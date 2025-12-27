@@ -20,11 +20,13 @@ class Player():
         self._base_max_bombs: int = 1
         self._base_range: int = 1
         self._effects: set[EffectInfo] = set()
-
         self._expired: bool = False
         self._alive: bool = True
         self._active_bombs: set[BombInfo] = set()
         self.direction_facing: Direction = Direction.SOUTH
+        
+        self._initial_row: dict[int, int] = {1:1, 2:1, 3:11, 4:11}
+        self._initial_col: dict[int, int] = {1:1, 2:13, 3:11, 4:13}
         self._snap_tolerance: int = 4  
 
 
@@ -240,6 +242,20 @@ class Player():
 
     def remove_effect(self, effect: EffectInfo):
         self._effects.discard(effect)
+    
+    def reset_for_new_round(self) -> None:
+        x, y = self._grid.cell_to_pixel(self._initial_row[self._id], self._initial_col[self._id])
+        self._x = x
+        self._y = y
+        self._base_speed: float = 2.0
+        self._base_max_bombs: int = 1
+        self._base_range: int = 1
+        self._effects: set[EffectInfo] = set()
+        self._expired: bool = False
+        self._alive: bool = True
+        self._active_bombs: set[BombInfo] = set()
+        self.direction_facing: Direction = Direction.SOUTH
+        return
 
 
 class PlayerFactory:
