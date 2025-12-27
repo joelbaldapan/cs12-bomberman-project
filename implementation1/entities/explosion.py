@@ -1,6 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from common_types import EntityType, Direction, UpdateResultInfo, ExplosionOrientation
+from common_types import EntityType, Direction, ExplosionInfo, UpdateResultInfo, ExplosionOrientation
 from helpers.event import UpdateResult, RemoveEvent
 
 
@@ -10,10 +10,10 @@ class Explosion:
     _row: int
     _col: int
     orientation: ExplosionOrientation
+    _full_timer: int
     terminal_direction: Direction | None = None
 
     # how long this explosion lasts, in seconds OR frames (imo mas better frames since discrete)
-    _full_timer: int = 1 #multiplied by frames
 
     # state
     _current_timer: int = 0
@@ -44,11 +44,6 @@ class Explosion:
         return None
 
     def update(self, dt: int) -> UpdateResultInfo:
-        """
-        advance the explosion timer.
-
-        suggest q gawin pass the frames or something para integer lang lahat
-        """
         results: UpdateResultInfo = UpdateResult()
         self._current_timer += dt
         if self._current_timer >= self._full_timer:
@@ -60,5 +55,5 @@ class Explosion:
 class ExplosionFactory:
 
     @classmethod
-    def make(cls, r: int, c: int, orientation: ExplosionOrientation, direction: Direction|None)-> Explosion:
-        return Explosion(r, c, orientation, direction)
+    def make(cls, r: int, c: int, orientation: ExplosionOrientation, full_timer:int, direction: Direction|None)-> ExplosionInfo:
+        return Explosion(r, c, orientation, full_timer, direction)

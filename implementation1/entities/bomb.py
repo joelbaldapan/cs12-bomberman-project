@@ -1,6 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from common_types import GridCoords, PlayerInfo, EntityType, SoundType, UpdateResultInfo, WorldInfo, Direction
+from common_types import BombInfo, GridCoords, PlayerInfo, EntityType, SoundType, UpdateResultInfo, WorldInfo, Direction
 from helpers.event import RemoveEvent, UpdateResult, SpawnEvent
 from explosion import ExplosionFactory, ExplosionOrientation
 
@@ -47,6 +47,10 @@ class Bomb:
     @property
     def should_detonate(self) -> bool:
         return self.current_timer >= self._full_timer
+    
+    @property
+    def explosion_duration(self) -> int:
+        return self._full_timer//3
 
 
     def update(self, dt: int) -> UpdateResultInfo:
@@ -97,7 +101,7 @@ class Bomb:
     def create_explosions(self, world: WorldInfo, result: UpdateResultInfo):
             row, col = self.row, self.col
             rng = self.explosion_range
-            center_explosion = ExplosionFactory.make(row,col, ExplosionOrientation.CENTER,None)
+            center_explosion = ExplosionFactory.make(row,col, ExplosionOrientation.CENTER, self.explosion_duration ,None)
             result.add_event(SpawnEvent(center_explosion))
     
             def propagate(dr: int, dc: int, direction: Direction):
@@ -130,7 +134,7 @@ class Bomb:
     
                     terminal = direction if is_last else None
     
-                    result.add_event(SpawnEvent(ExplosionFactory.make(er, ec, orient, terminal)))
+                    result.add_event(SpawnEvent(ExplosionFactory.make(er, ec, orient, self.explosion_duration,terminal)))
     
             propagate(-1, 0, Direction.NORTH)
             propagate(1, 0, Direction.SOUTH)
@@ -139,5 +143,5 @@ class Bomb:
 
 class BombFactory:
     @classmethod
-    def make(cls, row: int, col: int, full_timer: int, range: int, owner: PlayerInfo,) -> Bomb:
+    def make(cls, row: int, col: int, full_timer: int, range: int, owner: PlayerInfo,) -> BombInfo:
         return Bomb(row, col,full_timer, range, owner)

@@ -106,6 +106,18 @@ class Model:
     @property
     def fps(self)-> int:
         return self._fps
+    
+    @property
+    def pop_sfx(self) -> list[SoundType]:
+        out = self._sfx_buffer[:]
+        self._sfx_buffer = []
+        return out
+    @property
+    def pop_vfx(self) -> list[AnimationCmd]:
+        out = self._vfx_buffer[:]
+        self._vfx_buffer = []
+        return out
+
 
     def handle_input(self, inputs: dict[str, bool]):
         events: list[BombInfo] = []

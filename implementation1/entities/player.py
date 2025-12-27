@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import Optional
-from common_types import AnimationCmd, AnimationType, BombInfo, CoordMode, EffectInfo, SoundType, WorldInfo, Direction, EntityType, UpdateResultInfo
+from common_types import AnimationCmd, AnimationType, BombInfo, CoordMode, EffectInfo, PlayerInfo, SoundType, WorldInfo, Direction, EntityType, UpdateResultInfo
 from helpers.event import UpdateResult
 from helpers.grid_adapter import GridAdapter
 
@@ -245,5 +245,5 @@ class Player():
 class PlayerFactory:
 
     @classmethod
-    def make(cls, x: float, y: float, world: WorldInfo, grid: GridAdapter, id: int, fps: int) -> Player:
+    def make(cls, x: float, y: float, world: WorldInfo, grid: GridAdapter, id: int, fps: int) -> PlayerInfo:
         return Player(x, y, world, grid, id, fps)
