@@ -337,6 +337,7 @@ class Model:
         for entity in expired:
             self._event_buffer.append(RemoveEvent(entity))
             if isinstance(entity, BlockInfo):
+                self._powerup_spawn(entity.row, entity.col)
                 self._vfx_buffer.append(AnimationCmd(AnimationType.SOFT_BREAK, CoordMode.CELL, entity.row, entity.col, self.fps, None, None))
             if isinstance(entity, PowerupInfo):
                 self._vfx_buffer.append(AnimationCmd(AnimationType.POWERUP_BREAK, CoordMode.CELL, entity.row, entity.col, self.fps, None, entity.powerup_type))
@@ -462,5 +463,3 @@ class Model:
     #     for entity in self._world.entities:
     #         if entity.is_expired:
     #             self._world.remove_entity(entity)
-            
-Model(World(13, 15), GridAdapter(0, 24), 30, Settings()) # type: ignore , for world type-checking lang muna
