@@ -1,6 +1,6 @@
 from typing import Callable
 import pyxel
-from common_types import AnimationCmd, AnimationType, CoordMode, ModelState, RoundResult, WorldInfo, PlayerInfo, BombInfo, BlockInfo, ExplosionInfo, PowerupInfo, PowerUpType, Direction, ExplosionOrientation, SoundType
+from common_types import AnimationCmd, AnimationType, CoordMode, ModelState, RoundResult, ResultType, DrawType, WorldInfo, PlayerInfo, BombInfo, BlockInfo, ExplosionInfo, PowerupInfo, PowerUpType, Direction, ExplosionOrientation, SoundType
 from spritemap import SpriteMap, Animation, get_player_sprite, get_player_idle, get_bomb_sprite, get_explosion_sprite, get_soft_block_sprite, get_player_death_sprite
 from entities.block import HardBlock, SoftBlock
 from entities.bomb import Bomb
@@ -59,18 +59,21 @@ class View:
             case SoundType.DEATH:
                 pyxel.playm(2)
     
-    def draw(self, players: list[PlayerInfo], timer: int, state: ModelState, results: RoundResult|None, countdown: int):
+    def draw(self, players: list[PlayerInfo], timer: int, state: ModelState, results: RoundResult|None, countdown: int, scores: dict[int,int]):
         pyxel.cls(0)
+
         if state == ModelState.TRANSITION:
             if results is not None:
-                self._draw_result_screen(results)
+                self._draw_result_screen(results, scores)
                 return
+            
         self._draw_grid()
         self._draw_entities(players)
         self._draw_animations()
         self._draw_ui(timer)
         self._animation.update()
         self._update_animations()
+
         if state == ModelState.COUNTDOWN:
             self._draw_countdown(countdown)
 
@@ -83,19 +86,46 @@ class View:
         
         pyxel.text(x, y, message, 7)
 
-    def _draw_result_screen(self, result: RoundResult):
-        if result.match_over:
-            # Game_over screen (i.e. may overall winner na)
-            # show pa rin yung round result
-            return
-        # else, round result 
-        return
+    def _draw_result_screen(self, result: RoundResult, scores: dict[int,int]):
+        pyxel.cls(0)
+
+        center_x = self._display_width // 2
+        y_offset = 40
+
+        match result.outcome:
+            case ResultType.WIN if result.winner_id is not None:
+                result_text = f"Player {result.winner_id} Wins Round!"
+                text_width = len(result_text) * 4
+                pyxel.text(center_x - text_width // 2, y_offset, result_text, 11)
+            case _:  
+                match result.draw_type:
+                    case DrawType.TIME:
+                        result_text = "Time Out - Draw!"
+                    case _:
+                        result_text = "Draw!"
+                text_width = len(result_text) * 4
+                pyxel.text(center_x - text_width // 2, y_offset, result_text, 8)
+    
+    # need help with displaying the scores 
     
     def _draw_countdown(self, countdown: int):
-        # Ready, Set, Go! or (3, 2, 1), countdown is initially 3*fps (3 seconds)
-        # every second yung pag change
-        return
-
+        seconds_remaining = (countdown + self._fps - 1) // self._fps  # ceiling division
+        
+        center_x = self._display_width // 2
+        center_y = self._display_height // 2
+        
+        match seconds_remaining:
+            case 3:
+                text = "Ready"
+            case 2:
+                text = "Set"
+            case 1:
+                text = "Go!"
+            case _:
+                text = str(seconds_remaining)
+        
+        text_width = len(text) * 4
+        pyxel.text(center_x - text_width // 2, center_y, text, 10)
 
     def _draw_grid(self):
         for row in range(self._rows):
