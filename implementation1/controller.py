@@ -16,16 +16,17 @@ class Controller:
 
 
     def update(self):
-        key = self._view.key # type: ignore
+        key = self._view.key
 
         self._model.handle_input(key)
         self._model.update(1)
 
         # not sure yet
         for sfx in self._model.pop_sfx:
-            self._view.play_sound(sfx) # type: ignore
+            self._view.play_sound(sfx) 
+
         for vfx in self._model.pop_vfx:
-            self._view.start_animation(vfx) # type: ignore
+            self._view.start_animation(vfx)
 
     def draw(self):
         timer = self._model.timer
@@ -33,7 +34,17 @@ class Controller:
         state = self._model.state
         result = self._model.round_result
         countdown = self._model.countdown_frames
-        self._view.draw(players, timer, state, result, countdown)
+        scores =  self._model.scores
+
+        if self._model.is_game_over:
+            winner_id = result.overall_winner_id if result else None
+            if winner_id:
+                message = f"Player {winner_id} Wins!"
+            else:
+                message = "Game Over!"
+            self._view.draw_game_over(message)
+        else:
+            self._view.draw(players, timer, state, result, countdown, scores)
         # model and view share the same world, no need to pass entities, except Players
 
 world = World(13, 15)
