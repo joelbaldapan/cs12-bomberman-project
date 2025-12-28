@@ -1,8 +1,10 @@
 from dataclasses import dataclass
 from typing import Optional
-from common_types import AnimationCmd, AnimationType, BombInfo, CoordMode, EffectInfo, PlayerInfo, SoundType, WorldInfo, Direction, EntityType, UpdateResultInfo
+from common_types import AnimationCmd, AnimationType, BombInfo, BotType, CoordMode, EffectInfo, GridCoords, PlayerInfo, SoundType, WorldInfo, Direction, EntityType, UpdateResultInfo
 from helpers.event import UpdateResult
 from helpers.grid_adapter import GridAdapter
+from bot_behavior.bot import BotFactory
+from bot_behavior.bot_types import ActionInfo, BotControllerInfo, PlayerAction
 
 
 @dataclass(eq=False)
@@ -26,8 +28,8 @@ class Player():
         self.direction_facing: Direction = Direction.SOUTH
         
         self._initial_row: dict[int, int] = {1:1, 2:1, 3:11, 4:11}
-        self._initial_col: dict[int, int] = {1:1, 2:13, 3:11, 4:13}
-        self._snap_tolerance: int = 4  
+        self._initial_col: dict[int, int] = {1:1, 2:13, 3:1, 4:13}
+        self._snap_ignore_soft_blocksrance: int = 6  
 
 
         self._hitbox_width = 16
@@ -119,6 +121,31 @@ class Player():
         for effect in self._effects:
             speed_value += effect.speed_delta
         return speed_value
+    
+    def get_overlapping_cells(self) -> set[GridCoords]:
+        """Returns all grid cells overlapped by the player's hitbox."""
+        cells: set[GridCoords] = set()
+
+        hb_x1 = self.hitbox_x
+        hb_y1 = self.hitbox_y
+        hb_x2 = hb_x1 + self._hitbox_width - 1
+        hb_y2 = hb_y1 + self._hitbox_height - 1
+
+        # Check the four hitbox corners
+        corners = (
+            (hb_x1, hb_y1),
+            (hb_x2, hb_y1),
+            (hb_x1, hb_y2),
+            (hb_x2, hb_y2),
+        )
+
+        for px, py in corners:
+            res = self._grid.pixel_to_cell(int(px), int(py))
+            if res is not None:
+                row, col = res
+                cells.add((row, col))
+
+        return cells
 
     def _snap_axis(self, new_x: float, new_y: float, direction: Direction) -> tuple[float, float]:
 
@@ -129,7 +156,7 @@ class Player():
             cell_x, cell_y, w, h = self._grid.cell_rect(cur_row, cur_col)
             target_cx = cell_x + w / 2
             new_hb_cx = new_x + self._hitbox_width / 2
-            if abs(new_hb_cx - target_cx) <= self._snap_tolerance:
+            if abs(new_hb_cx - target_cx) <= self._snap_ignore_soft_blocksrance:
                 new_x = target_cx - self._hitbox_width / 2
         
         elif direction in (Direction.WEST, Direction.EAST):
@@ -137,7 +164,7 @@ class Player():
             cell_x, cell_y, w, h = self._grid.cell_rect(cur_row, cur_col)
             target_cy = cell_y + h / 2
             new_hb_cy = (new_y + self._hitbox_offset_y) + self._hitbox_height / 2 # bottom 16x16
-            if abs(new_hb_cy - target_cy) <= self._snap_tolerance:
+            if abs(new_hb_cy - target_cy) <= self._snap_ignore_soft_blocksrance:
                 new_y = (target_cy - self._hitbox_height / 2) - self._hitbox_offset_y
 
         return new_x, new_y
@@ -175,14 +202,57 @@ class Player():
         elif direction == Direction.EAST:
             dx = self.speed
 
-        new_x = self._x + dx
-        new_y = self._y + dy
+        target_x = self._x + dx
+        target_y = self._y + dy
 
-        new_x, new_y = self._snap_axis(new_x, new_y, direction)
+        # Apply Axis Snapping
+        target_x, target_y = self._snap_axis(target_x, target_y, direction)
 
-        if self._can_move_to(new_x, new_y):
-            self._x = new_x
-            self._y = new_y
+        # Try the Full Move
+        if self._can_move_to(target_x, target_y):
+            self._x = target_x
+            self._y = target_y
+            return 1
+        
+        # If we can't do the full move, try to close the gap to the wall.
+        curr_row, curr_col = self.row, self.col
+        cell_x, cell_y, w, h = self._grid.cell_rect(curr_row, curr_col)
+        
+        clamped_x, clamped_y = self._x, self._y
+        moved_clamped = False
+
+        if direction == Direction.EAST:
+            # Snap to the right edge of the current cell
+            limit_x = (cell_x + w) - self._hitbox_width
+            if limit_x > self._x: # Only move forward
+                clamped_x = limit_x
+                moved_clamped = True
+
+        elif direction == Direction.WEST:
+            # Snap to the left edge of the current cell
+            limit_x = cell_x
+            if limit_x < self._x:
+                clamped_x = limit_x
+                moved_clamped = True
+
+        elif direction == Direction.SOUTH:
+            # Snap to the bottom edge of the current cell
+            limit_y = (cell_y + h) - self._hitbox_height - self._hitbox_offset_y
+            if limit_y > self._y:
+                clamped_y = limit_y
+                moved_clamped = True
+
+        elif direction == Direction.NORTH:
+            # Snap to the top edge of the current cell
+            limit_y = cell_y - self._hitbox_offset_y
+            if limit_y < self._y:
+                clamped_y = limit_y
+                moved_clamped = True
+
+        # Apply Clamp if Valid
+        if moved_clamped and self._can_move_to(clamped_x, clamped_y):
+            self._x = clamped_x
+            self._y = clamped_y
             return 1
 
         return 0
@@ -206,10 +276,6 @@ class Player():
             self.direction_facing = direction # kung saan naka harap ung player
             self.move(direction)
         return 1 if inputs.get(map[4]) else 0
-
-
-    def decide_move(self) -> Direction:
-        return Direction.NORTH
 
     def remove_bomb(self, bomb: BombInfo) -> None:
         self._active_bombs.discard(bomb)
@@ -257,9 +323,51 @@ class Player():
         self.direction_facing: Direction = Direction.SOUTH
         return
 
+@dataclass(eq=False)
+class BotPlayer(Player):
+    def __init__(self, x: float, y: float, world: WorldInfo, grid: GridAdapter, id: int, fps: int, bot_type: BotType):
+        super().__init__(x, y, world, grid, id, fps)
+        self._bot_type = bot_type
+        self._controller: BotControllerInfo = BotFactory.make(bot_type)
+        self._dt_seconds = 1.0 / fps 
+
+    def handle_input(self, inputs: dict[str, bool]) -> int:
+        """Override human input. Use BotController to decide next move."""
+        if not self._alive:
+            return 0
+
+        self._controller.update(self._dt_seconds, self, self._world)
+        action: ActionInfo = self._controller.decide_action(self, self._world)
+
+        # if self._id == 3: # Only print for Player 3 to avoid spam
+            #DEBUG
+            # print(f"Bot P3 State: {self._controller.current_state}")
+            # print(f"Action: {action.action_type} | Path Len: {len(self._controller.context.path)}")
+            # print(f"Direction: {action.move_direction}")
+            # print(f"Strict Movement: {self._controller.context.is_strict_movement}")
+
+        if action.action_type == PlayerAction.MOVE and action.move_direction:
+            self.direction_facing = action.move_direction
+            self.move(action.move_direction)
+
+        if action.action_type == PlayerAction.PLANT_BOMB:
+            return 1
+        
+        return 0
 
 class PlayerFactory:
-
     @classmethod
-    def make(cls, x: float, y: float, world: WorldInfo, grid: GridAdapter, id: int, fps: int) -> PlayerInfo:
+    def make(cls, 
+            x: float, 
+            y: float, 
+            world: WorldInfo, 
+            grid: GridAdapter, 
+            id: int, 
+            fps: int, 
+            bot_type: BotType | None = None
+            ) -> PlayerInfo:
+        
+        if bot_type:
+            return BotPlayer(x, y, world, grid, id, fps, bot_type)
+        
         return Player(x, y, world, grid, id, fps)
