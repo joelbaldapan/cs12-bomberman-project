@@ -11,6 +11,15 @@ import { Model } from "./model";
 import type { Msg } from "./msg";
 
 
+
+// we display sprites like this (example):
+// Where `en` = entity
+// CanvasImage.make({
+//   x: en.x,
+//   y: en.y, 
+//   src: asserts.images.<name of entity>
+// }),
+
 export function renderScreenAndSound(
   model: Model,
   screenWidth: number,
