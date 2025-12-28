@@ -419,7 +419,7 @@ class Animation:
         self.frame += 1
     
     def get_walk_frame(self) -> int:
-        cycle = (self.frame // 5) % 4
+        cycle = (self.frame // 8) % 4
         match cycle:
             case 0:
                 return 0
@@ -434,7 +434,7 @@ class Animation:
         return (self.frame // 10) % 3
     
     def get_death_frame(self) -> int:
-        return min(self.frame // 5, 5) # 5 ticks
+        return min(self.frame // 8, 5) # 5 ticks
 
     def get_soft_destruction_frame(self) -> int:
         return min(self.frame // 3, 4) # 3ticks

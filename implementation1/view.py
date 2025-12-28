@@ -187,7 +187,7 @@ class View:
     
     def _get_max_frames(self, cmd: AnimationCmd) -> int:
         if cmd.type == AnimationType.DEATH:
-            return 30  # 6 frames * 5 ticks per frame
+            return 48  # 6 frames * 8 ticks per frame
         elif cmd.type == AnimationType.SOFT_BREAK:
             return 15  # 5 frames * 3 ticks per frame
         elif cmd.type == AnimationType.POWERUP_BREAK:
@@ -213,8 +213,8 @@ class View:
         else: 
             x, y = self._grid.cell_to_pixel(int(cmd.a), int(cmd.b))
         
-        # 5 ticks per frame, 6 frames total
-        sprite_frame = min(frame // 5, 5)
+        # 8 ticks per frame, 6 frames
+        sprite_frame = min(frame // 8, 5)
         sprite = get_player_death_sprite(cmd.id, sprite_frame)
         
         pyxel.blt(x, y, sprite.img, sprite.u, sprite.v, sprite.w, sprite.h, 11)
