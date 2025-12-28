@@ -1,6 +1,6 @@
 from typing import Callable
 import pyxel
-from common_types import AnimationCmd, AnimationType, CoordMode, WorldInfo, PlayerInfo, BombInfo, BlockInfo, ExplosionInfo, PowerupInfo, PowerUpType, Direction, ExplosionOrientation, SoundType
+from common_types import AnimationCmd, AnimationType, CoordMode, ModelState, RoundResult, WorldInfo, PlayerInfo, BombInfo, BlockInfo, ExplosionInfo, PowerupInfo, PowerUpType, Direction, ExplosionOrientation, SoundType
 from spritemap import SpriteMap, Animation, get_player_sprite, get_player_idle, get_bomb_sprite, get_explosion_sprite, get_soft_block_sprite, get_player_death_sprite
 from entities.block import HardBlock, SoftBlock
 from entities.bomb import Bomb
@@ -59,8 +59,12 @@ class View:
             case SoundType.DEATH:
                 pyxel.playm(2)
     
-    def draw(self, players: list[PlayerInfo], timer: int = 60):
+    def draw(self, players: list[PlayerInfo], timer: int, state: ModelState, results: RoundResult|None):
         pyxel.cls(0)
+        if state == ModelState.TRANSITION:
+            if results is not None:
+                self._draw_result_screen(results)
+                return
         self._draw_grid()
         self._draw_entities(players)
         self._draw_animations()
@@ -76,6 +80,14 @@ class View:
         y = self._display_height // 2
         
         pyxel.text(x, y, message, 7)
+
+    def _draw_result_screen(self, result: RoundResult):
+        if result.match_over:
+            # Game_over screen (i.e. may overall winner na)
+            # show pa rin yung round result
+            return
+        # else, round result 
+        return
 
     def _draw_grid(self):
         for row in range(self._rows):

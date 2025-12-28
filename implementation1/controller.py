@@ -28,12 +28,11 @@ class Controller:
             self._view.start_animation(vfx) # type: ignore
 
     def draw(self):
-        if self._model.transition_screen:
-            ... # different draw type of view, shows result screen
-            return
         timer = self._model.timer
         players = self._model.alive_players
-        self._view.draw(players, timer)
+        state = self._model.state
+        result = self._model.round_result
+        self._view.draw(players, timer, state, result)
         # model and view share the same world, no need to pass entities, except Players
 
 world = World(13, 15)
