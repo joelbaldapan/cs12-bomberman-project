@@ -419,24 +419,16 @@ class Animation:
         self.frame += 1
     
     def get_walk_frame(self) -> int:
-        cycle = (self.frame // 8) % 4
-        match cycle:
-            case 0:
-                return 0
-            case 1:
-                return 1
-            case 2:
-                return 2
-            case _:  # cycle == 3
-                return 1
+        cycle = (self.frame // 6) % 4
+        return cycle
         
     def get_bomb_frame(self) -> int:
         return (self.frame // 10) % 3
     
     def get_death_frame(self) -> int:
-        return min(self.frame // 8, 5) # 5 ticks
+        return min(self.frame // 8, 5) # 8 ticks
 
     def get_soft_destruction_frame(self) -> int:
-        return min(self.frame // 3, 4) # 3ticks
+        return min(self.frame // 3, 4) # 3 ticks
 
     
