@@ -39,7 +39,6 @@ class World:
         return deepcopy(self._board)
 
     def add_entity(self, entity: EntityInfo) -> None:
-
         i, j = entity.row, entity.col
         if not self.in_bounds(i, j):
             return None
@@ -107,7 +106,6 @@ class Model:
         self._draw: bool = False
         self._scores: dict[int, int] = {}
         self._rounds_to_win: int = config.rounds_to_win
-        self._round_start_timer: int = 3*fps
         self._temp_winner: int = 0
         self._state: ModelState = ModelState.COUNTDOWN
         self._debug: bool = False
@@ -187,8 +185,30 @@ class Model:
         return self._winner is not None
         
     def _add_players(self) -> None:
-        for i in range(self._config.num_human_players):
-            self._players.add(PlayerFactory.make(0, 0, self._world, self._grid, i+1, self._fps))
+        current_id = 1
+        
+        # Add Human Players
+        for _ in range(self._config.num_human_players):
+            # Pass bot_type=None for humans
+            player = PlayerFactory.make(0, 0, self._world, self._grid, current_id, self._fps, None)
+            self._players.add(player)
+            self._world.add_entity(player)
+            current_id += 1
+
+        # Add Bot Players
+        for bot_enum in self._config.bot_types:
+            if current_id > 4: 
+                break
+            
+            player = PlayerFactory.make(
+                0, 0, self._world, self._grid, 
+                current_id, self._fps, 
+                bot_type=bot_enum # Pass the Enum directly
+            )
+            self._world.add_entity(player)
+            self._players.add(player)
+            current_id += 1
+        
 
     def handle_input(self, inputs: dict[str, bool]):
         if self._state == ModelState.TRANSITION and not self.is_game_over:
@@ -407,8 +427,8 @@ class Model:
         self._reset_world_and_round_entities()
 
         # reset timers
-        self._timer = self._config.timer_seconds * self._fps
         self._round_start_timer = 3 * self._fps
+        self._timer = self._config.timer_seconds * self._fps
         self._win_countdown = self._fps
 
         # reset players
@@ -450,6 +470,7 @@ class Model:
 
     def _reset_players_to_spawn(self) -> None:
         for p in self._players:
+            self._world.add_entity(p)
             p.reset_for_new_round()
 
     def _powerup_spawn(self, row: int, col: int)-> None:

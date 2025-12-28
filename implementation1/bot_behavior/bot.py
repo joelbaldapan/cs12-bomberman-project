@@ -1,14 +1,15 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from bot_behavior.bot_policy import AttackPolicy1, AttackPolicy2, BombOnlyDangerPolicy, ExplosionPredictionDangerPolicy, PowerupPolicy1, PowerupPolicy2
-from common_types import PlayerInfo, WorldInfo, GridCoords
-from .bot_types import BotConfigInfo, BotMemoryInfo, BotControllerInfo, BotState, BotType, ActionInfo, Action, DangerPolicy, PathfindingPolicy, PlayerAction
-from .bot_state import WanderState
+from common_types import BombInfo, ExplosionInfo, PlayerInfo, WorldInfo, GridCoords, BotType
+from .bot_types import BotConfigInfo, BotMemoryInfo, BotControllerInfo, BotState, ActionInfo, Action, DangerPolicy, PathfindingPolicy, PlayerAction
+from .bot_state import AttackState, EscapeState, GetPowerupState, WanderState
 import random
 
 
 class BotMemory():
     """Memory for the bot."""
+
     def __init__(self, config: BotConfigInfo):
         self._config = config
         self._reeval_timer: float = 0.0
@@ -16,6 +17,7 @@ class BotMemory():
         # Navigation Memory
         self._path: list[GridCoords] = []
         self._goal: GridCoords | None = None
+        self._is_strict_movement: bool = False
 
         # Debug Data (Feature 4b)
         self._debug_danger_cells: set[GridCoords] = set()
@@ -37,6 +39,13 @@ class BotMemory():
 
     def set_path(self, path: list[GridCoords]) -> None:
         self._path = path
+
+    @property
+    def is_strict_movement(self) -> bool:
+        return self._is_strict_movement
+
+    def set_strict_movement(self, value: bool) -> None:
+        self._is_strict_movement = value
 
     @property
     def goal(self) -> GridCoords | None:
@@ -68,40 +77,110 @@ class BotController:
         self.context = bot_context
         self.current_state: BotState = WanderState()
         self._initialized = False
+        self._last_bomb_count = 0
+        self._last_explosion_count = 0
 
     def update(self, dt: float, host_entity: PlayerInfo, world: WorldInfo) -> None:
-        """
-        Call this every frame/tick before decide_action.
-        """
+        # Init state on first frame
         if not self._initialized:
             self.current_state.on_enter(self.context, world, host_entity)
             self._initialized = True
+            # Track coordinates instead of IDs or Objects
+            self._last_bomb_coords = {(b.row, b.col)
+                                      for b in world.get_all_type(BombInfo)}
+            self._last_explosion_coords = {
+                (e.row, e.col) for e in world.get_all_type(ExplosionInfo)}
 
-        # 1 - tick the state
-        next_state = self.current_state.on_tick(self.context, world, host_entity)
-                
-        if next_state:
-            self.transition_to(next_state, world, host_entity)
-            return
+        should_force_reeval = False
 
-        # 2 - tick the reevaluation timer
-        if self.context.tick_reeval(dt):
-            # to implement
-            # perform_global_reevaluation(self, world, host_entity)
-            ...
+        # Update trackers for reevaluation
+        current_bombs = world.get_all_type(BombInfo)
+        current_bomb_coords = {(b.row, b.col) for b in current_bombs}
+        current_explosions = world.get_all_type(ExplosionInfo)
+        current_explosion_coords = {(e.row, e.col) for e in current_explosions}
+
+        if len(self._last_explosion_coords - current_explosion_coords) > 0:
+            should_force_reeval = True
+        new_bomb_coords = current_bomb_coords - self._last_bomb_coords
+        if new_bomb_coords:
+            for (r, c) in new_bomb_coords:
+                dist = max(abs(host_entity.col - c), abs(host_entity.row - r))
+                if dist <= 5:
+                    print("debug: new bomb coords eval")
+                    should_force_reeval = True
+                    break
+
+        # Update trackers for next frame
+        self._last_bomb_coords = current_bomb_coords
+        self._last_explosion_coords = current_explosion_coords
+
+
+        timer_trigger = self.context.tick_reeval(dt)
+        is_in_danger = self.context.config.danger_check_type.is_in_danger(
+            world, host_entity, self.context.config.danger_radius
+        )
+
+        # Check if danger!
+        if is_in_danger:
+            if not isinstance(self.current_state, EscapeState):
+                print("Danger detected - Transitioning")
+                self.transition_to(EscapeState(), world, host_entity)
+
+        if timer_trigger or should_force_reeval or is_in_danger:
+            self._perform_global_reevaluation(world, host_entity)
+
+        if self.current_state:
+            next_state = self.current_state.on_tick(
+                self.context, world, host_entity)
+            if next_state:
+                self.transition_to(next_state, world, host_entity)
 
     def decide_action(self, host_entity: PlayerInfo, world: WorldInfo) -> ActionInfo:
-        action = self.current_state.decide_action(self.context, world, host_entity)
+        action = self.current_state.decide_action(
+            self.context, world, host_entity)
         if action is None:
             return Action(action_type=PlayerAction.IDLE)
         return action
 
     def transition_to(self, new_state: BotState, world: WorldInfo, entity: PlayerInfo):
-        self.current_state = new_state
+        # Clean up memory before switching
         self.context.set_path([])
         self.context.set_goal(None)
+        self.context.set_strict_movement(False)
+
+        self.current_state = new_state
         self.current_state.on_enter(self.context, world, entity)
 
+    def _perform_global_reevaluation(self, world: WorldInfo, bot: PlayerInfo):
+        config = self.context.config
+
+        # 1 - Danger
+        if self.context.config.danger_check_type.is_in_danger(world, bot, self.context.config.danger_radius):
+            if not isinstance(self.current_state, EscapeState):
+                self.transition_to(EscapeState(), world, bot)
+            return
+
+        # 2 - Powerup Check
+        if random.random() <= config.powerup_chance:
+            target = config.powerup_policy.get_goal(world, bot)
+            path = config.powerup_policy.get_path(world, bot, self.context)
+            if target and path:
+                if isinstance(self.current_state, GetPowerupState):
+                    if self.context.goal == target:
+                        return
+
+                self.transition_to(GetPowerupState(target), world, bot)
+                return
+
+        # 3 - Attack Check
+        target_attack_pos = config.attack_policy.get_goal(world, bot)
+        if target_attack_pos:
+            self.transition_to(AttackState(target_attack_pos), world, bot)
+            return
+
+        # 4 - Default -> Wander
+        if not isinstance(self.current_state, WanderState):
+            self.transition_to(WanderState(), world, bot)
 
 
 class BotFactory:
@@ -111,7 +190,7 @@ class BotFactory:
         context = BotMemory(config)
         controller = BotController(context)
         return controller
-    
+
     @classmethod
     def create_bot_config(cls, bot_type: BotType) -> BotConfigInfo:
         match bot_type:
@@ -188,15 +267,15 @@ class BotConfig:
     # Reevaluation Settings
     reeval_interval: float  # Seconds
     reeval_chance: float    # 0.0 to 1.0 (percent/100)
-    
+
     # Danger Sensing
     danger_radius: int      # 'D'
     danger_check_type: DangerPolicy
-    
+
     # Policies
     attack_policy: PathfindingPolicy
-    attack_range_trigger: int # 'R' (Plant bomb if enemy within this distance)
-    attack_search_radius: int # 'A' (For Policy 1: check players within this dist)
-    
+    attack_range_trigger: int  # 'R' (Plant bomb if enemy within this distance)
+    attack_search_radius: int # 'A' (Policy 1: check players within this dist)
+
     powerup_policy: PathfindingPolicy
     powerup_chance: float   # 0.0 to 1.0 (Chance to use Policy 2)
