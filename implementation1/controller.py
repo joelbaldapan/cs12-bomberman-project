@@ -32,7 +32,8 @@ class Controller:
         players = self._model.alive_players
         state = self._model.state
         result = self._model.round_result
-        self._view.draw(players, timer, state, result)
+        countdown = self._model.countdown_frames
+        self._view.draw(players, timer, state, result, countdown)
         # model and view share the same world, no need to pass entities, except Players
 
 world = World(13, 15)

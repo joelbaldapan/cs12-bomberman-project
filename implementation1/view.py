@@ -21,7 +21,7 @@ class View:
         self._display_height = grid.offset_y + self._rows * cell_size
 
         # load resource file
-        pyxel.init(self._display_width, self._display_height, fps=self._fps)
+        pyxel.init(self._display_width, self._display_height, fps=self._fps, quit_key=pyxel.KEY_NONE)
         pyxel.load("view.pyxres")
         pyxel.load("music.pyxres", exclude_images = True, exclude_tilemaps = True)
 
@@ -59,7 +59,7 @@ class View:
             case SoundType.DEATH:
                 pyxel.playm(2)
     
-    def draw(self, players: list[PlayerInfo], timer: int, state: ModelState, results: RoundResult|None):
+    def draw(self, players: list[PlayerInfo], timer: int, state: ModelState, results: RoundResult|None, countdown: int):
         pyxel.cls(0)
         if state == ModelState.TRANSITION:
             if results is not None:
@@ -71,6 +71,8 @@ class View:
         self._draw_ui(timer)
         self._animation.update()
         self._update_animations()
+        if state == ModelState.COUNTDOWN:
+            self._draw_countdown(countdown)
 
     def draw_game_over(self, message: str):
         pyxel.cls(0)
@@ -88,6 +90,12 @@ class View:
             return
         # else, round result 
         return
+    
+    def _draw_countdown(self, countdown: int):
+        # Ready, Set, Go! or (3, 2, 1), countdown is initially 3*fps (3 seconds)
+        # every second yung pag change
+        return
+
 
     def _draw_grid(self):
         for row in range(self._rows):
