@@ -1,16 +1,11 @@
 from __future__ import annotations
-from enum import Enum, auto, StrEnum
+from enum import auto, StrEnum
 from common_types import Direction, GridCoords, WorldInfo, PlayerInfo
 from dataclasses import dataclass
 from typing import Protocol
 
 
-class WalkMode(StrEnum):
-    SIMPLE = auto()    # Can traverse Soft Blocks (will plant bombs kung kailangan)
-    REACHABLE = auto() # Cannot traverse Soft Blocks (strict path)
-
-
-class PlayerAction(Enum):
+class PlayerAction(StrEnum):
     MOVE = auto()
     PLANT_BOMB = auto()
     IDLE = auto()
@@ -42,18 +37,20 @@ class PathfindingPolicy(Protocol):
         self, world: WorldInfo, bot: PlayerInfo
     ) -> GridCoords | None:
         ...
-        
-    # UPDATE: Added 'memory' parameter so we can access memory.goal
+
     def get_path(
         self, world: WorldInfo, bot: PlayerInfo, memory: BotMemoryInfo
     ) -> list[GridCoords]:
         ...
+
+    def can_place_bomb(self) -> bool: ...
 
 
 class DangerPolicy(Protocol):
     def is_in_danger(self, world: WorldInfo, bot: PlayerInfo, radius: int) -> bool:
         ...
 
+    def get_all_danger_zones(self, world: WorldInfo) -> set[GridCoords]: ...
 
 
 class BotMemoryInfo(Protocol):
@@ -67,7 +64,11 @@ class BotMemoryInfo(Protocol):
     @property
     def path(self) -> list[GridCoords]: ...
     def set_path(self, path: list[GridCoords]) -> None: ...
-    
+
+    @property
+    def is_strict_movement(self) -> bool: ...
+    def set_strict_movement(self, value: bool) -> None: ...
+
     @property
     def goal(self) -> GridCoords | None: ...
     def set_goal(self, goal: GridCoords | None) -> None: ...
@@ -82,14 +83,6 @@ class BotControllerInfo(Protocol):
     def update(self, dt: float, host_entity: PlayerInfo, world: WorldInfo) -> None: ...
     def decide_action(self, host_entity: PlayerInfo, world: WorldInfo) -> ActionInfo: ...
     def transition_to(self, new_state: BotState, world: WorldInfo, entity: PlayerInfo): ...
-
-# bot configs
-# need to make protocol?
-
-class BotType(StrEnum):
-    HOSTILE = auto()
-    CAREFUL = auto()
-    GREEDY = auto()
 
 
 class BotConfigInfo(Protocol):

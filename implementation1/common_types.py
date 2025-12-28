@@ -6,6 +6,11 @@ from enum import Enum, StrEnum, auto
 
 # new types for readabilityy
 
+class BotType(StrEnum):
+    HOSTILE = auto()
+    CAREFUL = auto()
+    GREEDY = auto()
+
 class ModelState(Enum):
     TRANSITION = auto()
     COUNTDOWN = auto()
@@ -247,12 +252,14 @@ class PlayerInfo(Protocol):
 
     def handle_input(self, inputs: dict[str, bool]) -> int: ...
     def move(self, direction: Direction) -> int: ...
-    def decide_move(self) -> Direction: ... # for AI
+
     def remove_bomb(self, bomb: BombInfo): ...
     def add_bomb(self, bomb: BombInfo): ...
     def remove_effect(self, effect: EffectInfo): ...
     def add_effect(self, effect: EffectInfo): ...
     def reset_for_new_round(self) -> None: ...
+
+    def get_overlapping_cells(self) -> set[GridCoords]: ...
 
     @property
     def entity_type(self) -> EntityType: ...
@@ -291,12 +298,6 @@ class EffectInfo(Protocol):
 
 # NON-ENTITIES:
 
-class BotAIInfo(Protocol):
-    # methods that will be useful for the AI's decision making
-    def get_visible_distance(self) -> set[GridCoords]: ... # manhattan distance
-    def get_shortest_path(self, goal: GridCoords) -> tuple[GridCoords]: ... # dijkstras algo
-    def get_next_input(self) -> Direction | None: ...
-
 class ConfigInfo(Protocol):
     @property
     def soft_block_spawn_chance(self) -> int: ...
@@ -307,7 +308,7 @@ class ConfigInfo(Protocol):
     @property
     def num_human_players(self) -> int: ...
     @property
-    def bot_types(self) -> list[str] | None: ...
+    def bot_types(self) -> list[BotType]: ...
     @property
     def rounds_to_win(self) -> int: ...
 
