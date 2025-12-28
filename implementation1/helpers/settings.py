@@ -1,12 +1,15 @@
 from __future__ import annotations
 import json
 from dataclasses import dataclass
-from typing import Any
+from typing import cast
+
+from common_types import BotType
 
 
 class SettingsError(ValueError):
     ...
-def _require_int(data: dict[str, Any], key: str) -> int:
+
+def _require_int(data: dict[str, object], key: str) -> int:
     if key not in data:
         raise SettingsError(f"Missing required field: {key}")
     field_value = data[key]
@@ -14,20 +17,21 @@ def _require_int(data: dict[str, Any], key: str) -> int:
         raise SettingsError(f"{key} must be an integer")
     return field_value
 
-def _require_opt_str_list(data: dict[str, Any], key: str) -> list[str] | None:
+def _require_str_list(data: dict[str, object], key: str) -> list[str]:
     if key not in data:
         raise SettingsError(f"Missing required field: {key}")
     field_value = data[key]
-    if field_value is None:
-        return None
+    
     if not isinstance(field_value, list):
-        raise SettingsError(f"{key} must be a list of strings or null")
+        raise SettingsError(f"{key} must be a list of strings")
+        
+    # Help static type checkers: we've confirmed it's a list, cast to list[object]
+    field_list: list[object] = cast(list[object], field_value)
+
     out: list[str] = []
-    i: int = 0
-    for element in field_value: # type: ignore
+    for i, element in enumerate(field_list):
         if not isinstance(element, str):
             raise SettingsError(f"{key}[{i}] must be a string")
-        i += 1
         out.append(element)
     return out
 
@@ -37,7 +41,7 @@ class Settings:
     _powerup_spawn_chance: int
     _timer_seconds: int
     _num_human_players: int
-    _bot_types: list[str] | None
+    _bot_types: list[BotType]
     _rounds_to_win: int
     
     @property
@@ -57,8 +61,8 @@ class Settings:
         return self._num_human_players
 
     @property
-    def bot_types(self) -> list[str] | None:
-        return None if self._bot_types is None else list(self._bot_types)
+    def bot_types(self) -> list[BotType]:
+        return list(self._bot_types)
 
     @property
     def rounds_to_win(self) -> int:
@@ -68,8 +72,8 @@ class Settings:
     def from_json(cls, path: str) -> Settings:
         try:
             with open(path, "r", encoding="utf-8") as f:
-                raw = json.load(f)
-        except FileNotFoundError as e:
+                raw: object = json.load(f)
+        except FileNotFoundError:
             raise SettingsError("settings.json not found")
         except json.JSONDecodeError as e:
             raise SettingsError(f"settings.json is not valid JSON: {e}")
@@ -77,16 +81,18 @@ class Settings:
         if not isinstance(raw, dict):
             raise SettingsError("settings.json must contain a JSON object")
 
-        return cls.from_dict(raw) # type: ignore
-
+        return cls.from_dict(cast(dict[str, object], raw))
+    
     @classmethod
-    def from_dict(cls, raw: dict[str, Any]) -> Settings:
+    def from_dict(cls, raw: dict[str, object]) -> Settings:
         soft = _require_int(raw, "soft_block_spawn_chance")
         power = _require_int(raw, "powerup_spawn_chance")
         timer = _require_int(raw, "timer_seconds")
         humans = _require_int(raw, "num_human_players")
-        bot_types = _require_opt_str_list(raw, "bot_types")
+        bot_types_str = _require_str_list(raw, "bot_types")
         rounds_to_win = _require_int(raw, "rounds_to_win")
+
+        # Range Validations
         if not (0 <= soft <= 100):
             raise SettingsError("soft_block_spawn_chance must be in [0, 100].")
         if not (0 <= power <= 100):
@@ -97,13 +103,25 @@ class Settings:
             raise SettingsError("num_human_players must be 1 or 2.")
         if not (1 <= rounds_to_win <= 4):
             raise SettingsError("rounds_to_win must be in [1, 4].")
-        allowed_bot_types = {"hostile", "careful", "greedy"}
-        if bot_types is not None:
-            for type in bot_types:
-                if type not in allowed_bot_types:
-                    raise SettingsError(f"Invalid bot type {type}. Allowed: {sorted(allowed_bot_types)}")
-            if humans == 1 and len(bot_types) == 0:
-                raise SettingsError("If num_human_players == 1, bot_types must have at least one entry.")
-            if not (0 <= len(bot_types) <= 4 - humans):
-                raise SettingsError(f"length of bot_types must be [0, {4 - humans}] for {humans} human players.")
-        return cls(soft, power, timer, humans, bot_types, rounds_to_win)
+
+        # Bot Logic Validation & Conversion
+        allowed_bot_types = {t.value for t in BotType}
+        final_bot_types: list[BotType] = []
+
+        for b_str in bot_types_str:
+            if b_str not in allowed_bot_types:
+                # Provide a sorted list for clear error messages
+                raise SettingsError(f"Invalid bot type '{b_str}'. Allowed: {sorted(list(allowed_bot_types))}")
+            # Convert string to Enum
+            final_bot_types.append(BotType(b_str))
+
+        # "The list of this field must have at most 4 - H strings"
+        max_bots = 4 - humans
+        if len(final_bot_types) > max_bots:
+            raise SettingsError(f"Too many bots defined. Max for {humans} human(s) is {max_bots}.")
+
+        # "There must be at least one string if H=1"
+        if humans == 1 and len(final_bot_types) == 0:
+            raise SettingsError("If num_human_players is 1, bot_types must have at least one entry.")
+
+        return cls(soft, power, timer, humans, final_bot_types, rounds_to_win)
