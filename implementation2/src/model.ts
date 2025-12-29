@@ -3,23 +3,22 @@ import { Schema as S } from "effect";
 // FOR CONSISTENCY:
 //    ADD ALL TYPES UP IN THE FILE
 
-export type BotType = typeof BotType;
-export type ModelState = typeof ModelState;
-export type ResultType = typeof ResultType;
-export type DrawType = typeof DrawType;
-export type EntityType = typeof EntityType;
-export type SoundType = typeof SoundType;
-export type AnimationType = typeof AnimationType;
-export type CoordMode = typeof CoordMode;
-export type PowerUpType = typeof PowerUpType;
-export type RoundResult = typeof RoundResult;
-export type AnimationCmd = typeof AnimationCmd;
+export type BotType = typeof BotType.Type;
+export type ModelState = typeof ModelState.Type;
+export type ResultType = typeof ResultType.Type;
+export type DrawType = typeof DrawType.Type;
+export type EntityType = typeof EntityType.Type;
+export type SoundType = typeof SoundType.Type;
+export type AnimationType = typeof AnimationType.Type;
+export type PowerUpType = typeof PowerUpType.Type;
 
+export type CoordMode = typeof CoordMode.Type;
+export type RoundResult = typeof RoundResult.Type;
+export type AnimationCmd = typeof AnimationCmd.Type;
 export type Direction = typeof Direction.Type;
 export type ExplosionOrientation = typeof ExplosionOrientation.Type;
-export type GridCoords = typeof GridCoords;
-export type Event = typeof Event;
-export type UpdateResult = typeof UpdateResult;
+export type Event = typeof Event.Type;
+export type UpdateResult = typeof UpdateResult.Type;
 
 export type Entity = typeof Entity.Type;
 export type Explosion = typeof Explosion.Type;
@@ -27,8 +26,10 @@ export type Bomb = typeof Bomb.Type;
 export type Block = typeof Block.Type;
 export type Player = typeof Player.Type;
 export type Powerup = typeof Powerup.Type;
-export type World = typeof World;
-export type Board = typeof Board;
+
+export type GridCoords = typeof GridCoords.Type;
+export type World = typeof World.Type;
+export type Board = typeof Board.Type;
 
 export type Model = typeof Model.Type;
 export type initModel = typeof initModel.Type;
@@ -136,10 +137,10 @@ export const AnimationCmd = S.Struct({
   powerupType: S.NullOr(PowerUpType)
 });
 
-export const EventInfo = S.Struct({});
+export const Event = S.Struct({});
 
 export const UpdateResult = S.Struct({
-  events: S.Array(EventInfo),
+  events: S.Array(Event),
   sounds: S.Array(SoundType),
   animations: S.Array(AnimationCmd),
 });
@@ -154,18 +155,18 @@ export const Effect = S.Struct({
 
 // entities
 
-export const EntityInfoFields = {
+export const EntityFields = {
   row: S.Number,
   col: S.Number,
   entityType: EntityType,
   isExpired: S.Boolean,
 };
 export const Explosion = S.TaggedStruct("Explosion", {
-  ...EntityInfoFields,
+  ...EntityFields,
   currentTimer: S.Number,
 });
 export const Player = S.TaggedStruct("Player", {
-  ...EntityInfoFields,
+  ...EntityFields,
   id: S.Number,
   x: S.Number,
   y: S.Number,
@@ -181,7 +182,7 @@ export const Player = S.TaggedStruct("Player", {
   maxBombs: S.Number,
 });
 export const Bomb = S.TaggedStruct("Bomb", {
-  ...EntityInfoFields,
+  ...EntityFields,
   moveAwayIds: S.Array(S.Number),
   currentTimer: S.Number,
   owner: Player,
@@ -189,11 +190,11 @@ export const Bomb = S.TaggedStruct("Bomb", {
   explosionRange: S.Number,
 });
 export const Block = S.TaggedStruct("Block", {
-  ...EntityInfoFields,
+  ...EntityFields,
   isHard: S.Boolean,
 });
 export const Powerup = S.TaggedStruct("Powerup", {
-  ...EntityInfoFields,
+  ...EntityFields,
   powerupType: PowerUpType,
 });
 export const Entity = S.Union(
