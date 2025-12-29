@@ -82,6 +82,7 @@ export const update = (msg: Msg, model: Model) =>
 
       // Return a new world object with updated HashMap
       return Model.make({
+        ...model,
         world: World.make({
           ...model.world,
           entities: newEntities
