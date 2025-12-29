@@ -3,121 +3,39 @@ import { Schema as S } from "effect";
 // FOR CONSISTENCY:
 //    ADD ALL TYPES UP IN THE FILE
 
+export type BotType = typeof BotType;
+export type ModelState = typeof ModelState;
+export type ResultType = typeof ResultType;
+export type DrawType = typeof DrawType;
+export type EntityType = typeof EntityType;
+export type SoundType = typeof SoundType;
+export type AnimationType = typeof AnimationType;
+export type CoordMode = typeof CoordMode;
+export type PowerUpType = typeof PowerUpType;
+export type RoundResult = typeof RoundResult;
+export type AnimationCmd = typeof AnimationCmd;
+
 export type Direction = typeof Direction.Type;
 export type ExplosionOrientation = typeof ExplosionOrientation.Type;
-export type GridCoords = S.Schema.Type<typeof GridCoords>;
-export type Sound = typeof Sound.Type;
-export type Event = S.Schema.Type<typeof Event>;
-export type UpdateResult = S.Schema.Type<typeof UpdateResult>;
+export type GridCoords = typeof GridCoords;
+export type Event = typeof Event;
+export type UpdateResult = typeof UpdateResult;
+
 export type Entity = typeof Entity.Type;
 export type Explosion = typeof Explosion.Type;
 export type Bomb = typeof Bomb.Type;
 export type Block = typeof Block.Type;
 export type Player = typeof Player.Type;
 export type Powerup = typeof Powerup.Type;
-export type World = S.Schema.Type<typeof World>;
-export type Board = S.Schema.Type<typeof Board>;
+export type World = typeof World;
+export type Board = typeof Board;
+
 export type Model = typeof Model.Type;
 export type initModel = typeof initModel.Type;
 
 // ^^ TYPES
 // ^^ TYPES
 // ^^ TYPES
-
-// types
-
-export const Direction = S.Union(
-  S.TaggedStruct("north", {}),
-  S.TaggedStruct("south", {}),
-  S.TaggedStruct("east", {}),
-  S.TaggedStruct("west", {})
-);
-export const [North, South, East, West] = Direction.members;
-
-export const DirectionVectors = {
-  north: [-1, 0],
-  south: [1, 0],
-  east: [0, 1],
-  west: [0, -1],
-} as const;
-
-export const ExplosionOrientation = S.Union(
-  S.TaggedStruct("center", {}),
-  S.TaggedStruct("vertical", {}),
-  S.TaggedStruct("horizontal", {})
-);
-
-
-export const [Center, Vertical, Horizontal] = ExplosionOrientation.members;
-
-export const GridCoords = S.Tuple(S.Number, S.Number);
-
-
-export const Sound = S.Union(
-  S.TaggedStruct("Explosion", {}),
-  S.TaggedStruct("PowerupGet", {})
-);
-
-export const [ExplosionSound, PowerupGetSound] = Sound.members;
-
-// updates and events
-
-export const Event = S.Struct({
-// ...
-});
-
-
-export const UpdateResult = S.Struct({
-  events: S.Array(Event),
-  sounds: S.Array(Sound),
-});
-
-// entities
-
-const base = {
-  row: S.Number,
-  col: S.Number,
-  isExpired: S.Boolean,
-}
-
-export const Entity = S.Union(
-  S.TaggedStruct("explosion", {
-    ...base,
-    currentTimer: S.Number,
-  }),
-  S.TaggedStruct("bomb", {
-    ...base,
-    currentTimer: S.Number,
-    power: S.Number,
-    shouldDetonate: S.Boolean,
-    explosionRange: S.Number,
-  }),
-  S.TaggedStruct("block", {
-    ...base,
-    isHard: S.Boolean,
-  }),
-  S.TaggedStruct("player", {
-    ...base,
-    x: S.Number,
-    y: S.Number,
-    width: S.Number,
-    height: S.Number,
-    hitboxX: S.Number,
-    hitboxY: S.Number,
-    speed: S.Number,
-  }),
-  S.TaggedStruct("powerup", {
-    ...base,
-  })
-);
-export const [Explosion, Bomb, Block, Player, Powerup] = Entity.members;
-
-// wawld
-
-export const World = S.Struct({
-  entities: S.Array(Entity),
-});
-export const Board = S.Array(S.Array(S.NullOr(Entity)));
 
 
 // model
@@ -127,3 +45,187 @@ export const Model = S.Struct({
 
 export const initModel = S.Struct({
 });
+
+
+
+export const BotType = S.Union(
+  S.TaggedStruct("Hostile", {}),
+  S.TaggedStruct("Careful", {}),
+  S.TaggedStruct("Greedy", {})
+);
+
+export const ModelState = S.Union(
+  S.TaggedStruct("Transition", {}),
+  S.TaggedStruct("Countdown", {}),
+  S.TaggedStruct("Playing", {}),
+  S.TaggedStruct("End_Delay", {})
+);
+
+export const ResultType = S.Union(
+  S.TaggedStruct("Win", {}),
+  S.TaggedStruct("Draw", {})
+);
+
+export const DrawType = S.Union(
+  S.TaggedStruct("Time", {}),
+  S.TaggedStruct("Death", {})
+);
+
+export const EntityType = S.Union(
+  S.TaggedStruct("Explosion", {}),
+  S.TaggedStruct("Bomb", {}),
+  S.TaggedStruct("Block", {}),
+  S.TaggedStruct("Player", {}),
+  S.TaggedStruct("Powerup", {})
+);
+
+export const SoundType = S.Union(
+  S.TaggedStruct("Explosion", {}),
+  S.TaggedStruct("Powerup_Get", {}),
+  S.TaggedStruct("Death", {})
+);
+
+export const AnimationType = S.Union(
+  S.TaggedStruct("Death", {}),
+  S.TaggedStruct("Soft_Break", {}),
+  S.TaggedStruct("Powerup_Break", {})
+);
+
+export const CoordMode = S.Union(
+  S.TaggedStruct("Cell", {}),
+  S.TaggedStruct("Pixel", {})
+);
+
+export const PowerUpType = S.Union(
+  S.TaggedStruct("Fire", {}),
+  S.TaggedStruct("Bomb", {}),
+  S.TaggedStruct("Speed", {})
+);
+
+export const ExplosionOrientation = S.Union(
+  S.TaggedStruct("Center", {}),
+  S.TaggedStruct("Vertical", {}),
+  S.TaggedStruct("Horizontal", {})
+);
+
+export const Direction = S.Union(
+  S.TaggedStruct("North", { dr: S.Literal(-1), dc: S.Literal(0) }),
+  S.TaggedStruct("South", { dr: S.Literal(1),  dc: S.Literal(0) }),
+  S.TaggedStruct("East",  { dr: S.Literal(0),  dc: S.Literal(1) }),
+  S.TaggedStruct("West",  { dr: S.Literal(0),  dc: S.Literal(-1) })
+);
+
+
+
+
+export const RoundResult = S.Struct({
+  outcome: ResultType,
+  winnerId: S.NullOr(S.Number),
+  drawType: S.NullOr(DrawType),
+  matchOver: S.Boolean,
+  overallWinnerId: S.NullOr(S.Number)
+});
+
+export const AnimationCmd = S.Struct({
+  type: AnimationType,
+  mode: CoordMode,
+  a: S.Number,
+  b: S.Number,
+  durationFrames: S.Number,
+  id: S.NullOr(S.Number),
+  powerupType: S.NullOr(PowerUpType)
+});
+
+export const EventInfo = S.Struct({});
+
+export const UpdateResult = S.Struct({
+  events: S.Array(EventInfo),
+  sounds: S.Array(SoundType),
+  animations: S.Array(AnimationCmd),
+});
+
+export const Effect = S.Struct({
+  timeRemaining: S.NullOr(S.Number),
+  speedDelta: S.Number,
+  bombsDelta: S.Number,
+  rangeDelta: S.Number,
+});
+
+
+// entities
+
+export const EntityInfoFields = {
+  row: S.Number,
+  col: S.Number,
+  entityType: EntityType,
+  isExpired: S.Boolean,
+};
+export const Explosion = S.TaggedStruct("Explosion", {
+  ...EntityInfoFields,
+  currentTimer: S.Number,
+});
+export const Player = S.TaggedStruct("Player", {
+  ...EntityInfoFields,
+  id: S.Number,
+  x: S.Number,
+  y: S.Number,
+  width: S.Number,
+  height: S.Number,
+
+  hitboxX: S.Number,
+  hitboxY: S.Number,
+  speed: S.Number,
+  directionFacing: Direction,
+  activeBombs: S.Number,
+  range: S.Number,
+  maxBombs: S.Number,
+});
+export const Bomb = S.TaggedStruct("Bomb", {
+  ...EntityInfoFields,
+  moveAwayIds: S.Array(S.Number),
+  currentTimer: S.Number,
+  owner: Player,
+  shouldDetonate: S.Boolean,
+  explosionRange: S.Number,
+});
+export const Block = S.TaggedStruct("Block", {
+  ...EntityInfoFields,
+  isHard: S.Boolean,
+});
+export const Powerup = S.TaggedStruct("Powerup", {
+  ...EntityInfoFields,
+  powerupType: PowerUpType,
+});
+export const Entity = S.Union(
+  Explosion,
+  Bomb,
+  Block,
+  Player,
+  Powerup
+);
+export const [ExplosionMember, BombMember, BlockMember, PlayerMember, PowerupMember] = Entity.members;
+
+
+export const GridCoords = S.Tuple(S.Number, S.Number);
+export const Board = S.Array(S.Array(S.NullOr(Entity)));
+export const World = S.Struct({
+  rows: S.Number,
+  cols: S.Number,
+
+  entities: S.Array(Entity),
+  board: Board,
+
+});
+
+
+export const PowerupSpawner = S.Struct({});
+export const Config = S.Struct({
+  softBlockSpawnChance: S.Number,
+  powerupSpawnChance: S.Number,
+  timerSeconds: S.Number,
+  numHumanPlayers: S.Number,
+  botTypes: S.Array(BotType),
+  roundsToWin: S.Number,
+});
+
+
