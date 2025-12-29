@@ -5,6 +5,7 @@ import { Model,
   Player,
   Powerup,
   Entity,
+  World
   // add others if needed
 } from "./model";
 import { Msg } from "./msg";
@@ -41,17 +42,52 @@ export const update = (msg: Msg, model: Model) =>
       // ^ for all of these updates, update their entries in Model
       // then, after allat... return the new Model
 
-      // TODO: add a loop which updates all entities inside world.entitites
-      Match.value(ent).pipe(
-        Match.tag("Explosion", (ent) => ent),
-        Match.tag("Bomb", (ent) => ent),
-        Match.tag("Block", (ent) => ent),
-        Match.tag("Player", (ent) => ent),
-        Match.tag("Powerup", (ent) => ent),
-        Match.exhaustive
-      )
+      let newEntities = model.world.entities
 
-      return model;
+      // Loop over each entity by its ID
+      for (const [id, ent] of model.world.entities) {
+        newEntities = Match.value(ent).pipe(
+          Match.tag("Explosion", (e) =>
+            HashMap.modify(newEntities, id, (_) => {
+              // run updateExplosion on e which returns Explosion.make({...e})
+              return Explosion.make({...e}) // remove this when implemented na
+            }),
+          ),
+          Match.tag("Bomb", (e) =>
+            HashMap.modify(newEntities, id, (_) => {
+              // run updateBomb on e which returns Bomb.make({...e})
+              return Bomb.make({...e}) // remove this when implemented na
+
+            }),
+          ),
+          Match.tag("Block", (e) =>
+            HashMap.modify(newEntities, id, (_) => {
+              return Block.make({...e}) // remove this when implemented na
+            }),
+          ),
+          Match.tag("Player", (e) =>
+            HashMap.modify(newEntities, id, (_) => {
+              return Player.make({...e}) // remove this when implemented na
+              
+            }),
+          ),
+          Match.tag("Powerup", (e) =>
+            HashMap.modify(newEntities, id, (_) => {
+              return Powerup.make({...e}) // remove this when implemented na
+            }),
+          ),
+          Match.exhaustive,
+        )
+      }
+
+      // Return a new world object with updated HashMap
+      return Model.make({
+        world: World.make({
+          ...model.world,
+          entities: newEntities
+        })
+      })
+
     }),
     Match.tag("Canvas.MsgKeyDown", ({ key }): Model => {
       // Handle pressing of Keyboard

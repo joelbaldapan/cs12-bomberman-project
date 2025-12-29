@@ -147,38 +147,39 @@ export const Effect = S.Struct({
 // entities
 
 export const EntityFields = {
-  row: S.Number,
-  col: S.Number,
+  row: S.Int,
+  col: S.Int,
+  id: S.Int,
   entityType: EntityType,
   isExpired: S.Boolean,
 };
 export const Explosion = S.TaggedStruct("Explosion", {
   ...EntityFields,
-  currentTimer: S.Number,
+  currentTimer: S.Int,
 });
 export const Player = S.TaggedStruct("Player", {
   ...EntityFields,
-  id: S.Number,
-  x: S.Number,
-  y: S.Number,
-  width: S.Number,
-  height: S.Number,
+  player_id: S.Int,
+  x: S.Int,
+  y: S.Int,
+  width: S.Int,
+  height: S.Int,
 
-  hitboxX: S.Number,
-  hitboxY: S.Number,
-  speed: S.Number,
+  hitboxX: S.Int,
+  hitboxY: S.Int,
+  speed: S.Int,
   directionFacing: Direction,
-  activeBombs: S.Number,
-  range: S.Number,
-  maxBombs: S.Number,
+  activeBombs: S.Int,
+  range: S.Int,
+  maxBombs: S.Int,
 });
 export const Bomb = S.TaggedStruct("Bomb", {
   ...EntityFields,
-  moveAwayIds: S.Array(S.Number),
-  currentTimer: S.Number,
+  moveAwayIds: S.Array(S.Int),
+  currentTimer: S.Int,
   owner: Player,
   shouldDetonate: S.Boolean,
-  explosionRange: S.Number,
+  explosionRange: S.Int,
 });
 export const Block = S.TaggedStruct("Block", {
   ...EntityFields,
@@ -198,13 +199,16 @@ export const Entity = S.Union(
 export const [ExplosionMember, BombMember, BlockMember, PlayerMember, PowerupMember] = Entity.members;
 
 
-export const GridCoords = S.Tuple(S.Number, S.Number);
+export const GridCoords = S.Tuple(S.Int, S.Int);
 export const Board = S.Array(S.Array(S.NullOr(Entity)));
 export const World = S.Struct({
-  rows: S.Number,
-  cols: S.Number,
+  rows: S.Int,
+  cols: S.Int,
 
-  entities: S.HashSet(Entity),
+  entities: S.HashMap({
+    key: S.Int,
+    value: Entity,
+  }),
   board: Board,
 
 });
