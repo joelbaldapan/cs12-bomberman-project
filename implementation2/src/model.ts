@@ -39,15 +39,6 @@ export type initModel = typeof initModel.Type;
 // ^^ TYPES
 
 
-// model
-
-export const Model = S.Struct({
-});
-
-export const initModel = S.Struct({
-});
-
-
 
 export const BotType = S.Union(
   S.TaggedStruct("Hostile", {}),
@@ -213,7 +204,7 @@ export const World = S.Struct({
   rows: S.Number,
   cols: S.Number,
 
-  entities: S.Array(Entity),
+  entities: S.HashSet(Entity),
   board: Board,
 
 });
@@ -227,6 +218,18 @@ export const Config = S.Struct({
   numHumanPlayers: S.Number,
   botTypes: S.Array(BotType),
   roundsToWin: S.Number,
+});
+
+
+// MODEL
+
+export const Model = S.Struct({
+  world: World
+  // add others
+});
+
+export const initModel = S.Struct({
+  // add others
 });
 
 

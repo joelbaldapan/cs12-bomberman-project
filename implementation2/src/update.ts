@@ -4,6 +4,7 @@ import { Model,
   Block,
   Player,
   Powerup,
+  Entity,
   // add others if needed
 } from "./model";
 import { Msg } from "./msg";
@@ -38,8 +39,18 @@ export const update = (msg: Msg, model: Model) =>
       //   ...
       //   get all <entity> in model: then do update<entity> for all
       // ^ for all of these updates, update their entries in Model
+      // then, after allat... return the new Model
 
-      // then, after allat... return the new Model:
+      // TODO: add a loop which updates all entities inside world.entitites
+      Match.value(ent).pipe(
+        Match.tag("Explosion", (ent) => ent),
+        Match.tag("Bomb", (ent) => ent),
+        Match.tag("Block", (ent) => ent),
+        Match.tag("Player", (ent) => ent),
+        Match.tag("Powerup", (ent) => ent),
+        Match.exhaustive
+      )
+
       return model;
     }),
     Match.tag("Canvas.MsgKeyDown", ({ key }): Model => {
