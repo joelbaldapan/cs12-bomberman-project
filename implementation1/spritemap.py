@@ -78,6 +78,13 @@ class SpriteMap:
     POWERUP_RAINBOW = SpriteCoords(112, 16, 16, 16)
     POWERUP_VEST = SpriteCoords(96, 16, 16, 16)
 
+    # powerups 2
+    POWERUP_BOMB_2 = SpriteCoords(128, 0, 16, 16)
+    POWERUP_FIRE_2 = SpriteCoords(144, 0, 16, 16)
+    POWERUP_SPEED_2 = SpriteCoords(160, 0, 16, 16)
+    POWERUP_RAINBOW_2 = SpriteCoords(176, 0, 16, 16)
+    POWERUP_VEST_2 = SpriteCoords(192, 0, 16, 16)  
+
     # p1
     P1_SOUTH = SpriteCoords(16, 32, 16, 24)
     P1_WALK_SOUTH_1 = SpriteCoords(32, 32, 16, 24)
@@ -410,6 +417,22 @@ def get_soft_block_sprite(frame: int) -> SpriteCoords:
         case _:
             return SpriteMap.SOFT_BLOCK  # fallback frame
 
+def get_powerup_sprite(frame: int, powerup: str) -> SpriteCoords: 
+    frame = frame % 2 # needed in order to cycle the 2 animations
+    match powerup:
+        case "FIRE":
+            match frame:
+                    case 0: return SpriteMap.POWERUP_FIRE
+                    case _: return SpriteMap.POWERUP_FIRE_2
+        case "BOMB":
+            match frame:
+                    case 0: return SpriteMap.POWERUP_BOMB
+                    case _: return SpriteMap.POWERUP_BOMB_2
+        case _: # "SPEED"
+            match frame:
+                    case 0: return SpriteMap.POWERUP_SPEED
+                    case _: return SpriteMap.POWERUP_SPEED_2
+                
 class Animation:
     def __init__(self, fps: int = 30):
         self.fps = fps
@@ -431,4 +454,6 @@ class Animation:
     def get_soft_destruction_frame(self) -> int:
         return min(self.frame // 3, 4) # 3 ticks
 
-    
+    def get_powerup_frame(self) -> int:
+        cycle = (self.frame // 15) % 2
+        return cycle
