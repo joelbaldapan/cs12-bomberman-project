@@ -1,7 +1,7 @@
 from typing import Callable
 import pyxel
 from common_types import AnimationCmd, AnimationType, CoordMode, ModelState, RoundResult, ResultType, DrawType, WorldInfo, PlayerInfo, BombInfo, BlockInfo, ExplosionInfo, PowerupInfo, PowerUpType, Direction, ExplosionOrientation, SoundType
-from spritemap import SpriteMap, Animation, get_player_sprite, get_player_idle, get_bomb_sprite, get_explosion_sprite, get_soft_block_sprite, get_player_death_sprite
+from spritemap import SpriteMap, Animation, get_player_sprite, get_player_idle, get_bomb_sprite, get_explosion_sprite, get_soft_block_sprite, get_player_death_sprite, get_powerup_sprite
 from entities.block import HardBlock, SoftBlock
 from entities.bomb import Bomb
 from entities.explosion import Explosion
@@ -367,22 +367,21 @@ class View:
         x, y = self._grid.cell_to_pixel(powerup.row, powerup.col)
         
         powerup_type = powerup.powerup_type
+        frame = (self._animation.frame // 15) % 2 
         
-        # magppulse ung powerups with this
-        show_powerup = (self._animation.frame // 10) % 2 == 0 or (self._animation.frame // 10) % 3 == 0
+        match powerup_type:
+            case PowerUpType.FIRE:
+                powerup_str = "FIRE"
+            case PowerUpType.BOMB:
+                powerup_str = "BOMB"
+            case PowerUpType.SPEED:
+                powerup_str = "SPEED"
+            case _:
+                powerup_str = "FIRE" 
         
-        if show_powerup:
-            match powerup_type:
-                case PowerUpType.FIRE:
-                    sprite = SpriteMap.POWERUP_FIRE
-                case PowerUpType.BOMB:
-                    sprite = SpriteMap.POWERUP_BOMB
-                case PowerUpType.SPEED:
-                    sprite = SpriteMap.POWERUP_SPEED
-                case _:
-                    sprite = SpriteMap.POWERUP_FIRE
+        sprite = get_powerup_sprite(frame, powerup_str)
 
-            pyxel.blt(x, y, sprite.img, sprite.u, sprite.v, sprite.w, sprite.h, 14)
+        pyxel.blt(x, y, sprite.img, sprite.u, sprite.v, sprite.w, sprite.h, 14)
 
     def _draw_ui(self, timer: int):
         in_seconds = timer // self._fps
