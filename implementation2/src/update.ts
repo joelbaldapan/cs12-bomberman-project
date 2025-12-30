@@ -5,7 +5,9 @@ import { Model,
   Player,
   Powerup,
   Entity,
-  World
+  World,
+  UpdateResult,
+  RemoveEvent
   // add others if needed
 } from "./model";
 import { Msg } from "./msg";
@@ -89,3 +91,22 @@ export const update = (msg: Msg, model: Model) =>
     }),
     Match.exhaustive,
   );
+
+const updateBlock = (dt: number, ent: Block): { entity: Block; result: UpdateResult } => {
+  let result = UpdateResult.make({events: [], sounds: [], animations: []})
+  
+    if (ent.isExpired) {
+      result = {
+        ...result,
+        events: [
+          ...result.events,
+          RemoveEvent.make({entity: ent})
+        ]
+      }
+    }
+  
+    return {
+      entity: ent,
+      result
+    }
+}

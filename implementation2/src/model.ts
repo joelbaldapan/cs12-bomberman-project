@@ -128,7 +128,12 @@ export const AnimationCmd = S.Struct({
   powerupType: S.NullOr(PowerUpType)
 });
 
-export const EventType = S.Struct({});
+export const EventType = S.Union(
+  S.TaggedStruct("Spawn", {entity: Entity}),
+  S.TaggedStruct("Remove", {entity: Entity})
+);
+
+export const [SpawnEvent, RemoveEvent] = EventType.members
 
 export const UpdateResult = S.Struct({
   events: S.Array(EventType),
