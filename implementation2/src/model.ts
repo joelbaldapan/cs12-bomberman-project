@@ -32,7 +32,7 @@ export type World = typeof World.Type;
 export type Board = typeof Board.Type;
 
 export type Model = typeof Model.Type;
-export type initModel = typeof initModel.Type;
+export type initModel = typeof initModel;
 
 // ^^ TYPES
 // ^^ TYPES
@@ -251,7 +251,7 @@ export const Model = S.Struct({
   draw: S.Boolean,
   debug: S.Boolean,
 
-  scores: S.Record({ key: S.Number, value: S.Number }),
+  scores: S.Struct({ key: S.Number, value: S.Number }),
 
   roundsToWin: S.Number,
   tempWinner: S.Number,
@@ -291,4 +291,5 @@ export const initModel = () => ({
     [11, 13], [10, 13], [11, 12],
   ],
 });
+
 
