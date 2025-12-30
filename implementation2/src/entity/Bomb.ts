@@ -1,6 +1,7 @@
 import { generateId } from "../helpers/id_gen";
 import { getEntityAt, inBounds } from "../helpers/world";
-import { Model,
+import {
+  Model,
   Explosion,
   Bomb,
   Block,
@@ -17,31 +18,33 @@ import { Model,
   ExplosionSound,
   SpawnEvent,
   VerticalExplosion,
-  HorizontalExplosion
+  HorizontalExplosion,
 } from "../model";
 import { Array } from "effect";
 
 export const updateBomb = (ent: Bomb, dt: number): [Bomb, UpdateResult] => {
-  let result = UpdateResult.make({events: [], sounds: [], animations: []})
+  let result = UpdateResult.make({ events: [], sounds: [], animations: [] });
   if (ent.isExpired) {
-    return [Bomb.make({...ent}), 
-    result]
-  
+    return [Bomb.make({ ...ent }), result];
   }
   if (ent.currentTimer >= ent.fuse) {
-    result = {...result, events: Array.append(result.events, RemoveEvent.make({entity: ent})), sounds: Array.append(result.sounds, ExplosionSound.make()), animations: []}
+    result = {
+      ...result,
+      events: Array.append(result.events, RemoveEvent.make({ entity: ent })),
+      sounds: Array.append(result.sounds, ExplosionSound.make()),
+      animations: [],
+    };
   }
-  return [Bomb.make({...ent, isExpired: true, currentTimer: ent.currentTimer + dt}),
-result]
-}
+  return [
+    Bomb.make({ ...ent, isExpired: true, currentTimer: ent.currentTimer + dt }),
+    result,
+  ];
+};
 
-export const getAffectedCells = (
-  bomb: Bomb,
-  world: World
-): GridCoords[] => {
+export const getAffectedCells = (bomb: Bomb, world: World): GridCoords[] => {
   const { row, col } = bomb;
   const rng = bomb.explosionRange;
-  
+
   const cells: GridCoords[] = [];
   cells.push([row, col]);
 
@@ -61,49 +64,49 @@ export const getAffectedCells = (
         cells.push([r, c]);
         continue;
       } else {
-        if (entity._tag === "Powerup") { 
-           cells.push([r, c]);
+        if (entity._tag === "Powerup") {
+          cells.push([r, c]);
         }
-        return; 
+        return;
       }
     }
   };
 
-  project(-1, 0)
-  project(1, 0)
-  project(0, -1)
-  project(0, 1)
+  project(-1, 0);
+  project(1, 0);
+  project(0, -1);
+  project(0, 1);
 
   return cells;
 };
 
-export const createExplosions = (
-  bomb: Bomb, 
-  world: World, 
-): UpdateResult => {
+export const createExplosions = (bomb: Bomb, world: World): UpdateResult => {
   const { row, col } = bomb;
   const rng = bomb.explosionRange;
   const duration = bomb.fuse;
 
   const centerExplosion = Explosion.make({
-    id: generateId(row, col), 
+    id: generateId(row, col),
     row: row,
     col: col,
     isExpired: false,
     currentTimer: duration,
     fullTimer: duration,
-    orientation: CenterExplosion.make({})
+    orientation: CenterExplosion.make({}),
   });
 
   let result = UpdateResult.make({
-    events: Array.empty(), 
-    sounds: Array.empty(), 
-    animations: Array.empty()
+    events: Array.empty(),
+    sounds: Array.empty(),
+    animations: Array.empty(),
   });
 
   result = UpdateResult.make({
     ...result,
-    events: Array.append(result.events, SpawnEvent.make({ entity: centerExplosion }))
+    events: Array.append(
+      result.events,
+      SpawnEvent.make({ entity: centerExplosion })
+    ),
   });
 
   const propagate = (dr: number, dc: number) => {
@@ -156,7 +159,10 @@ export const createExplosions = (
 
       result = UpdateResult.make({
         ...result,
-        events: Array.append(result.events, SpawnEvent.make({ entity: explosionPart })),
+        events: Array.append(
+          result.events,
+          SpawnEvent.make({ entity: explosionPart })
+        ),
       });
     });
   };
