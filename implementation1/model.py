@@ -192,7 +192,6 @@ class Model:
             # Pass bot_type=None for humans
             player = PlayerFactory.make(0, 0, self._world, self._grid, current_id, self._fps, None)
             self._players.add(player)
-            self._world.add_entity(player)
             current_id += 1
 
         # Add Bot Players
@@ -205,7 +204,6 @@ class Model:
                 current_id, self._fps, 
                 bot_type=bot_enum # Pass the Enum directly
             )
-            self._world.add_entity(player)
             self._players.add(player)
             current_id += 1
         
@@ -417,7 +415,7 @@ class Model:
         self._debug = False
         for id, score in self._scores.items():
             if score >= self._rounds_to_win and self._round_result is not None:
-                self._round_result.game_over(id)
+                self._round_result = self._round_result.game_over(id)
                 self._winner = self._player_by_id(id)
     
     def _start_new_round(self) -> None:
@@ -470,7 +468,6 @@ class Model:
 
     def _reset_players_to_spawn(self) -> None:
         for p in self._players:
-            self._world.add_entity(p)
             p.reset_for_new_round()
 
     def _powerup_spawn(self, row: int, col: int)-> None:

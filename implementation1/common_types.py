@@ -28,18 +28,18 @@ class DrawType(Enum):
 @dataclass(frozen=True)
 class RoundResult:
     outcome: ResultType
-    winner_id: int | None = None
-    draw_type: DrawType | None = None
+    winner_id: int | None 
+    draw_type: DrawType | None 
 
-    match_over: bool = False
-    overall_winner_id: int | None = None
+    match_over: bool
+    overall_winner_id: int | None
     @staticmethod
     def round_win(winner_id: int) -> RoundResult:
-        return RoundResult(outcome=ResultType.WIN, winner_id=winner_id)
+        return RoundResult(outcome=ResultType.WIN, winner_id=winner_id, draw_type=None, match_over=False, overall_winner_id=None)
 
     @staticmethod
     def round_draw(type: DrawType) -> RoundResult:
-        return RoundResult(outcome=ResultType.DRAW, draw_type=type)
+        return RoundResult(outcome=ResultType.DRAW, draw_type=type, winner_id=None, match_over=False, overall_winner_id=None)
 
     def game_over(self, overall_winner_id: int | None) -> RoundResult:
         return RoundResult(outcome=self.outcome, winner_id=self.winner_id, draw_type=self.draw_type, match_over=True, overall_winner_id=overall_winner_id,)
