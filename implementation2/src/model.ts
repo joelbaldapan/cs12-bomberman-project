@@ -42,29 +42,47 @@ export type initModel = typeof initModel;
 // ^^ TYPES
 
 
-
+// BotType
 export const BotType = S.Union(
-  S.TaggedStruct("Hostile", {}),
-  S.TaggedStruct("Careful", {}),
-  S.TaggedStruct("Greedy", {})
+  S.TaggedStruct("Hostile Bot", {}),
+  S.TaggedStruct("Careful Bot", {}),
+  S.TaggedStruct("Greedy Bot", {})
 );
+export const [HostileBot, CarefulBot, GreedyBot] = BotType.members;
+export type HostileBot = typeof HostileBot.Type;
+export type CarefulBot = typeof CarefulBot.Type;
+export type GreedyBot = typeof GreedyBot.Type;
 
+// ModelState
 export const ModelState = S.Union(
-  S.TaggedStruct("Transition", {}),
-  S.TaggedStruct("Countdown", {}),
-  S.TaggedStruct("Playing", {}),
-  S.TaggedStruct("End_Delay", {})
+  S.TaggedStruct("Transition Model", {}),
+  S.TaggedStruct("Countdown Model", {}),
+  S.TaggedStruct("Playing Model", {}),
+  S.TaggedStruct("EndDelay Model", {})
 );
+export const [TransitionModel, CountdownModel, PlayingModel, EndDelayModel] = ModelState.members;
+export type TransitionModel = typeof TransitionModel.Type;
+export type CountdownModel = typeof CountdownModel.Type;
+export type PlayingModel = typeof PlayingModel.Type;
+export type EndDelayModel = typeof EndDelayModel.Type;
 
+// ResultType
 export const ResultType = S.Union(
-  S.TaggedStruct("Win", {}),
-  S.TaggedStruct("Draw", {})
+  S.TaggedStruct("Win Result", {}),
+  S.TaggedStruct("Draw Result", {})
 );
+export const [WinResult, DrawResult] = ResultType.members;
+export type WinResult = typeof WinResult.Type;
+export type DrawResult = typeof DrawResult.Type;
 
+// DrawType
 export const DrawType = S.Union(
-  S.TaggedStruct("Time", {}),
-  S.TaggedStruct("Death", {})
+  S.TaggedStruct("Time Result", {}),
+  S.TaggedStruct("Death Result", {})
 );
+export const [TimeResult, DeathResult] = DrawType.members;
+export type TimeResult = typeof TimeResult.Type;
+export type DeathResult = typeof DeathResult.Type;
 
 
 // Sounds
@@ -300,8 +318,6 @@ export const Model = S.Struct({
   spacedBlockCoords: S.Array(GridCoords),
   borderBlockCoords: S.Array(GridCoords),
   protectedCoords: S.Array(GridCoords),
-
-  next_id: S.Int
 });
 
 export const initModel = () => ({
