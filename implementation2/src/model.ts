@@ -228,12 +228,62 @@ export const Config = S.Struct({
 // MODEL
 
 export const Model = S.Struct({
-  world: World
-  // add others
+  world: World,
+  config: Config,
+
+  eventBuffer: S.Array(EventType),
+  sfxBuffer: S.Array(SoundType),
+  vfxBuffer: S.Array(AnimationCmd),
+
+  players: S.Set(Player),
+
+  tileSize: S.Number,
+
+  timer: S.Number,
+  winCountdown: S.Number,
+  fps: S.Number,
+
+  draw: S.Boolean,
+  debug: S.Boolean,
+
+  scores: S.Record({ key: S.Number, value: S.Number }),
+
+  roundsToWin: S.Number,
+  tempWinner: S.Number,
+
+  state: ModelState,
+
+  roundResult: S.NullOr(RoundResult),
+  winner: S.NullOr(Player),
+
+  spacedBlockCoords: S.Array(GridCoords),
+  borderBlockCoords: S.Array(GridCoords),
+  protectedCoords: S.Array(GridCoords),
 });
 
-export const initModel = S.Struct({
-  // add others
-});
+export const initModel = () => ({
+  // add the others pls
 
+  spacedBlockCoords: [
+    [2, 2], [2, 4], [2, 6], [2, 8], [2, 10], [2, 12],
+    [4, 2], [4, 4], [4, 6], [4, 8], [4, 10], [4, 12],
+    [6, 2], [6, 4], [6, 6], [6, 8], [6, 10], [6, 12],
+    [8, 2], [8, 4], [8, 6], [8, 8], [8, 10], [8, 12],
+    [10, 2], [10, 4], [10, 6], [10, 8], [10, 10], [10, 12],
+  ],
+
+  borderBlockCoords: [
+    ...Array.from({ length: world.cols }, (_, c) => [0, c]),
+    ...Array.from({ length: world.cols }, (_, c) => [world.rows - 1, c]),
+    ...Array.from({ length: world.rows - 2 }, (_, r) => [r + 1, 0]),
+    ...Array.from({ length: world.rows - 2 }, (_, r) => [r + 1, world.cols - 1]),
+  ],
+
+  protectedCoords: [
+    [1, 1], [2, 1], [1, 2],
+    [1, 13], [2, 13], [1, 12],
+    [11, 1], [10, 1], [11, 2],
+    [11, 13], [10, 13], [11, 12],
+  ],
+});
 
