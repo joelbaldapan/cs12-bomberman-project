@@ -337,7 +337,7 @@ class View:
         label = f"P{player_id}"
         label_x = x + 4
         label_y = y - 6
-        pyxel.text(label_x, label_y, label, 7)
+        pyxel.text(label_x, label_y, label, 4)
     
     def _is_player_moving(self, player: PlayerInfo, player_id: int) -> bool:
         current_pos = (player.x, player.y)
