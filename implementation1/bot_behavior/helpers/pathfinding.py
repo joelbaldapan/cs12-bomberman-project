@@ -1,15 +1,3 @@
-"""
-implementation for:
-- get_shortest_path
-- get_direction_from
-- find_powerup_target
-    - calls corresponding Policy class
-- find_enemy_target
-    - calls corresponding Policy class
-
-"""
-
-
 from collections import deque
 import random
 from common_types import  Action, ActionInfo, BotMemoryInfo, PlayerAction, BlockInfo, BombInfo, Direction, EntityType, GridCoords, PlayerInfo, WorldInfo

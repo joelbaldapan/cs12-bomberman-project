@@ -18,9 +18,6 @@ class BotMemory():
         self._goal: GridCoords | None = None
         self._is_strict_movement: bool = False
 
-        # Debug Data (Feature 4b)
-        self._debug_danger_cells: set[GridCoords] = set()
-
     @property
     def config(self) -> BotConfigInfo:
         return self._config
@@ -52,13 +49,6 @@ class BotMemory():
 
     def set_goal(self, goal: GridCoords | None) -> None:
         self._goal = goal
-
-    @property
-    def debug_danger_cells(self) -> set[GridCoords]:
-        return self._debug_danger_cells
-
-    def set_debug_danger_cells(self, cells: set[GridCoords]) -> None:
-        self._debug_danger_cells = cells
 
     def tick_reeval(self, dt: float) -> bool:
         """Advance the reevaluation timer. Return `True` if reevaluation should occur."""
