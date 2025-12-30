@@ -14,7 +14,7 @@ import {
   AnimationCmd,
   PixelMode,
 } from "../model";
-import { tickEffect } from "./Powerup";
+import { tickEffect } from "./powerup";
 import { Array } from "effect";
 
 export const updatePlayer = (
