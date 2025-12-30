@@ -174,7 +174,8 @@ export const EntityFields = {
 export const Explosion = S.TaggedStruct("Explosion", {
   ...EntityFields,
   currentTimer: S.Int,
-  fullTimer: S.Int
+  fullTimer: S.Int,
+  orientation: ExplosionOrientation
 });
 export const Player = S.TaggedStruct("Player", {
   ...EntityFields,

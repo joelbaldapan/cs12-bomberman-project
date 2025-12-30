@@ -1,3 +1,4 @@
+import { updateBlock } from "./entity/Block";
 import { updateBomb } from "./entity/Bomb";
 import { updateExplosion } from "./entity/Explosion";
 import { updatePlayer } from "./entity/Player";
