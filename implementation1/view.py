@@ -63,6 +63,7 @@ class View:
         pyxel.cls(0)
 
         if state == ModelState.TRANSITION:
+            self._active_animations.clear()
             if results is not None:
                 self._draw_result_screen(results, scores)
                 return
