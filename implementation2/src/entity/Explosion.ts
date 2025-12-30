@@ -19,7 +19,7 @@ export const updateExplosion = (ent: Explosion, dt: number): [Explosion, UpdateR
   
   }
   if (ent.currentTimer >= ent.fullTimer) {
-    result.events = Array.append(result.events, RemoveEvent({id: ent.id}))
+    result = {...result, events: Array.append(result.events, RemoveEvent.make({entity: ent})), sounds: [], animations: []}
   }
   return [Explosion.make({...ent, isExpired: true, currentTimer: ent.currentTimer + 1}),
 result]

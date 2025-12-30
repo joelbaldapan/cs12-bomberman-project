@@ -98,33 +98,3 @@ export const update = (msg: Msg, model: Model) =>
     }),
     Match.exhaustive,
   );
-
-const updateBlock = (dt: number, ent: Block): [Block, UpdateResult] => {
-  let result = UpdateResult.make({events: [], sounds: [], animations: []})
-  
-    if (ent.isExpired) {
-      result = {
-        ...result,
-        events: [
-          ...result.events,
-          RemoveEvent.make({entity: ent})
-        ]
-      }
-    }
-  
-    return [ent, result ]
-}
-const updateBomb = (dt: number, ent: Bomb): [Bomb, UpdateResult ] => {
-  let result = UpdateResult.make({events: [], sounds: [], animations: []})
-  if (ent.isExpired) {
-    return [Bomb.make({...ent}), 
-    result]
-  
-  }
-  if (ent.currentTimer >= ent.fuse) {
-    result.events = Array.append(result.events, RemoveEvent({id: ent.id}))
-    result.sounds = Array.append(result.sounds, ExplosionSound.make())
-  }
-  return [Bomb.make({...ent, isExpired: true, currentTimer: ent.currentTimer + 1}),
-result]
-}

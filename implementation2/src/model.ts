@@ -1,4 +1,5 @@
 import { Schema as S } from "effect";
+import { boolean } from "effect/FastCheck";
 
 // FOR CONSISTENCY:
 //    ADD ALL TYPES UP IN THE FILE
@@ -17,6 +18,7 @@ export type UpdateResult = typeof UpdateResult.Type;
 export type CoordMode = typeof CoordMode.Type;
 export type RoundResult = typeof RoundResult.Type;
 export type AnimationCmd = typeof AnimationCmd.Type;
+export type Effect = typeof Effect.Type
 export type Direction = typeof Direction.Type;
 export type ExplosionOrientation = typeof ExplosionOrientation.Type;
 
@@ -85,10 +87,14 @@ export const AnimationType = S.Union(
   S.TaggedStruct("Powerup_Break", {})
 );
 
+export const [DeathAnimation, SoftBreakAnimation, PowerupBreakAnimation] = AnimationType.members
+
 export const CoordMode = S.Union(
   S.TaggedStruct("Cell", {}),
   S.TaggedStruct("Pixel", {})
 );
+
+export const [Cell, Pixel] = CoordMode.members
 
 export const PowerUpType = S.Union(
   S.TaggedStruct("Fire", {}),
@@ -165,9 +171,8 @@ export const Player = S.TaggedStruct("Player", {
   hitboxY: S.Int,
   speed: S.Int,
   directionFacing: Direction,
-  activeBombs: S.Int,
-  range: S.Int,
-  maxBombs: S.Int,
+  effects: S.Array(Effect),
+  isAlive: S.Boolean
 });
 export const Bomb = S.TaggedStruct("Bomb", {
   ...EntityFields,
