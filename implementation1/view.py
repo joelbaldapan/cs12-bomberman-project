@@ -125,6 +125,14 @@ class View:
                 text = str(seconds_remaining)
         
         text_width = len(text) * 4
+        text_height = 6
+
+        rect_x = center_x - text_width // 2 - 2
+        rect_y = center_y - 2
+        rect_width = text_width + 2 * 2
+        rect_height = text_height + 2 * 2
+        
+        pyxel.rect(rect_x, rect_y, rect_width, rect_height, 8)
         pyxel.text(center_x - text_width // 2, center_y, text, 10)
 
     def _draw_grid(self):
@@ -282,17 +290,22 @@ class View:
         
         match (hasattr(explosion, 'orientation'), hasattr(explosion, 'terminal_direction')):
             case (True, True):
-                frame = min(self._animation.frame // 7, 3)
+                frame = (self._animation.frame // 7) % 4
             
                 orientation = getattr(explosion, 'orientation')
                 terminal_dir = getattr(explosion, 'terminal_direction')
+                is_endpoint = (terminal_dir is not None)
                 
                 orientation_str = self._orientation_to_str(orientation)
                 direction_str = self._direction_to_str(terminal_dir) if terminal_dir else None
+
+                if is_endpoint:
+                    orientation_str = "END"
                 
                 sprite = get_explosion_sprite(orientation_str, direction_str or "", frame)
             case _:
-                sprite = SpriteMap.EXPLOSION_MIDDLE_1
+                frame = (self._animation.frame // 7) % 4
+                sprite = get_explosion_sprite("CENTER", "", frame)
         
         pyxel.blt(x, y, sprite.img, sprite.u, sprite.v, sprite.w, sprite.h, 11)
 
@@ -389,10 +402,17 @@ class View:
         seconds = in_seconds % 60
         timer_text = f"{minutes:02d}:{seconds:02d}"
         
-        # adjust the timer wherever HDUAHWDAH
-        text_x = (self._display_width - len(timer_text) * 4) // 2
+        text_width = len(timer_text) * 4
+        text_height = 6 
+        text_x = (self._display_width - text_width) // 2
         text_y = 4
         
+        block_width = text_width + 3 * 2
+        block_height = text_height + 3 * 2
+        block_x = text_x - 3
+        block_y = text_y - 3
+        
+        pyxel.rect(block_x, block_y, block_width, block_height, 9)
         pyxel.text(text_x, text_y, timer_text, 7)
         
     def update_animation(self):
