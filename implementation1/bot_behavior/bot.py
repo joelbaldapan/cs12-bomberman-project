@@ -1,8 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from bot_behavior.bot_policy import AttackPolicy1, AttackPolicy2, BombOnlyDangerPolicy, ExplosionPredictionDangerPolicy, PowerupPolicy1, PowerupPolicy2
-from common_types import BombInfo, ExplosionInfo, PlayerInfo, WorldInfo, GridCoords, BotType
-from .bot_types import BotConfigInfo, BotMemoryInfo, BotControllerInfo, BotState, ActionInfo, Action, DangerPolicy, PathfindingPolicy, PlayerAction
+from common_types import BotConfigInfo, BotMemoryInfo, BotControllerInfo, BotState, ActionInfo, Action, DangerPolicy, PathfindingPolicy, PlayerAction, BombInfo, ExplosionInfo, PlayerInfo, WorldInfo, GridCoords, BotType
 from .bot_state import AttackState, EscapeState, GetPowerupState, WanderState
 import random
 

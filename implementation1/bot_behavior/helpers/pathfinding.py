@@ -12,9 +12,8 @@ implementation for:
 
 from collections import deque
 import random
-from common_types import BlockInfo, BombInfo, Direction, EntityType, GridCoords, PlayerInfo, WorldInfo
+from common_types import  Action, ActionInfo, BotMemoryInfo, PlayerAction, BlockInfo, BombInfo, Direction, EntityType, GridCoords, PlayerInfo, WorldInfo
 from entities.block import HardBlock
-from bot_behavior.bot_types import Action, ActionInfo, BotMemoryInfo, PlayerAction
 
 def get_manhattan(a: GridCoords, b: GridCoords) -> int:
     return abs(a[0] - b[0]) + abs(a[1] - b[1])

@@ -1,10 +1,9 @@
 from dataclasses import dataclass
 from typing import Optional
-from common_types import AnimationCmd, AnimationType, BombInfo, BotType, CoordMode, EffectInfo, GridCoords, PlayerInfo, SoundType, WorldInfo, Direction, EntityType, UpdateResultInfo
+from common_types import ActionInfo, BotControllerInfo, PlayerAction, AnimationCmd, AnimationType, BombInfo, BotType, CoordMode, EffectInfo, GridCoords, PlayerInfo, SoundType, WorldInfo, Direction, EntityType, UpdateResultInfo
 from helpers.event import UpdateResult
 from helpers.grid_adapter import GridAdapter
 from bot_behavior.bot import BotFactory
-from bot_behavior.bot_types import ActionInfo, BotControllerInfo, PlayerAction
 
 
 @dataclass(eq=False)
@@ -330,6 +329,10 @@ class BotPlayer(Player):
         self._bot_type = bot_type
         self._controller: BotControllerInfo = BotFactory.make(bot_type)
         self._dt_seconds = 1.0 / fps 
+
+    @property
+    def controller(self) -> BotControllerInfo:
+        return self._controller
 
     def handle_input(self, inputs: dict[str, bool]) -> int:
         """Override human input. Use BotController to decide next move."""

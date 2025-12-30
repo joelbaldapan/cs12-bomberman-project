@@ -1,7 +1,6 @@
 
 import random
-from common_types import BombInfo, ExplosionInfo, GridCoords, PlayerInfo, PowerupInfo, WorldInfo
-from bot_behavior.bot_types import BotMemoryInfo
+from common_types import BotMemoryInfo, BombInfo, ExplosionInfo, GridCoords, PlayerInfo, PowerupInfo, WorldInfo
 from bot_behavior.helpers.pathfinding import get_shortest_path, get_manhattan
 
 # ATTACK POLICIES

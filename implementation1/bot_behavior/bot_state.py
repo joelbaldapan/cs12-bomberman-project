@@ -1,7 +1,6 @@
 from __future__ import annotations
-from common_types import EntityType, GridCoords, PlayerInfo, WorldInfo
+from common_types import  Action, ActionInfo, BotState, PlayerAction, BotMemoryInfo, EntityType, GridCoords, PlayerInfo, WorldInfo
 from bot_behavior.helpers.pathfinding import follow_path_action, get_random_floor_cell, get_reachable_safe_cell
-from .bot_types import Action, ActionInfo, BotState, PlayerAction, BotMemoryInfo
 from .bot_policy import get_shortest_path, get_manhattan
 
 
