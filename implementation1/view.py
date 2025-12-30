@@ -1,6 +1,6 @@
 from typing import Callable
 import pyxel
-from common_types import AnimationCmd, AnimationType, CoordMode, ModelState, RoundResult, ResultType, DrawType, WorldInfo, PlayerInfo, BombInfo, BlockInfo, ExplosionInfo, PowerupInfo, PowerUpType, Direction, ExplosionOrientation, SoundType
+from common_types import AnimationCmd, AnimationType, CoordMode, ModelState, RoundResult, ResultType, DrawType, WorldInfo, PlayerInfo, BombInfo, BlockInfo, ExplosionInfo, PowerupInfo, PowerUpType, Direction, ExplosionOrientation, SoundType, BotPlayerInfo
 from spritemap import SpriteMap, Animation, get_player_sprite, get_player_idle, get_bomb_sprite, get_explosion_sprite, get_soft_block_sprite, get_player_death_sprite, get_powerup_sprite
 from entities.block import HardBlock, SoftBlock
 from entities.bomb import Bomb
@@ -59,11 +59,10 @@ class View:
             case SoundType.DEATH:
                 pyxel.playm(2)
     
-    def draw(self, players: list[PlayerInfo], timer: int, state: ModelState, results: RoundResult|None, countdown: int, scores: dict[int,int]):
+    def draw(self, players: list[PlayerInfo], timer: int, state: ModelState, results: RoundResult|None, countdown: int, scores: dict[int,int], debug_mode: bool):
         pyxel.cls(0)
 
         if state == ModelState.TRANSITION:
-            self._active_animations.clear()
             if results is not None:
                 self._draw_result_screen(results, scores)
                 return
@@ -72,11 +71,74 @@ class View:
         self._draw_entities(players)
         self._draw_animations()
         self._draw_ui(timer)
+        
+        if debug_mode:
+            self._draw_debug_info(players)
+        
         self._animation.update()
         self._update_animations()
 
         if state == ModelState.COUNTDOWN:
             self._draw_countdown(countdown)
+
+    def _draw_debug_info(self, players: list[PlayerInfo]):
+        for player in players:
+            if not isinstance(player, BotPlayerInfo):
+                continue
+            
+            bot = player
+            controller = bot.controller
+            
+            config = controller.config
+            memory = controller.memory
+            current_state = controller.current_state 
+
+            bot_x = int(bot.hitbox_x + 8)
+            bot_y = int(bot.hitbox_y + 8)
+
+            bot_type_text = f"{config.bot_type.value.upper()}"
+            state_text = f"{type(current_state).__name__}"
+            
+            text_x = bot_x - len(bot_type_text) * 2
+            text_y = bot_y + 10
+            
+            pyxel.text(text_x, text_y, bot_type_text, 7)
+            pyxel.text(text_x, text_y + 6, state_text, 7)
+            
+            danger_radius = config.danger_radius
+            if danger_radius > 0:
+                pyxel.circb(bot_x, bot_y, danger_radius * 16, 8)
+
+            if memory.path:
+                path_color = self._get_bot_path_color(bot.id)
+                for cell in memory.path:
+                    corner_x, corner_y = self._get_path_marker_position(cell, bot.id)
+                    pyxel.rect(corner_x, corner_y, 2, 2, path_color)
+
+    def _get_bot_path_color(self, player_id: int) -> int:
+        match player_id:
+            case 2:
+                return 8
+            case 3:
+                return 8
+            case 4:
+                return 10  
+            case _:
+                return 8  
+
+    def _get_path_marker_position(self, cell: tuple[int, int], player_id: int) -> tuple[int, int]:
+        row, col = cell
+        cell_x, cell_y = self._grid.cell_to_pixel(row, col)
+        
+        match player_id:
+            case 2: # tr
+                return (cell_x + 14, cell_y + 0)
+            case 3: # bl
+                return (cell_x + 0, cell_y + 14)
+            case 4: # br
+                return (cell_x + 14, cell_y + 14)
+            case _: # tl
+                return (cell_x + 0, cell_y + 0)
 
     def draw_game_over(self, message: str):
         pyxel.cls(0)
