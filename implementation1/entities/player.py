@@ -342,9 +342,9 @@ class BotPlayer(Player):
         # if self._id == 3: # Only print for Player 3 to avoid spam
             #DEBUG
             # print(f"Bot P3 State: {self._controller.current_state}")
-            # print(f"Action: {action.action_type} | Path Len: {len(self._controller.context.path)}")
+            # print(f"Action: {action.action_type} | Path Len: {len(self._controller.memory.path)}")
             # print(f"Direction: {action.move_direction}")
-            # print(f"Strict Movement: {self._controller.context.is_strict_movement}")
+            # print(f"Strict Movement: {self._controller.memory.is_strict_movement}")
 
         if action.action_type == PlayerAction.MOVE and action.move_direction:
             self.direction_facing = action.move_direction

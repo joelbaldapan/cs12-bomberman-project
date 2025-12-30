@@ -73,8 +73,8 @@ class BotMemory():
 
 
 class BotController:
-    def __init__(self, bot_context: BotMemoryInfo):
-        self.context = bot_context
+    def __init__(self, bot_memory: BotMemoryInfo):
+        self.memory = bot_memory
         self.current_state: BotState = WanderState()
         self._initialized = False
         self._last_bomb_count = 0
@@ -83,7 +83,7 @@ class BotController:
     def update(self, dt: float, host_entity: PlayerInfo, world: WorldInfo) -> None:
         # Init state on first frame
         if not self._initialized:
-            self.current_state.on_enter(self.context, world, host_entity)
+            self.current_state.on_enter(self.memory, world, host_entity)
             self._initialized = True
             # Track coordinates instead of IDs or Objects
             self._last_bomb_coords = {(b.row, b.col)
@@ -115,9 +115,9 @@ class BotController:
         self._last_explosion_coords = current_explosion_coords
 
 
-        timer_trigger = self.context.tick_reeval(dt)
-        is_in_danger = self.context.config.danger_check_type.is_in_danger(
-            world, host_entity, self.context.config.danger_radius
+        timer_trigger = self.memory.tick_reeval(dt)
+        is_in_danger = self.memory.config.danger_check_type.is_in_danger(
+            world, host_entity, self.memory.config.danger_radius
         )
 
         # Check if danger!
@@ -131,31 +131,31 @@ class BotController:
 
         if self.current_state:
             next_state = self.current_state.on_tick(
-                self.context, world, host_entity)
+                self.memory, world, host_entity)
             if next_state:
                 self.transition_to(next_state, world, host_entity)
 
     def decide_action(self, host_entity: PlayerInfo, world: WorldInfo) -> ActionInfo:
         action = self.current_state.decide_action(
-            self.context, world, host_entity)
+            self.memory, world, host_entity)
         if action is None:
             return Action(action_type=PlayerAction.IDLE)
         return action
 
     def transition_to(self, new_state: BotState, world: WorldInfo, entity: PlayerInfo):
         # Clean up memory before switching
-        self.context.set_path([])
-        self.context.set_goal(None)
-        self.context.set_strict_movement(False)
+        self.memory.set_path([])
+        self.memory.set_goal(None)
+        self.memory.set_strict_movement(False)
 
         self.current_state = new_state
-        self.current_state.on_enter(self.context, world, entity)
+        self.current_state.on_enter(self.memory, world, entity)
 
     def _perform_global_reevaluation(self, world: WorldInfo, bot: PlayerInfo):
-        config = self.context.config
+        config = self.memory.config
 
         # 1 - Danger
-        if self.context.config.danger_check_type.is_in_danger(world, bot, self.context.config.danger_radius):
+        if self.memory.config.danger_check_type.is_in_danger(world, bot, self.memory.config.danger_radius):
             if not isinstance(self.current_state, EscapeState):
                 self.transition_to(EscapeState(), world, bot)
             return
@@ -163,10 +163,10 @@ class BotController:
         # 2 - Powerup Check
         if random.random() <= config.powerup_chance:
             target = config.powerup_policy.get_goal(world, bot)
-            path = config.powerup_policy.get_path(world, bot, self.context)
+            path = config.powerup_policy.get_path(world, bot, self.memory)
             if target and path:
                 if isinstance(self.current_state, GetPowerupState):
-                    if self.context.goal == target:
+                    if self.memory.goal == target:
                         return
 
                 self.transition_to(GetPowerupState(target), world, bot)
@@ -187,8 +187,8 @@ class BotFactory:
     @classmethod
     def make(cls, bot_type: BotType) -> BotControllerInfo:
         config = cls.create_bot_config(bot_type)
-        context = BotMemory(config)
-        controller = BotController(context)
+        memory = BotMemory(config)
+        controller = BotController(memory)
         return controller
 
     @classmethod
