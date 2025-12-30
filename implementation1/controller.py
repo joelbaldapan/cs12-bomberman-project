@@ -35,6 +35,7 @@ class Controller:
         result = self._model.round_result
         countdown = self._model.countdown_frames
         scores = self._model.scores
+        debug_mode = self._model.debug_mode
 
         if result and result.match_over:
             winner_id = result.overall_winner_id if result else None
@@ -44,7 +45,7 @@ class Controller:
                 message = "Game Over!"
             self._view.draw_game_over(message)
         else:
-            self._view.draw(players, timer, state, result, countdown, scores)
+            self._view.draw(players, timer, state, result, countdown, scores, debug_mode)
         # model and view share the same world, no need to pass entities, except Players
 
 world = World(13, 15)
