@@ -18,6 +18,11 @@ import { Model,
   EventType,
   SoundType,
   AnimationCmd,
+  RoundResult,
+  DrawResult,
+  TimeResult,
+  DeathResult,
+  EndDelayModel,
   // add others if needed
 } from "./model";
 import { Msg } from "./msg";
@@ -74,7 +79,72 @@ function _process_events(model: Model) : Model {
   })
 }
 function _check_explosion_powerup_collision(model: Model): Model {return model /* implement */ }
-function _check_round_end_conditions(model: Model): Model {return model /* implement */ }
+function _check_round_end_conditions(model: Model): Model {
+  // 1. If already transitioning, return early (no change)
+  if (model.state._tag === "Transition Model") {
+    return model;
+  }
+
+  // 2. Timer ran out -> Draw (Time)
+  if (model.timer <= 0) {
+    const timeDrawResult: RoundResult = {
+      outcome: DrawResult.make({}),
+      winnerId: null,
+      drawType: TimeResult.make({}),
+      matchOver: false, 
+      overallWinnerId: null
+    };
+
+    /*
+    TODO: IMPLEMENT _enter_transition()
+    TODO: IMPLEMENT _enter_transition()
+    TODO: IMPLEMENT _enter_transition()
+    */ 
+    return {
+      ...model,
+      roundResult: timeDrawResult,
+      state: { _tag: "Transition" }
+    };
+  }
+
+  // TODO: IMPLEMENT _alive_players
+  const alive = [/* implement pls */]
+
+  // 3. All dead -> Draw (Death)
+  if (alive.length === 0) {
+    const deathDrawResult: RoundResult = {
+      outcome: DrawResult.make({}),
+      winnerId: null,
+      drawType: DeathResult.make({}),
+      matchOver: false,
+      overallWinnerId: null
+    };
+
+    /*
+    TODO: IMPLEMENT _enter_transition()
+    TODO: IMPLEMENT _enter_transition()
+    TODO: IMPLEMENT _enter_transition()
+    */ 
+    return {
+      ...model,
+      roundResult: deathDrawResult,
+      state: { _tag: "Transition" }
+    };
+  }
+
+  // 4. One survivor -> Enter End Delay
+  if (alive.length === 1 && model.state._tag !== "EndDelay Model") {
+    return {
+      ...model,
+      tempWinner: alive[0].id,
+      state: EndDelayModel.make({}),
+      winCountdown: model.fps
+    };
+  }
+
+  // No conditions met, return model as is
+  return model;
+}
 
 export const update = (msg: Msg, model: Model) =>
   Match.value(msg).pipe(
