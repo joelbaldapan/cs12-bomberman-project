@@ -163,6 +163,10 @@ class Model:
         return self._state
 
     @property
+    def debug_mode(self) -> bool:
+        return self._debug
+
+    @property
     def countdown_frames(self) -> int:
         return self._round_start_timer
 
@@ -209,9 +213,13 @@ class Model:
         
 
     def handle_input(self, inputs: dict[str, bool]):
-        if self._state == ModelState.TRANSITION and not self.is_game_over:
-            if inputs["ESC"]:
+        if inputs["ESC"]:
+            if self._state == ModelState.TRANSITION and not self.is_game_over:
                 self._start_new_round()
+                return
+            elif self._state in (ModelState.PLAYING, ModelState.END_DELAY):
+                self._debug = not self._debug
+                return
 
         if self._state not in (ModelState.PLAYING, ModelState.END_DELAY):
             return
