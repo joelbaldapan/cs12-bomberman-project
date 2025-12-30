@@ -1,7 +1,8 @@
 from __future__ import annotations
+from copy import deepcopy
 from dataclasses import dataclass
 from bot_behavior.bot_policy import AttackPolicy1, AttackPolicy2, BombOnlyDangerPolicy, ExplosionPredictionDangerPolicy, PowerupPolicy1, PowerupPolicy2
-from common_types import BotConfigInfo, BotControllerInfo, BotPlayerInfo, BotState, ActionInfo, Action, PlayerAction, BombInfo, ExplosionInfo, WorldInfo, GridCoords, BotType
+from common_types import BotConfigInfo, BotControllerInfo, BotMemoryInfo, BotPlayerInfo, BotState, ActionInfo, Action, PlayerAction, BombInfo, ExplosionInfo, WorldInfo, GridCoords, BotType
 from .bot_state import AttackState, EscapeState, GetPowerupState, WanderState
 import random
 
@@ -14,6 +15,14 @@ class BotController:
         self._initialized = False
         self._last_bomb_count = 0
         self._last_explosion_count = 0
+
+    @property
+    def config(self) -> BotConfigInfo:
+        return deepcopy(self._config)
+    
+    @property
+    def memory(self) -> BotMemoryInfo:
+        return deepcopy(self._memory)
 
     def _initialize(self, dt: float, host_entity: BotPlayerInfo, world: WorldInfo):
             self._current_state.on_enter(self._config, self._memory, world, host_entity)
