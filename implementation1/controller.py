@@ -34,9 +34,9 @@ class Controller:
         state = self._model.state
         result = self._model.round_result
         countdown = self._model.countdown_frames
-        scores =  self._model.scores
+        scores = self._model.scores
 
-        if self._model.is_game_over:
+        if result and result.match_over:
             winner_id = result.overall_winner_id if result else None
             if winner_id:
                 message = f"Player {winner_id} Wins!"
