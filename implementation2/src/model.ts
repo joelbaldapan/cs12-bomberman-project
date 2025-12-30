@@ -130,18 +130,6 @@ export const AnimationCmd = S.Struct({
   powerupType: S.NullOr(PowerUpType)
 });
 
-export const EventType = S.Union(
-  S.TaggedStruct("Spawn", {entity: Entity}),
-  S.TaggedStruct("Remove", {entity: Entity})
-);
-
-export const [SpawnEvent, RemoveEvent] = EventType.members
-
-export const UpdateResult = S.Struct({
-  events: S.Array(EventType),
-  sounds: S.Array(SoundType),
-  animations: S.Array(AnimationCmd),
-});
 
 export const Effect = S.Struct({
   timeRemaining: S.NullOr(S.Number),
@@ -231,6 +219,19 @@ export const Config = S.Struct({
   numHumanPlayers: S.Number,
   botTypes: S.Array(BotType),
   roundsToWin: S.Number,
+});
+
+export const EventType = S.Union(
+  S.TaggedStruct("Spawn", {entity: Entity}),
+  S.TaggedStruct("Remove", {entity: Entity})
+);
+
+export const [SpawnEvent, RemoveEvent] = EventType.members
+
+export const UpdateResult = S.Struct({
+  events: S.Array(EventType),
+  sounds: S.Array(SoundType),
+  animations: S.Array(AnimationCmd),
 });
 
 

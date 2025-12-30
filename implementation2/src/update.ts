@@ -1,3 +1,8 @@
+import { updateBomb } from "./entity/Bomb";
+import { updateExplosion } from "./entity/Explosion";
+import { updatePlayer } from "./entity/Player";
+import { updatePowerup } from "./entity/Powerup";
+import { addEntity, removeEntity } from "./helpers/world";
 import { Model,
   Explosion,
   Bomb,
@@ -8,64 +13,66 @@ import { Model,
   World,
   UpdateResult,
   RemoveEvent,
-  ExplosionSound
+  ExplosionSound,
+  EventType,
+  SoundType,
+  AnimationCmd,
   // add others if needed
 } from "./model";
 import { Msg } from "./msg";
 import { Array, HashMap, pipe, Match } from "effect";
 
 function _update_entities(model: Model): Model {
-  let newEntities = model.world.entities
+  const dt = 1/model.fps
 
-  // Loop over each entity by its ID
+  let newWorld = model.world;
+  let newEvents = model.eventBuffer;
+  let newSfx = model.sfxBuffer;
+  let newVfx = model.vfxBuffer;
+
   for (const [id, ent] of model.world.entities) {
-    newEntities = Match.value(ent).pipe(
-      Match.tag("Explosion", (e) =>
-        HashMap.modify(newEntities, id, (_) => {
-          // run updateExplosion on e which returns Explosion.make({...e})
-          return Explosion.make({...e}) // remove this when implemented na
-        }),
-      ),
-      Match.tag("Bomb", (e) =>
-        HashMap.modify(newEntities, id, (_) => {
-          // run updateBomb on e which returns Bomb.make({...e})
-          return Bomb.make({...e}) // remove this when implemented na
+    const {updatedEntity, updateResult} = Match.value(ent).pipe(
+      Match.tag("Explosion", (e) => updateExplosion(e, dt)),
+      Match.tag("Bomb", (e) => updateBomb(e, dt)),
+      Match.tag("Block", (e) => updateBlock(e, dt)),
+      Match.tag("Player", (e) => updatePlayer(e, dt)),
+      Match.tag("Powerup", (e) => updatePowerup(e, dt)),
+      Match.exhaustive
+    );
 
-        }),
-      ),
-      Match.tag("Block", (e) =>
-        HashMap.modify(newEntities, id, (_) => {
-          return Block.make({...e}) // remove this when implemented na
-        }),
-      ),
-      Match.tag("Player", (e) =>
-        HashMap.modify(newEntities, id, (_) => {
-          return Player.make({...e}) // remove this when implemented na
-          
-        }),
-      ),
-      Match.tag("Powerup", (e) =>
-        HashMap.modify(newEntities, id, (_) => {
-          return Powerup.make({...e}) // remove this when implemented na
-        }),
-      ),
-      Match.exhaustive,
-    )
+    newWorld = addEntity(newWorld, updatedEntity);
+    newEvents = [...newEvents, ...updateResult.events];
+    newSfx = [...newSfx, ...updateResult.sounds];
+    newVfx = [...newVfx, ...updateResult.animations];
   }
 
-  // Return a new world object with updated HashMap
+  // Return a new model with updated entities and buffers
   return Model.make({
     ...model,
-    world: World.make({
-      ...model.world,
-      entities: newEntities
-    })
+    world: newWorld,
+    eventBuffer: newEvents,
+    sfxBuffer: newSfx,
+    vfxBuffer: newVfx
+  });
+}
+
+function _detonate_bombs(model: Model): Model {return model /* implement */ }
+function _process_events(model: Model) : Model {
+  const newWorld = model.world;
+
+  Array.map(model.eventBuffer, (event) => {
+    Match.value(event).pipe(
+      Match.tag("Spawn", ({entity}) => addEntity(newWorld, entity)),
+      Match.tag("Remove", ({entity}) => removeEntity(newWorld, entity)),
+    )})
+
+  return Model.make({
+    ...model,
+    world: newWorld,
+    eventBuffer: Array.empty()
   })
 }
-function _detonate_bombs(model: Model): Model {return model /* implement */ }
-function _process_events(model: Model) : Model {return model /* implement */ }
 function _check_explosion_powerup_collision(model: Model): Model {return model /* implement */ }
-function _remove_expired_entities(model: Model): Model {return model /* implement */ }
 function _check_round_end_conditions(model: Model): Model {return model /* implement */ }
 
 export const update = (msg: Msg, model: Model) =>
@@ -78,7 +85,6 @@ export const update = (msg: Msg, model: Model) =>
         _process_events ,
         _check_explosion_powerup_collision,
         _process_events,
-        _remove_expired_entities,
         _check_round_end_conditions,
       )
     }),
@@ -93,7 +99,7 @@ export const update = (msg: Msg, model: Model) =>
     Match.exhaustive,
   );
 
-const updateBlock = (dt: number, ent: Block): [Block, UpdateResult] => {
+const updateBlock = (dt: number, ent: Block): { entity: Block; result: UpdateResult } => {
   let result = UpdateResult.make({events: [], sounds: [], animations: []})
   
     if (ent.isExpired) {

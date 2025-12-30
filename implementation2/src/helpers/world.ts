@@ -38,7 +38,6 @@ export const removeEntity = (
   entity: Entity,
 ): World => {
   const { row, col, id } = entity
-
   return {
     ...world,
     entities: HashMap.remove(world.entities, id),
