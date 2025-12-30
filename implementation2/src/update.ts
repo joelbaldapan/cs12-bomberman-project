@@ -31,7 +31,7 @@ function _update_entities(model: Model): Model {
   let newVfx = model.vfxBuffer;
 
   for (const [id, ent] of model.world.entities) {
-    const {updatedEntity, updateResult} = Match.value(ent).pipe(
+    const [updatedEntity, updateResult] = Match.value(ent).pipe(
       Match.tag("Explosion", (e) => updateExplosion(e, dt)),
       Match.tag("Bomb", (e) => updateBomb(e, dt)),
       Match.tag("Block", (e) => updateBlock(e, dt)),

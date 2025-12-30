@@ -8,7 +8,6 @@ export type BotType = typeof BotType.Type;
 export type ModelState = typeof ModelState.Type;
 export type ResultType = typeof ResultType.Type;
 export type DrawType = typeof DrawType.Type;
-export type EntityType = typeof EntityType.Type;
 export type PowerUpType = typeof PowerUpType.Type;
 export type SoundType = typeof SoundType.Type;
 export type AnimationType = typeof AnimationType.Type;
@@ -32,6 +31,8 @@ export type Powerup = typeof Powerup.Type;
 export type GridCoords = typeof GridCoords.Type;
 export type World = typeof World.Type;
 export type Board = typeof Board.Type;
+
+export type IdGenerator = typeof makeIdGenerator
 
 export type Model = typeof Model.Type;
 export type initModel = typeof initModel;
@@ -65,55 +66,72 @@ export const DrawType = S.Union(
   S.TaggedStruct("Death", {})
 );
 
-export const EntityType = S.Union(
-  S.TaggedStruct("Explosion", {}),
-  S.TaggedStruct("Bomb", {}),
-  S.TaggedStruct("Block", {}),
-  S.TaggedStruct("Player", {}),
-  S.TaggedStruct("Powerup", {})
-);
 
+// Sounds
 export const SoundType = S.Union(
-  S.TaggedStruct("Explosion", {}),
-  S.TaggedStruct("Powerup_Get", {}),
-  S.TaggedStruct("Death", {})
+  S.TaggedStruct("Explosion Sound", {}),
+  S.TaggedStruct("PowerupGet Sound", {}),
+  S.TaggedStruct("Death Sound", {})
 );
+export const [ExplosionSound, PowerupSound, DeathSound] = SoundType.members;
+export type ExplosionSound = typeof ExplosionSound.Type;
+export type PowerupSound = typeof PowerupSound.Type;
+export type DeathSound = typeof DeathSound.Type;
 
-export const [ExplosionSound, PowerupSound, DeathSound] = SoundType.members
-
+// Animations
 export const AnimationType = S.Union(
-  S.TaggedStruct("Death", {}),
-  S.TaggedStruct("Soft_Break", {}),
-  S.TaggedStruct("Powerup_Break", {})
+  S.TaggedStruct("Death Animation", {}),
+  S.TaggedStruct("Soft Break Animation", {}),
+  S.TaggedStruct("PowerupBreak Animation", {})
 );
+export const [DeathAnimation, SoftBreakAnimation, PowerupBreakAnimation] = AnimationType.members;
+export type DeathAnimation = typeof DeathAnimation.Type;
+export type SoftBreakAnimation = typeof SoftBreakAnimation.Type;
+export type PowerupBreakAnimation = typeof PowerupBreakAnimation.Type;
 
-export const [DeathAnimation, SoftBreakAnimation, PowerupBreakAnimation] = AnimationType.members
-
+// Coordinates
 export const CoordMode = S.Union(
-  S.TaggedStruct("Cell", {}),
-  S.TaggedStruct("Pixel", {})
+  S.TaggedStruct("Cell Mode", {}),
+  S.TaggedStruct("Pixel Mode", {})
 );
+export const [CellMode, PixelMode] = CoordMode.members;
+export type CellMode = typeof CellMode.Type;
+export type PixelMode = typeof PixelMode.Type;
 
-export const [Cell, Pixel] = CoordMode.members
-
+// Power-ups
 export const PowerUpType = S.Union(
-  S.TaggedStruct("Fire", {}),
-  S.TaggedStruct("Bomb", {}),
-  S.TaggedStruct("Speed", {})
+  S.TaggedStruct("Fire Powerup", {}),
+  S.TaggedStruct("Bomb Powerup", {}),
+  S.TaggedStruct("Speed Powerup", {})
 );
+export const [FirePowerup, BombPowerup, SpeedPowerup] = PowerUpType.members;
+export type FirePowerup = typeof FirePowerup.Type;
+export type BombPowerup = typeof BombPowerup.Type;
+export type SpeedPowerup = typeof SpeedPowerup.Type;
 
+// Explosion Orientations
 export const ExplosionOrientation = S.Union(
-  S.TaggedStruct("Center", {}),
-  S.TaggedStruct("Vertical", {}),
-  S.TaggedStruct("Horizontal", {})
+  S.TaggedStruct("Center Explosion", {}),
+  S.TaggedStruct("Vertical Explosion", {}),
+  S.TaggedStruct("Horizontal Explosion", {})
 );
+export const [CenterExplosion, VerticalExplosion, HorizontalExplosion] = ExplosionOrientation.members;
+export type CenterExplosion = typeof CenterExplosion.Type;
+export type VerticalExplosion = typeof VerticalExplosion.Type;
+export type HorizontalExplosion = typeof HorizontalExplosion.Type;
 
+// Directions
 export const Direction = S.Union(
-  S.TaggedStruct("North", { dr: S.Literal(-1), dc: S.Literal(0) }),
-  S.TaggedStruct("South", { dr: S.Literal(1),  dc: S.Literal(0) }),
-  S.TaggedStruct("East",  { dr: S.Literal(0),  dc: S.Literal(1) }),
-  S.TaggedStruct("West",  { dr: S.Literal(0),  dc: S.Literal(-1) })
+  S.TaggedStruct("North Direction", { dr: S.Literal(-1), dc: S.Literal(0) }),
+  S.TaggedStruct("South Direction", { dr: S.Literal(1),  dc: S.Literal(0) }),
+  S.TaggedStruct("East Direction",  { dr: S.Literal(0),  dc: S.Literal(1) }),
+  S.TaggedStruct("West Direction",  { dr: S.Literal(0),  dc: S.Literal(-1) })
 );
+export const [NorthDirection, SouthDirection, EastDirection, WestDirection] = Direction.members;
+export type NorthDirection = typeof NorthDirection.Type;
+export type SouthDirection = typeof SouthDirection.Type;
+export type EastDirection = typeof EastDirection.Type;
+export type WestDirection = typeof WestDirection.Type;
 
 
 
@@ -151,7 +169,6 @@ export const EntityFields = {
   row: S.Int,
   col: S.Int,
   id: S.Int,
-  entityType: EntityType,
   isExpired: S.Boolean,
 };
 export const Explosion = S.TaggedStruct("Explosion", {
@@ -239,6 +256,14 @@ export const UpdateResult = S.Struct({
   animations: S.Array(AnimationCmd),
 });
 
+export const makeIdGenerator = (start: number = 0) => {
+  let count = start;
+
+  return (): number => {
+    count++;
+    return count;
+  };
+};
 
 // MODEL
 
@@ -274,6 +299,8 @@ export const Model = S.Struct({
   spacedBlockCoords: S.Array(GridCoords),
   borderBlockCoords: S.Array(GridCoords),
   protectedCoords: S.Array(GridCoords),
+
+  next_id: S.Int
 });
 
 export const initModel = () => ({

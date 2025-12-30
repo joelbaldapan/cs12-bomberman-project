@@ -1,3 +1,4 @@
+import { getEntityAt, inBounds } from "../helpers/world";
 import { Model,
   Explosion,
   Bomb,
@@ -7,6 +8,10 @@ import { Model,
   Entity,
   World,
   UpdateResult,
+  GridCoords,
+  ExplosionOrientation,
+  Direction,
+  CenterExplosion,
   RemoveEvent,
   ExplosionSound
 } from "../model";
