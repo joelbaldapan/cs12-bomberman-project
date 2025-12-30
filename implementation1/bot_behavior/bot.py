@@ -1,76 +1,9 @@
 from __future__ import annotations
+from dataclasses import dataclass
 from bot_behavior.bot_policy import AttackPolicy1, AttackPolicy2, BombOnlyDangerPolicy, ExplosionPredictionDangerPolicy, PowerupPolicy1, PowerupPolicy2
 from common_types import BotConfigInfo, BotControllerInfo, BotPlayerInfo, BotState, ActionInfo, Action, PlayerAction, BombInfo, ExplosionInfo, WorldInfo, GridCoords, BotType
 from .bot_state import AttackState, EscapeState, GetPowerupState, WanderState
 import random
-
-
-class BotMemory():
-    """Memory for the bot."""
-
-    def __init__(self):
-        self._reeval_timer: float = 0.0
-
-        # Navigation Memory
-        self._path: list[GridCoords] = []
-        self._goal: GridCoords | None = None
-        self._is_strict_movement: bool = False
-
-        # Perception _memory
-        self._last_bomb_coords: set[GridCoords] = set()
-        self._last_explosion_coords: set[GridCoords] = set()
-
-    @property
-    def reeval_timer(self) -> float:
-        return self._reeval_timer
-
-    def set_reeval_timer(self, value: float) -> None:
-        self._reeval_timer = value
-
-    @property
-    def path(self) -> list[GridCoords]:
-        return self._path
-
-    def set_path(self, path: list[GridCoords]) -> None:
-        self._path = path
-
-    @property
-    def is_strict_movement(self) -> bool:
-        return self._is_strict_movement
-
-    def set_strict_movement(self, value: bool) -> None:
-        self._is_strict_movement = value
-
-    @property
-    def goal(self) -> GridCoords | None:
-        return self._goal
-
-    def set_goal(self, goal: GridCoords | None) -> None:
-        self._goal = goal
-
-    @property
-    def last_bomb_coords(self) -> set[GridCoords]:
-        return self._last_bomb_coords
-    
-    def set_last_bomb_coords(self, coords: set[GridCoords]) -> None:
-        self._last_bomb_coords = coords
-
-    @property
-    def last_explosion_coords(self) -> set[GridCoords]:
-        return self._last_explosion_coords
-
-    def set_last_explosion_coords(self, coords: set[GridCoords]) -> None:
-        self._last_explosion_coords = coords
-
-    def tick_reeval(self, dt: float, reeval_interval: float, reeval_chance: float) -> bool:
-        """Advance the reevaluation timer. Return `True` if reevaluation should occur."""
-        self._reeval_timer += dt
-
-        if self._reeval_timer >= reeval_interval:
-            self._reeval_timer = 0.0
-            return random.random() <= reeval_chance
-
-        return False
 
 
 class BotController:
@@ -183,6 +116,78 @@ class BotController:
         if not isinstance(self._current_state, WanderState):
             self.transition_to(WanderState(), world, bot)
 
+
+@dataclass
+class BotMemory():
+    """Memory for the bot."""
+
+    def __init__(self):
+        self._reeval_timer: float = 0.0
+
+        # Navigation Memory
+        self._path: list[GridCoords] = []
+        self._goal: GridCoords | None = None
+        self._is_strict_movement: bool = False
+
+        # Perception _memory
+        self._last_bomb_coords: set[GridCoords] = set()
+        self._last_explosion_coords: set[GridCoords] = set()
+
+    @property
+    def reeval_timer(self) -> float:
+        return self._reeval_timer
+
+    def set_reeval_timer(self, value: float) -> None:
+        self._reeval_timer = value
+
+    @property
+    def path(self) -> list[GridCoords]:
+        return self._path
+
+    def set_path(self, path: list[GridCoords]) -> None:
+        self._path = path
+
+    @property
+    def is_strict_movement(self) -> bool:
+        return self._is_strict_movement
+
+    def set_strict_movement(self, value: bool) -> None:
+        self._is_strict_movement = value
+
+    @property
+    def goal(self) -> GridCoords | None:
+        return self._goal
+
+    def set_goal(self, goal: GridCoords | None) -> None:
+        self._goal = goal
+
+    @property
+    def last_bomb_coords(self) -> set[GridCoords]:
+        return self._last_bomb_coords
+    
+    def set_last_bomb_coords(self, coords: set[GridCoords]) -> None:
+        self._last_bomb_coords = coords
+
+    @property
+    def last_explosion_coords(self) -> set[GridCoords]:
+        return self._last_explosion_coords
+
+    def set_last_explosion_coords(self, coords: set[GridCoords]) -> None:
+        self._last_explosion_coords = coords
+
+    def tick_reeval(self, dt: float, reeval_interval: float, reeval_chance: float) -> bool:
+        """Advance the reevaluation timer. Return `True` if reevaluation should occur."""
+        self._reeval_timer += dt
+
+        if self._reeval_timer >= reeval_interval:
+            self._reeval_timer = 0.0
+            return random.random() <= reeval_chance
+
+        return False
+
+
+
+@dataclass(frozen=True)
 class HostileBotConfig:
     bot_type = BotType.HOSTILE
 
@@ -199,6 +204,7 @@ class HostileBotConfig:
     powerup_policy = PowerupPolicy2()
     powerup_chance = 0.20
 
+@dataclass(frozen=True)
 class CarefulBotConfig:
     bot_type = BotType.CAREFUL
 
@@ -216,6 +222,7 @@ class CarefulBotConfig:
     powerup_chance = 1.0
 
 
+@dataclass(frozen=True)
 class GreedyBotConfig:
     bot_type = BotType.GREEDY
 
