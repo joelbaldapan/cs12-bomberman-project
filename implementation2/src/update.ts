@@ -99,7 +99,7 @@ export const update = (msg: Msg, model: Model) =>
     Match.exhaustive,
   );
 
-const updateBlock = (dt: number, ent: Block): { entity: Block; result: UpdateResult } => {
+const updateBlock = (dt: number, ent: Block): [Block, UpdateResult] => {
   let result = UpdateResult.make({events: [], sounds: [], animations: []})
   
     if (ent.isExpired) {
