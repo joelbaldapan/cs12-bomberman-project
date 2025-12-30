@@ -77,6 +77,8 @@ export const SoundType = S.Union(
   S.TaggedStruct("Death", {})
 );
 
+export const [ExplosionSound, PowerupSound, DeathSound] = SoundType.members
+
 export const AnimationType = S.Union(
   S.TaggedStruct("Death", {}),
   S.TaggedStruct("Soft_Break", {}),
@@ -182,6 +184,7 @@ export const Bomb = S.TaggedStruct("Bomb", {
   ...EntityFields,
   moveAwayIds: S.Array(S.Int),
   currentTimer: S.Int,
+  fuse: S.Int, 
   owner: Player,
   shouldDetonate: S.Boolean,
   explosionRange: S.Int,
