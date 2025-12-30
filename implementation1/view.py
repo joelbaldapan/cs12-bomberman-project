@@ -90,7 +90,7 @@ class View:
         pyxel.cls(0)
 
         center_x = self._display_width // 2
-        y_offset = 40
+        y_offset = 30
 
         match result.outcome:
             case ResultType.WIN if result.winner_id is not None:
@@ -105,9 +105,32 @@ class View:
                         result_text = "Draw!"
                 text_width = len(result_text) * 4
                 pyxel.text(center_x - text_width // 2, y_offset, result_text, 8)
-    
-    # need help with displaying the scores 
-    
+        
+        y_offset += 20
+        scores_title = "SCORES"
+        title_width = len(scores_title) * 4
+        pyxel.text(center_x - title_width // 2, y_offset, scores_title, 7)
+        
+        y_offset += 15
+        
+        for player_id in range(1, 5):
+            score = scores.get(player_id, 0)
+            score_text = f"P{player_id}: {score}"
+            text_width = len(score_text) * 4
+            pyxel.text(center_x - text_width // 2, y_offset, score_text, 7)
+            y_offset += 10
+        
+        if result.match_over and result.overall_winner_id is not None:
+            y_offset += 10
+            winner_text = f"Player {result.overall_winner_id} Wins the Match!"
+            text_width = len(winner_text) * 4
+            pyxel.text(center_x - text_width // 2, y_offset, winner_text, 10)
+        else:
+            y_offset += 15
+            instruction = "Press ESC to continue"
+            text_width = len(instruction) * 4
+            pyxel.text(center_x - text_width // 2, y_offset, instruction, 13)
+        
     def _draw_countdown(self, countdown: int):
         seconds_remaining = (countdown + self._fps - 1) // self._fps  # ceiling division
         
@@ -195,11 +218,11 @@ class View:
     
     def _get_max_frames(self, cmd: AnimationCmd) -> int:
         if cmd.type == AnimationType.DEATH:
-            return 48  # 6 frames * 8 ticks per frame
+            return 48 
         elif cmd.type == AnimationType.SOFT_BREAK:
-            return 15  # 5 frames * 3 ticks per frame
+            return 15  
         elif cmd.type == AnimationType.POWERUP_BREAK:
-            return 15  # similar to soft break
+            return 15  
         return cmd.duration_frames
 
     def _draw_animations(self):
