@@ -1,6 +1,6 @@
 
 import random
-from common_types import BotMemoryInfo, BombInfo, ExplosionInfo, GridCoords, PlayerInfo, PowerupInfo, WorldInfo
+from common_types import BotMemoryInfo, BombInfo, ExplosionInfo, GridCoords, PlayerInfo, BotPlayerInfo, PowerupInfo, WorldInfo
 from bot_behavior.helpers.pathfinding import get_shortest_path, get_manhattan
 
 # ATTACK POLICIES
@@ -15,7 +15,7 @@ class AttackPolicy1:
     def can_place_bomb(self) -> bool:
         return True
 
-    def get_goal(self, world: WorldInfo, bot: PlayerInfo) -> GridCoords | None:
+    def get_goal(self, world: WorldInfo, bot: BotPlayerInfo) -> GridCoords | None:
         players = world.get_all_type(PlayerInfo)
         opponents = [p for p in players if p.id != bot.id]
         candidates: list[tuple[GridCoords, int]] = []
@@ -48,7 +48,7 @@ class AttackPolicy1:
         candidates.sort(key=lambda x: x[1])
         return candidates[0][0]
 
-    def get_path(self, world: WorldInfo, bot: PlayerInfo, memory: BotMemoryInfo) -> list[GridCoords]:
+    def get_path(self, world: WorldInfo, bot: BotPlayerInfo, memory: BotMemoryInfo) -> list[GridCoords]:
         if not memory.goal:
             return []
 
@@ -66,8 +66,8 @@ class AttackPolicy2:
     def can_place_bomb(self) -> bool:
         return True
 
-    def get_goal(self, world: WorldInfo, bot: PlayerInfo) -> GridCoords | None:
-        players = world.get_all_type(PlayerInfo)
+    def get_goal(self, world: WorldInfo, bot: BotPlayerInfo) -> GridCoords | None:
+        players = world.get_all_type(BotPlayerInfo)
         opponents = [p for p in players if p.id != bot.id]
 
         if not opponents:
@@ -88,7 +88,7 @@ class AttackPolicy2:
 
         return None
 
-    def get_path(self, world: WorldInfo, bot: PlayerInfo, memory: BotMemoryInfo) -> list[GridCoords]:
+    def get_path(self, world: WorldInfo, bot: BotPlayerInfo, memory: BotMemoryInfo) -> list[GridCoords]:
         if not memory.goal:
             return []
 
@@ -108,7 +108,7 @@ class PowerupPolicy1:
     def can_place_bomb(self) -> bool:
         return True
 
-    def get_goal(self, world: WorldInfo, bot: PlayerInfo) -> GridCoords | None:
+    def get_goal(self, world: WorldInfo, bot: BotPlayerInfo) -> GridCoords | None:
         powerups = world.get_all_type(PowerupInfo)
         if not powerups:
             return None
@@ -123,7 +123,7 @@ class PowerupPolicy1:
         target = sorted_powerups[0]
         return (target.row, target.col)
 
-    def get_path(self, world: WorldInfo, bot: PlayerInfo, memory: BotMemoryInfo) -> list[GridCoords]:
+    def get_path(self, world: WorldInfo, bot: BotPlayerInfo, memory: BotMemoryInfo) -> list[GridCoords]:
         if not memory.goal:
             return []
 
@@ -144,7 +144,7 @@ class PowerupPolicy2:
     def can_place_bomb(self) -> bool:
         return False
 
-    def get_goal(self, world: WorldInfo, bot: PlayerInfo) -> GridCoords | None:
+    def get_goal(self, world: WorldInfo, bot: BotPlayerInfo) -> GridCoords | None:
         powerups = world.get_all_type(PowerupInfo)
         candidates: list[GridCoords] = []
         start = (bot.row, bot.col)
@@ -167,7 +167,7 @@ class PowerupPolicy2:
 
         return random.choice(candidates)
 
-    def get_path(self, world: WorldInfo, bot: PlayerInfo, memory: BotMemoryInfo) -> list[GridCoords]:
+    def get_path(self, world: WorldInfo, bot: BotPlayerInfo, memory: BotMemoryInfo) -> list[GridCoords]:
         if not memory.goal:
             return []
 
@@ -184,7 +184,7 @@ class PowerupPolicy2:
 class BombOnlyDangerPolicy:
     """Danger only from current bombs/explosions"""
 
-    def is_in_danger(self, world: WorldInfo, bot: PlayerInfo, radius: int) -> bool:
+    def is_in_danger(self, world: WorldInfo, bot: BotPlayerInfo, radius: int) -> bool:
         overlap_pos = bot.get_overlapping_cells()
         bot_pos = (bot.row, bot.col)
 
@@ -224,7 +224,7 @@ class BombOnlyDangerPolicy:
 class ExplosionPredictionDangerPolicy:
     """Danger ONLY from predicted blasts"""
 
-    def is_in_danger(self, world: WorldInfo, bot: PlayerInfo, radius: int) -> bool:
+    def is_in_danger(self, world: WorldInfo, bot: BotPlayerInfo, radius: int) -> bool:
         overlap_pos = bot.get_overlapping_cells()
         bot_pos = (bot.row, bot.col)
         danger_zones = self.get_all_danger_zones(world)

@@ -1,6 +1,6 @@
 from __future__ import annotations
 from bot_behavior.bot_policy import AttackPolicy1, AttackPolicy2, BombOnlyDangerPolicy, ExplosionPredictionDangerPolicy, PowerupPolicy1, PowerupPolicy2
-from common_types import BotConfigInfo, BotMemoryInfo, BotControllerInfo, BotState, ActionInfo, Action, PlayerAction, BombInfo, ExplosionInfo, PlayerInfo, WorldInfo, GridCoords, BotType
+from common_types import BotConfigInfo, BotMemoryInfo, BotControllerInfo, BotPlayerInfo, BotState, ActionInfo, Action, PlayerAction, BombInfo, ExplosionInfo, WorldInfo, GridCoords, BotType
 from .bot_state import AttackState, EscapeState, GetPowerupState, WanderState
 import random
 
@@ -86,7 +86,7 @@ class BotController:
         self._last_bomb_count = 0
         self._last_explosion_count = 0
 
-    def update(self, dt: float, host_entity: PlayerInfo, world: WorldInfo) -> None:
+    def update(self, dt: float, host_entity: BotPlayerInfo, world: WorldInfo) -> None:
         # Init state on first frame
         if not self._initialized:
             self._current_state.on_enter(self._memory, world, host_entity)
@@ -142,14 +142,14 @@ class BotController:
             if next_state:
                 self.transition_to(next_state, world, host_entity)
 
-    def decide_action(self, host_entity: PlayerInfo, world: WorldInfo) -> ActionInfo:
+    def decide_action(self, host_entity: BotPlayerInfo, world: WorldInfo) -> ActionInfo:
         action = self._current_state.decide_action(
             self._memory, world, host_entity)
         if action is None:
             return Action(action_type=PlayerAction.IDLE)
         return action
 
-    def transition_to(self, new_state: BotState, world: WorldInfo, entity: PlayerInfo):
+    def transition_to(self, new_state: BotState, world: WorldInfo, entity: BotPlayerInfo):
         # Clean up _memory before switching
         self._memory.set_path([])
         self._memory.set_goal(None)
@@ -158,7 +158,7 @@ class BotController:
         self._current_state = new_state
         self._current_state.on_enter(self._memory, world, entity)
 
-    def _perform_global_reevaluation(self, world: WorldInfo, bot: PlayerInfo):
+    def _perform_global_reevaluation(self, world: WorldInfo, bot: BotPlayerInfo):
         config = self._memory.config
 
         # 1 - Danger
