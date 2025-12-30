@@ -8,17 +8,17 @@ export type ModelState = typeof ModelState.Type;
 export type ResultType = typeof ResultType.Type;
 export type DrawType = typeof DrawType.Type;
 export type EntityType = typeof EntityType.Type;
+export type PowerUpType = typeof PowerUpType.Type;
 export type SoundType = typeof SoundType.Type;
 export type AnimationType = typeof AnimationType.Type;
-export type PowerUpType = typeof PowerUpType.Type;
+export type EventType = typeof EventType.Type;
+export type UpdateResult = typeof UpdateResult.Type;
 
 export type CoordMode = typeof CoordMode.Type;
 export type RoundResult = typeof RoundResult.Type;
 export type AnimationCmd = typeof AnimationCmd.Type;
 export type Direction = typeof Direction.Type;
 export type ExplosionOrientation = typeof ExplosionOrientation.Type;
-export type Event = typeof Event.Type;
-export type UpdateResult = typeof UpdateResult.Type;
 
 export type Entity = typeof Entity.Type;
 export type Explosion = typeof Explosion.Type;
@@ -128,10 +128,10 @@ export const AnimationCmd = S.Struct({
   powerupType: S.NullOr(PowerUpType)
 });
 
-export const Event = S.Struct({});
+export const EventType = S.Struct({});
 
 export const UpdateResult = S.Struct({
-  events: S.Array(Event),
+  events: S.Array(EventType),
   sounds: S.Array(SoundType),
   animations: S.Array(AnimationCmd),
 });

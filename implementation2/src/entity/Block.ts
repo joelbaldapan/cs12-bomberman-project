@@ -5,10 +5,10 @@ import { Model,
   Player,
   Powerup,
   Entity,
-  World
-  // add others if needed
+  World,
+  UpdateResult
 } from "../model";
 
-export const updateBlock = (ent: Block, dt: number): Block => {
+export const updateBlock = (ent: Block, dt: number): [Block, UpdateResult] => {
   return Block.make({ /* implement */ })
 }

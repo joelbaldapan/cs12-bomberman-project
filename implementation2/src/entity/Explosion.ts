@@ -5,10 +5,10 @@ import { Model,
   Player,
   Powerup,
   Entity,
-  World
-  // add others if needed
+  World,
+  UpdateResult
 } from "../model";
 
-export const updateExplosion = (ent: Explosion, dt: number): Explosion => {
+export const updateExplosion = (ent: Explosion, dt: number): [Explosion, UpdateResult] => {
   return Explosion.make({ /* implement */ })
 }
