@@ -24,6 +24,10 @@ class BotController:
     def memory(self) -> BotMemoryInfo:
         return deepcopy(self._memory)
 
+    @property
+    def current_state(self) -> BotState:
+        return self._current_state
+
     def _initialize(self, dt: float, host_entity: BotPlayerInfo, world: WorldInfo):
             self._current_state.on_enter(self._config, self._memory, world, host_entity)
             self._initialized = True
