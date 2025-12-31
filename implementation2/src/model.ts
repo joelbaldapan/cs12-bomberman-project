@@ -340,7 +340,7 @@ export type BotConfig = typeof BotConfig.Type;
 
 export const BotBehavior = S.Union(
   S.TaggedStruct("Wander State", {}),
-  S.TaggedStruct("Escape State", {}), 
+  S.TaggedStruct("Escape State", { leftDanger: S.Boolean }),
   S.TaggedStruct("Get Powerup State", { target: GridCoords }),
   S.TaggedStruct("Attack State", { target: GridCoords })
 );
