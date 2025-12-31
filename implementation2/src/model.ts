@@ -117,10 +117,17 @@ export type CellMode = typeof CellMode.Type;
 export type PixelMode = typeof PixelMode.Type;
 
 // Power-ups
+export const Effect = S.Struct({
+  timeRemaining: S.NullOr(S.Number),
+  speedDelta: S.Number,
+  bombsDelta: S.Number,
+  rangeDelta: S.Number,
+});
+
 export const PowerUpType = S.Union(
-  S.TaggedStruct("Fire Powerup", {}),
-  S.TaggedStruct("Bomb Powerup", {}),
-  S.TaggedStruct("Speed Powerup", {})
+  S.TaggedStruct("Fire Powerup", {effect: Effect}),
+  S.TaggedStruct("Bomb Powerup", {effect: Effect}),
+  S.TaggedStruct("Speed Powerup", {effect: Effect})
 );
 export const [FirePowerup, BombPowerup, SpeedPowerup] = PowerUpType.members;
 export type FirePowerup = typeof FirePowerup.Type;
@@ -173,14 +180,6 @@ export const AnimationCmd = S.Struct({
 });
 
 
-export const Effect = S.Struct({
-  timeRemaining: S.NullOr(S.Number),
-  speedDelta: S.Number,
-  bombsDelta: S.Number,
-  rangeDelta: S.Number,
-});
-
-
 // entities
 
 export const EntityFields = {
@@ -208,14 +207,14 @@ export const Player = S.TaggedStruct("Player", {
   speed: S.Int,
   directionFacing: Direction,
   effects: S.Array(Effect),
-  isAlive: S.Boolean
+  isAlive: S.Boolean,
+  activeBombs: S.Array(S.Int)
 });
 export const Bomb = S.TaggedStruct("Bomb", {
   ...EntityFields,
   moveAwayIds: S.Array(S.Int),
   currentTimer: S.Int,
   fuse: S.Int, 
-  owner: Player,
   explosionRange: S.Int,
 });
 export const Block = S.TaggedStruct("Block", {

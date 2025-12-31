@@ -62,3 +62,8 @@ export const playerSpeed = (player: Player): number => Array.reduce(player.effec
 export const playerRange = (player: Player): number => Array.reduce(player.effects, 1, (acc, effect) => acc + effect.rangeDelta)
 
 export const playerMaxBombs = (player: Player): number => Array.reduce(player.effects, 1, (acc, effect) => acc + effect.bombsDelta)
+
+export const addBomb = (player: Player, bomb: Bomb): Player => Player.make({...player, activeBombs: Array.append(player.activeBombs, bomb.id)})
+
+
+export const removeBomb = (player: Player, bomb: Bomb): Player => Player.make({...player, activeBombs: Array.filter(player.activeBombs, (id) => id !== bomb.id)})
