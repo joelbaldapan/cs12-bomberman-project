@@ -12,7 +12,7 @@ class GridAdapter:
 
     def cell_to_pixel(self, row: int, col: int) -> tuple[int, int]:
         if not (0 <= row < self.rows and 0 <= col < self.cols):
-            return (-1, -1) #placeholder for out of bounds
+            return (-1, -1) # placeholder for out of bounds
 
         x = self.offset_x + col * self.cell_size
         y = self.offset_y + row * self.cell_size

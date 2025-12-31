@@ -3,9 +3,6 @@ from dataclasses import dataclass
 from typing import Protocol, TypeVar, runtime_checkable
 from enum import Enum, StrEnum, auto
 
-
-# new types for readabilityy
-
 class BotType(StrEnum):
     HOSTILE = auto()
     CAREFUL = auto()
@@ -55,7 +52,6 @@ class SoundType(Enum):
     EXPLOSION = auto()
     POWERUP_GET = auto()
     DEATH = auto()
-    # ... to add
 
 class AnimationType(Enum):
     DEATH = auto()
@@ -89,7 +85,7 @@ class Direction(Enum):
 
 
 class ExplosionOrientation(Enum):
-    CENTER = auto() # cross type sprite or smthing
+    CENTER = auto() # cross type sprite 
     VERTICAL = auto() # vertical
     HORIZONTAL = auto() # horizontal
 
@@ -141,7 +137,7 @@ class EntityInfo(Protocol):
     def on_explosion_hit(self) -> None: ...
     def update(self, dt: int) -> UpdateResultInfo: ...
 
-# note: inaassume lang neto that we have only one entity per grid
+# note: assumes one entity per grid cell
 T = TypeVar("T", bound=EntityInfo)
 type Board = list[list[EntityInfo | None]]
 type GridCoords = tuple[int, int]
@@ -185,7 +181,7 @@ class BombInfo(Protocol):
     @property
     def should_detonate(self) -> bool: ...
     def get_affected_cells(self, world: WorldInfo) -> list[GridCoords]: ...
-    # ^^^ for explosion calculation and danger sensing para sa mga enemies
+    # ^^^ for explosion calculation and danger sensing on enemies
     
     @property
     def entity_type(self) -> EntityType: ...
@@ -226,7 +222,6 @@ class PlayerInfo(Protocol):
     @property
     def id(self) -> int:...
     
-    # need to store x and y, but idk if this violates LSP? ;-; what's an alternative..
     @property
     def x(self) -> float: ...
     @property
@@ -281,7 +276,6 @@ class BotPlayerInfo(Protocol):
     @property
     def controller(self) -> BotControllerInfo: ...
     
-    # need to store x and y, but idk if this violates LSP? ;-; what's an alternative..
     @property
     def x(self) -> float: ...
     @property
@@ -325,7 +319,7 @@ class BotPlayerInfo(Protocol):
 
 
 @runtime_checkable
-class PowerupInfo(Protocol): # to implement pahelp lang hehe
+class PowerupInfo(Protocol):
     @property
     def row(self) -> int: ...
     @property
@@ -469,6 +463,7 @@ class BotConfigInfo(Protocol):
 
 
 # NON-ENTITIES:
+
 
 class ConfigInfo(Protocol):
     @property

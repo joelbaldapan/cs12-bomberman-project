@@ -335,7 +335,7 @@ class Model:
         # world matrix collisions with player
         explosions = self._world.get_all_type(ExplosionInfo)
         powerups = self._world.get_all_type(PowerupInfo)
-        #collisions with players (16x16 box)
+        # collisions with players (16x16 box)
         for player in self._players:
             for explosion in explosions:
                 if self._player_overlaps_cell(player, explosion.row, explosion.col):
@@ -492,8 +492,3 @@ class Model:
         for event in self._event_buffer:
             event.execute(self._world)
         self._event_buffer = []
-
-    # def _remove_expired_entities(self):
-    #     for entity in self._world.entities:
-    #         if entity.is_expired:
-    #             self._world.remove_entity(entity)
