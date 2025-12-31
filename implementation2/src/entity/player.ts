@@ -32,7 +32,7 @@ export const updatePlayer = (
       mode: PixelMode.make(),
       a: ent.x,
       b: ent.y,
-      durationFrames: 60,
+      durationFrames: 60, //not sure about this yet,
       id: ent.id,
       powerupType: null,
     });
@@ -48,3 +48,17 @@ export const updatePlayer = (
   }
   return [Player.make({ ...ent, effects: remainingEffects }), result];
 };
+
+export const onExplosionHitPlayer = (player: Player): Player => {
+  if (!player.isAlive) {
+    return Player.make({...player})
+  }
+  return Player.make({...player, isAlive: false})
+}
+
+
+export const playerSpeed = (player: Player): number => Array.reduce(player.effects, player.speed, (acc, effect) => acc + effect.speedDelta)
+
+export const playerRange = (player: Player): number => Array.reduce(player.effects, 1, (acc, effect) => acc + effect.rangeDelta)
+
+export const playerMaxBombs = (player: Player): number => Array.reduce(player.effects, 1, (acc, effect) => acc + effect.bombsDelta)

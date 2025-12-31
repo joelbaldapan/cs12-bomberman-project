@@ -8,8 +8,11 @@ import { Model,
   World,
   UpdateResult,
   Effect,
-  RemoveEvent
+  RemoveEvent,
+  SoundType,
+  PowerupSound
 } from "../model";
+import { Array } from "effect";
 
 export const updatePowerup = (ent: Powerup, dt: number): [Powerup, UpdateResult] => {
   let result = UpdateResult.make({events: [], sounds: [], animations: []})
@@ -27,7 +30,12 @@ export const updatePowerup = (ent: Powerup, dt: number): [Powerup, UpdateResult]
       return [ent, result ]
 }
 
+export const onExplosionHitPowerup = (ent: Powerup): Powerup => Powerup.make({...ent, isExpired: true})
 
+export const onPickup = (ent: Powerup, player: Player): [Player, UpdateResult] => {
+  let result = UpdateResult.make({events: Array.append(Array.empty(), RemoveEvent.make({entity: ent})), sounds: Array.append(Array.empty(), PowerupSound.make()), animations: []})
+  return [Player.make({...player, effects: Array.append(player.effects, ent.powerupType.effect)}), result]
+}
 
 
 export const tickEffect = (dt: number, effect: Effect): Effect => {

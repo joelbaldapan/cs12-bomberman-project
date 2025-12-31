@@ -31,9 +31,11 @@ export const updateExplosion = (
   return [
     Explosion.make({
       ...ent,
-      isExpired: true,
+      isExpired: ent.currentTimer >= ent.fullTimer,
       currentTimer: ent.currentTimer + 1,
     }),
     result,
   ];
 };
+
+export const onExplosionHitExplosion = (ent: Explosion): Explosion => Explosion.make({...ent})
