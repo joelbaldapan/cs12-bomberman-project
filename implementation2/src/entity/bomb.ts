@@ -1,3 +1,4 @@
+import { boolean } from "effect/FastCheck";
 import { generateId } from "../helpers/id_gen";
 import { getEntityAt, inBounds } from "../helpers/world";
 import {
@@ -19,6 +20,7 @@ import {
   SpawnEvent,
   VerticalExplosion,
   HorizontalExplosion,
+  BombMember,
 } from "../model";
 import { Array } from "effect";
 
@@ -175,3 +177,14 @@ export const createExplosions = (bomb: Bomb, world: World): UpdateResult => {
 
   return result;
 };
+
+export const shouldDetonate = (ent: Bomb) => ent.currentTimer >= ent.fuse
+
+export const explosionDuration = (ent: Bomb) => ent.fuse/3
+
+export const onExplosionHitBomb = (ent: Bomb): Bomb => {
+  if (ent.isExpired) {
+    return Bomb.make({...ent})
+  }
+  return Bomb.make({...ent, currentTimer: ent.fuse})
+}

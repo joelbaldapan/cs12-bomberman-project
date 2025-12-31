@@ -216,7 +216,6 @@ export const Bomb = S.TaggedStruct("Bomb", {
   currentTimer: S.Int,
   fuse: S.Int, 
   owner: Player,
-  shouldDetonate: S.Boolean,
   explosionRange: S.Int,
 });
 export const Block = S.TaggedStruct("Block", {
