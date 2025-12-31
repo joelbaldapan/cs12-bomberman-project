@@ -1,2 +1,0 @@
-add images here 
-(delete nyo tong file na to kapag may files na ung directory @view peeps)
