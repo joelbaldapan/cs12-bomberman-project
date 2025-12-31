@@ -280,6 +280,107 @@ export const makeIdGenerator = (start: number = 0) => {
   };
 };
 
+
+
+
+// POLICIES
+
+// Danger Policies
+export const DangerPolicyType = S.Union(
+  S.TaggedStruct("Bomb Only Danger Policy", {}),
+  S.TaggedStruct("Explosion Prediction Danger Policy", {})
+);
+export const [BombOnlyDangerPolicy, ExplosionPredictionDangerPolicy] = DangerPolicyType.members;
+export type BombOnlyDangerPolicy = typeof BombOnlyDangerPolicy.Type;
+export type ExplosionPredictionDangerPolicy = typeof ExplosionPredictionDangerPolicy.Type;
+
+
+// Attack Policies
+export const AttackPolicyType = S.Union(
+  S.TaggedStruct("Attack Policy 1", { maxDistance: S.Number }),
+  S.TaggedStruct("Attack Policy 2", {})
+);
+export const [AttackPolicy1, AttackPolicy2] = AttackPolicyType.members;
+export type AttackPolicy1 = typeof AttackPolicy1.Type;
+export type AttackPolicy2 = typeof AttackPolicy2.Type;
+
+
+// Powerup Policies
+export const PowerupPolicyType = S.Union(
+  S.TaggedStruct("Powerup Policy 1", {}),
+  S.TaggedStruct("Powerup Policy 2", {})
+);
+export const [PowerupPolicy1, PowerupPolicy2] = PowerupPolicyType.members;
+export type PowerupPolicy1 = typeof PowerupPolicy1.Type;
+export type PowerupPolicy2 = typeof PowerupPolicy2.Type;
+
+
+// CONFIGURATION
+
+export const BotConfig = S.Struct({
+  botType: BotType,
+  
+  reevalInterval: S.Number,
+  reevalChance: S.Number,
+  
+  dangerRadius: S.Number,
+  dangerPolicy: DangerPolicyType,
+
+  attackRangeTrigger: S.Number,
+  attackSearchRadius: S.Number,
+  attackPolicy: AttackPolicyType,
+
+  powerupChance: S.Number,
+  powerupPolicy: PowerupPolicyType
+});
+export type BotConfig = typeof BotConfig.Type;
+
+
+// STATE MACHINE STATES
+
+export const BotBehavior = S.Union(
+  S.TaggedStruct("Wander State", {}),
+  S.TaggedStruct("Escape State", {}), 
+  S.TaggedStruct("Get Powerup State", { target: GridCoords }),
+  S.TaggedStruct("Attack State", { target: GridCoords })
+);
+export const [WanderState, EscapeState, GetPowerupState, AttackState] = BotBehavior.members;
+export type BotBehavior = typeof BotBehavior.Type;
+export type WanderState = typeof WanderState.Type;
+export type EscapeState = typeof EscapeState.Type;
+export type GetPowerupState = typeof GetPowerupState.Type;
+export type AttackState = typeof AttackState.Type;
+
+
+// MEMORY
+
+export const BotMemory = S.Struct({
+  reevalTimer: S.Number,
+  
+  // Navigation
+  path: S.Array(GridCoords),
+  goal: S.NullOr(GridCoords),
+  isStrictMovement: S.Boolean,
+
+  // Perception 
+  lastBombCoords: S.HashSet(GridCoords), 
+  lastExplosionCoords: S.HashSet(GridCoords),
+});
+export type BotMemory = typeof BotMemory.Type;
+
+
+// THE CONTAINER 
+
+export const BotInternalState = S.Struct({
+  initialized: S.Boolean,
+  config: BotConfig,
+  memory: BotMemory,
+  currentState: BotBehavior
+});
+export type BotInternalState = typeof BotInternalState.Type;
+
+
+
 // MODEL
 
 export const Model = S.Struct({
@@ -314,6 +415,8 @@ export const Model = S.Struct({
   spacedBlockCoords: S.Array(GridCoords),
   borderBlockCoords: S.Array(GridCoords),
   protectedCoords: S.Array(GridCoords),
+
+  botInternals: S.HashMap({key: S.Int, value: BotInternalState})
 });
 
 export const initModel = () => ({
