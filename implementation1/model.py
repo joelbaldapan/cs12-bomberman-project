@@ -145,6 +145,10 @@ class Model:
         return self._timer
     
     @property
+    def world(self) -> WorldInfo:
+        return self._world
+
+    @property
     def pop_sfx(self) -> list[SoundType]:
         out = self._sfx_buffer[:]
         self._sfx_buffer = []
