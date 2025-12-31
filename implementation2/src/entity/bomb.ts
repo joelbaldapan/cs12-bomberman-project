@@ -82,17 +82,18 @@ export const getAffectedCells = (bomb: Bomb, world: World): GridCoords[] => {
   return cells;
 };
 
-export const createExplosions = (bomb: Bomb, world: World): UpdateResult => {
+export const createExplosions = (bomb: Bomb, world: World): [World, UpdateResult] => {
   const { row, col } = bomb;
   const rng = bomb.explosionRange;
-  const duration = bomb.fuse;
+  const duration = explosionDuration(bomb);
+  let newWorld = world
 
   const centerExplosion = Explosion.make({
     id: generateId(row, col),
     row: row,
     col: col,
     isExpired: false,
-    currentTimer: duration,
+    currentTimer: 0,
     fullTimer: duration,
     orientation: CenterExplosion.make({}),
   });
@@ -134,7 +135,8 @@ export const createExplosions = (bomb: Bomb, world: World): UpdateResult => {
               result.events,
               RemoveEvent.make({ entity: entity })
             ),
-          });
+          })
+          newWorld = newWorld;
         }
         break;
       }
@@ -154,7 +156,7 @@ export const createExplosions = (bomb: Bomb, world: World): UpdateResult => {
         row: er,
         col: ec,
         isExpired: false,
-        currentTimer: duration,
+        currentTimer: 0,
         fullTimer: duration,
         orientation: orient,
       });
