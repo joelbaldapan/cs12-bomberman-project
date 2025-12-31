@@ -29,6 +29,8 @@ class Controller:
             self._view.start_animation(vfx)
 
     def draw(self):
+        world = self._model.world
+        entities = world.entities
         timer = self._model.timer
         players = self._model.alive_players
         state = self._model.state
@@ -45,12 +47,12 @@ class Controller:
                 message = "Game Over!"
             self._view.draw_game_over(message)
         else:
-            self._view.draw(players, timer, state, result, countdown, scores, debug_mode)
+            self._view.draw(entities, players, timer, state, result, countdown, scores, debug_mode)
         # model and view share the same world, no need to pass entities, except Players
 
 world = World(13, 15)
 grid = GridAdapter(0, 0)
 fps = 30
 config: ConfigInfo = Settings.from_json("settings.json")
-game = Controller(Model(world, grid, fps, config), View(world, grid, fps))
+game = Controller(Model(world, grid, fps, config), View(grid, fps))
 game.start()
