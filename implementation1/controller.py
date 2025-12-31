@@ -17,10 +17,10 @@ class Controller:
         self._model.handle_input(key)
         self._model.update(1)
 
-        for sfx in self._model.pop_sfx:
+        for sfx in self._model.pop_sfx():
             self._view.play_sound(sfx) 
 
-        for vfx in self._model.pop_vfx:
+        for vfx in self._model.pop_vfx():
             self._view.start_animation(vfx)
 
     def draw(self):
