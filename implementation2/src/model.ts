@@ -301,7 +301,7 @@ export const Model = S.Struct({
   draw: S.Boolean,
   debug: S.Boolean,
 
-  scores: S.Struct({ key: S.Number, value: S.Number }),
+  scores: S.HashMap({ key: S.Number, value: S.Number }),
 
   roundsToWin: S.Number,
   tempWinner: S.Number,
