@@ -1,6 +1,6 @@
 from typing import Callable
 import pyxel
-from common_types import AnimationCmd, AnimationType, CoordMode, ModelState, RoundResult, ResultType, DrawType, WorldInfo, PlayerInfo, BombInfo, BlockInfo, ExplosionInfo, PowerupInfo, PowerUpType, Direction, ExplosionOrientation, SoundType, BotPlayerInfo
+from common_types import AnimationCmd, AnimationType, CoordMode, ModelState, RoundResult, ResultType, DrawType, EntityInfo, PlayerInfo, BombInfo, BlockInfo, ExplosionInfo, PowerupInfo, PowerUpType, Direction, ExplosionOrientation, SoundType, BotPlayerInfo
 from spritemap import SpriteMap, Animation, get_player_sprite, get_player_idle, get_bomb_sprite, get_explosion_sprite, get_soft_block_sprite, get_player_death_sprite, get_powerup_sprite
 from entities.block import HardBlock, SoftBlock
 from entities.bomb import Bomb
@@ -10,8 +10,7 @@ from helpers.grid_adapter import GridAdapter
 
 class View:
     # handle all rendering logic based sa state ng world
-    def __init__(self, world: WorldInfo, grid: GridAdapter, fps: int, cell_size: int = 16):
-        self._world = world
+    def __init__(self, grid: GridAdapter, fps: int, cell_size: int = 16):
         self._grid = grid
         self._cell_size = cell_size
         self._fps = fps
@@ -59,7 +58,7 @@ class View:
             case SoundType.DEATH:
                 pyxel.playm(2)
     
-    def draw(self, players: list[PlayerInfo], timer: int, state: ModelState, results: RoundResult|None, countdown: int, scores: dict[int,int], debug_mode: bool):
+    def draw(self, entities: set[EntityInfo], players: list[PlayerInfo], timer: int, state: ModelState, results: RoundResult|None, countdown: int, scores: dict[int,int], debug_mode: bool):
         pyxel.cls(0)
 
         if state == ModelState.TRANSITION:
@@ -69,7 +68,7 @@ class View:
                 return
             
         self._draw_grid()
-        self._draw_entities(players)
+        self._draw_entities(entities, players)
         self._draw_animations()
         self._draw_ui(timer)
         
@@ -230,22 +229,22 @@ class View:
                 sprite = SpriteMap.WALKABLE_TILE
                 pyxel.blt(x, y, sprite.img, sprite.u, sprite.v, sprite.w, sprite.h, 0)
     
-    def _draw_entities(self, players: list[PlayerInfo]):
-        for entity in self._world.entities:
+    def _draw_entities(self, entities: set[EntityInfo], players: list[PlayerInfo]):
+        for entity in entities:
             if isinstance(entity, (HardBlock, SoftBlock)):
                 if not self._has_animation_at_cell(entity.row, entity.col, AnimationType.SOFT_BREAK):
                     self._draw_block(entity)
         
-        for entity in self._world.entities:
+        for entity in entities:
             if isinstance(entity, Powerup):
                 if not self._has_animation_at_cell(entity.row, entity.col, AnimationType.POWERUP_BREAK):
                     self._draw_powerup(entity)
-  
-        for entity in self._world.entities:
+
+        for entity in entities:
             if isinstance(entity, Bomb):
                 self._draw_bomb(entity)
 
-        for entity in self._world.entities:
+        for entity in entities:
             if isinstance(entity, Explosion):
                 self._draw_explosion(entity)
 
