@@ -9,8 +9,12 @@ import {
 import { Array, HashMap, pipe, Struct } from "effect";
 import { Model } from "./model";
 import type { Msg } from "./msg";
+import * as settings from "../settings.json";
 
 
+const SCREEN_WIDTH = 1
+const SCREEN_HEIGHT = 1
+const FPS = 1
 
 // we display sprites like this (example):
 // Where `en` = entity
@@ -30,14 +34,14 @@ export function renderScreenAndSound(
 
 // to implement settings blah blah
 export const view = canvasView<Model, Msg>(
-  settings.game.screen.width,
-  settings.game.screen.height,
-  settings.game.fps,
+  SCREEN_WIDTH,
+  SCREEN_HEIGHT,
+  FPS,
   "gameScreen",
   (model) =>
     renderScreenAndSound(
       model,
-      settings.game.screen.width,
-      settings.game.screen.height,
+      SCREEN_WIDTH,
+      SCREEN_HEIGHT,
     ),
 );
