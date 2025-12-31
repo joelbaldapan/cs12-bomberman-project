@@ -30,6 +30,13 @@ import {
 import { Msg } from "./msg";
 import { Array, HashMap, pipe, Match } from "effect";
 
+function _clear_sfx_buffer(model: Model): Model {
+  return Model.make({
+    ...model,
+    sfxBuffer: Array.empty()
+  })
+}
+
 function _update_entities(model: Model): Model {
   const dt = 1 / model.fps;
 
@@ -197,6 +204,7 @@ export const update = (msg: Msg, model: Model) =>
     Match.tag("Canvas.MsgTick", () => {
       pipe(
         model,
+        _clear_sfx_buffer,
         _update_entities,
         _detonate_bombs,
         _process_events,

@@ -6,10 +6,32 @@ import {
   Text,
   CanvasImage,
 } from "cs12251-mvu/src/canvas";
-import { Array, HashMap, pipe, Struct } from "effect";
-import { Model } from "./model";
+import { Array, HashMap, Match, pipe, Struct } from "effect";
+import { Model, SoundType } from "./model";
 import type { Msg } from "./msg";
 import * as settings from "../settings.json";
+
+// FOR SOUNDS:
+export const soundToPath = (sound: SoundType): string =>
+  Match.value(sound).pipe(
+    Match.tag("Explosion Sound", () => "/assets/sounds/explosion.mp3"),
+    Match.tag("PowerupGet Sound", () => "/assets/sounds/powerup.mp3"),
+    Match.tag("Death Sound", () => "/assets/sounds/death.mp3"),
+    Match.exhaustive,
+  )
+
+export const playSound = (sound: SoundType): void => {
+  const audio = new Audio(soundToPath(sound))
+  audio.currentTime = 0
+  audio.play()
+}
+
+export const playSfxBuffer = (sfxBuffer: SoundType[]): void => {
+  for (const sound of sfxBuffer) {
+    playSound(sound)
+  }
+}
+
 
 
 const SCREEN_WIDTH = 1
@@ -21,7 +43,7 @@ const FPS = 1
 // CanvasImage.make({
 //   x: en.x,
 //   y: en.y, 
-//   src: asserts.images.<name of entity>
+//   src: "assets/sprites/<entity>.png"
 // }),
 
 export function renderScreenAndSound(
