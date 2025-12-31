@@ -202,8 +202,6 @@ export const Player = S.TaggedStruct("Player", {
   width: S.Int,
   height: S.Int,
 
-  hitboxX: S.Int,
-  hitboxY: S.Int,
   speed: S.Int,
   directionFacing: Direction,
   effects: S.Array(Effect),

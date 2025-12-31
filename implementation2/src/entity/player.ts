@@ -67,3 +67,7 @@ export const addBomb = (player: Player, bomb: Bomb): Player => Player.make({...p
 
 
 export const removeBomb = (player: Player, bomb: Bomb): Player => Player.make({...player, activeBombs: Array.filter(player.activeBombs, (id) => id !== bomb.id)})
+
+export const hitboxX = (player: Player): number => player.x
+
+export const hitboxY = (player: Player): number => player.y + 8

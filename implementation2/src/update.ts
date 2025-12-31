@@ -36,6 +36,7 @@ function _update_entities(model: Model): Model {
   let newEvents = model.eventBuffer;
   let newSfx = model.sfxBuffer;
   let newVfx = model.vfxBuffer;
+  let newPlayers = model.players
 
   for (const [id, ent] of model.world.entities) {
     const [updatedEntity, updateResult] = Match.value(ent).pipe(
@@ -52,11 +53,19 @@ function _update_entities(model: Model): Model {
     newSfx = [...newSfx, ...updateResult.sounds];
     newVfx = [...newVfx, ...updateResult.animations];
   }
-
+  for (const player of model.players) {
+    const [updatedPlayer, updateResult] = updatePlayer(player, dt);
+    newPlayers = new Set(Array.filter([...newPlayers], (player) => player.id !== updatedPlayer.id)); // remove Player
+    newPlayers = new Set([...newPlayers, updatedPlayer]);
+    newEvents = [...newEvents, ...updateResult.events];
+    newSfx = [...newSfx, ...updateResult.sounds];
+    newVfx = [...newVfx, ...updateResult.animations];
+  }
   // Return a new model with updated entities and buffers
   return Model.make({
     ...model,
     world: newWorld,
+    players: newPlayers,
     eventBuffer: newEvents,
     sfxBuffer: newSfx,
     vfxBuffer: newVfx,
