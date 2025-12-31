@@ -1,9 +1,5 @@
-from model import Model, World
+from model import Model
 from view import View
-from common_types import ConfigInfo
-from helpers.grid_adapter import GridAdapter
-from helpers.settings import Settings
-
 
 class Controller:
     def __init__(self, model: Model, view: View):
@@ -49,10 +45,3 @@ class Controller:
         else:
             self._view.draw(entities, players, timer, state, result, countdown, scores, debug_mode)
         # model and view share the same world, no need to pass entities, except Players
-
-world = World(13, 15)
-grid = GridAdapter(0, 0)
-fps = 30
-config: ConfigInfo = Settings.from_json("settings.json")
-game = Controller(Model(world, grid, fps, config), View(grid, fps))
-game.start()

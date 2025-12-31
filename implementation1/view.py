@@ -157,7 +157,7 @@ class View:
 
         match result.outcome:
             case ResultType.WIN if result.winner_id is not None:
-                result_text = f"Player {result.winner_id} Wins Round!"
+                result_text = f"Player {result.winner_id} Wins the Round!"
                 text_width = len(result_text) * 4
                 pyxel.text(center_x - text_width // 2, y_offset, result_text, 11)
             case _:  
@@ -188,6 +188,7 @@ class View:
             winner_text = f"Player {result.overall_winner_id} Wins the Match!"
             text_width = len(winner_text) * 4
             pyxel.text(center_x - text_width // 2, y_offset, winner_text, 10)
+    
         else:
             y_offset += 15
             instruction = "Press ESC to continue"
