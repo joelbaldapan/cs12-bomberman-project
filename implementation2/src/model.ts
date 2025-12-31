@@ -380,6 +380,23 @@ export const BotInternalState = S.Struct({
 export type BotInternalState = typeof BotInternalState.Type;
 
 
+export const BotAction = S.Union(
+  S.TaggedStruct("Idle Action", {}),
+  S.TaggedStruct("Place Bomb Action", {}),
+  S.TaggedStruct("Move Action", { direction: Direction })
+);
+
+export const [IdleAction, PlaceBombAction, MoveAction] = BotAction.members;
+
+export type BotAction = typeof BotAction.Type;
+export type IdleAction = typeof IdleAction.Type;
+export type PlaceBombAction = typeof PlaceBombAction.Type;
+export type MoveAction = typeof MoveAction.Type;
+
+export type BotUpdateResult = {
+  nextState: BotInternalState;
+  action: BotAction;
+};
 
 // MODEL
 
