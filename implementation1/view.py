@@ -420,7 +420,7 @@ class View:
         
         pyxel.blt(x, y, sprite.img, sprite.u, sprite.v, sprite.w, sprite.h, 11)
         
-        # draw the player lanbel
+        # draw the player label
         label = f"P{player_id}"
         label_x = x + 4
         label_y = y - 6
