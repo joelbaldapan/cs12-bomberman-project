@@ -73,9 +73,7 @@ export const hitboxX = (player: Player): number => player.x
 
 export const hitboxY = (player: Player): number => player.y + 8
 
-<<<<<<< HEAD
 export const getPlayerById = (players: ReadonlySet<Player>, id: number): Player | null => Option.getOrNull(Array.findFirst(players, p => p.id === id));
-=======
 // need this for pathfinding
 export const getOverlappingCells = (bot: Player): GridCoords[] => {
   /*
@@ -97,4 +95,3 @@ export const isOverlapping = (player: Player, cell: GridCoords): boolean => {
     return (pCX >= cLeft && pCX < cLeft + TILE_SIZE && 
             pCY >= cTop && pCY < cTop + TILE_SIZE);
 };
->>>>>>> 56ab129715022db3a8fbbf69885c697be182b5ce

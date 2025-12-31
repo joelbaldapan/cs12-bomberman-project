@@ -24,6 +24,7 @@ import {
   TimeResult,
   DeathResult,
   EndDelayModel,
+  TransitionModel,
   // add others if needed
 } from "./model";
 import { Msg } from "./msg";
@@ -146,7 +147,7 @@ function _check_round_end_conditions(model: Model): Model {
     return {
       ...model,
       roundResult: timeDrawResult,
-      state: { _tag: "Transition" },
+      state: TransitionModel.make({}),
     };
   }
 
@@ -173,7 +174,7 @@ function _check_round_end_conditions(model: Model): Model {
     return {
       ...model,
       roundResult: deathDrawResult,
-      state: { _tag: "Transition" },
+      state: TransitionModel.make({}),
     };
   }
 
@@ -181,7 +182,7 @@ function _check_round_end_conditions(model: Model): Model {
   if (alive.length === 1 && model.state._tag !== "EndDelay Model") {
     return {
       ...model,
-      tempWinner: alive[0].id,
+      tempWinner: alive[0].player_id,
       state: EndDelayModel.make({}),
       winCountdown: model.fps,
     };

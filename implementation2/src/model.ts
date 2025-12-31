@@ -1,5 +1,5 @@
 import { Schema as S } from "effect";
-import { boolean } from "effect/FastCheck";
+import * as settings from "../settings.json";
 
 // FOR CONSISTENCY:
 //    ADD ALL TYPES UP IN THE FILE
