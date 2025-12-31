@@ -23,3 +23,5 @@ export const updateBlock = (ent: Block, dt: number): [Block, UpdateResult] => {
 
   return [ent, result];
 };
+
+export const onExplosionHitBlock = (ent: Block): Block => ent.isHard ? Block.make({...ent}) : Block.make({...ent, isExpired: true})

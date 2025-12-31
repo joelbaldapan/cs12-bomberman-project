@@ -1,6 +1,6 @@
 import { boolean } from "effect/FastCheck";
 import { generateId } from "../helpers/id_gen";
-import { getEntityAt, inBounds } from "../helpers/world";
+import { addEntity, getEntityAt, inBounds, removeEntity } from "../helpers/world";
 import {
   Model,
   Explosion,
@@ -22,7 +22,11 @@ import {
   HorizontalExplosion,
   BombMember,
 } from "../model";
-import { Array } from "effect";
+import { Array, Match } from "effect";
+import { onExplosionHitBlock } from "./block";
+import { onExplosionHitPowerup } from "./powerup";
+import { onExplosionHitExplosion } from "./explosion";
+import { onExplosionHitPlayer } from "./player";
 
 export const updateBomb = (ent: Bomb, dt: number): [Bomb, UpdateResult] => {
   let result = UpdateResult.make({ events: [], sounds: [], animations: [] });
@@ -38,7 +42,7 @@ export const updateBomb = (ent: Bomb, dt: number): [Bomb, UpdateResult] => {
     };
   }
   return [
-    Bomb.make({ ...ent, isExpired: true, currentTimer: ent.currentTimer + dt }),
+    Bomb.make({ ...ent, isExpired: ent.currentTimer >= ent.fuse, currentTimer: ent.currentTimer + dt }),
     result,
   ];
 };
@@ -86,7 +90,7 @@ export const createExplosions = (bomb: Bomb, world: World): [World, UpdateResult
   const { row, col } = bomb;
   const rng = bomb.explosionRange;
   const duration = explosionDuration(bomb);
-  let newWorld = world
+  let newWorld = World.make({...world})
 
   const centerExplosion = Explosion.make({
     id: generateId(row, col),
@@ -127,17 +131,25 @@ export const createExplosions = (bomb: Bomb, world: World): [World, UpdateResult
         hitCells.push([r, c]);
         continue;
       } else {
-        if (entity._tag === "Powerup") {
-          hitCells.push([r, c]);
-          result = UpdateResult.make({
-            ...result,
-            events: Array.append(
-              result.events,
-              RemoveEvent.make({ entity: entity })
-            ),
-          })
-          newWorld = newWorld;
-        }
+        Match.value(entity).pipe(
+          Match.tag("Powerup", (e) => {
+            hitCells.push([r, c]);
+            newWorld = removeEntity(newWorld, entity)
+          }),
+          Match.tag("Block", (e) => {
+            newWorld = addEntity(newWorld,onExplosionHitBlock(e))
+          }),
+          Match.tag("Bomb", (e) => {
+            newWorld = addEntity(newWorld,onExplosionHitBomb(e))
+          }),
+          Match.tag("Explosion", (e) => {
+            newWorld = addEntity(newWorld,onExplosionHitExplosion(e))
+          }),
+          Match.tag("Player", (e) => {
+            newWorld = addEntity(newWorld,onExplosionHitPlayer(e))
+          }),
+          Match.exhaustive
+        )
         break;
       }
     }
@@ -177,7 +189,7 @@ export const createExplosions = (bomb: Bomb, world: World): [World, UpdateResult
   propagate(0, -1);
   propagate(0, 1);
 
-  return result;
+  return [newWorld, result];
 };
 
 export const shouldDetonate = (ent: Bomb) => ent.currentTimer >= ent.fuse
