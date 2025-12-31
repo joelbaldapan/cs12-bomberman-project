@@ -214,6 +214,7 @@ export const Bomb = S.TaggedStruct("Bomb", {
   currentTimer: S.Int,
   fuse: S.Int, 
   explosionRange: S.Int,
+  owner: S.Int
 });
 export const Block = S.TaggedStruct("Block", {
   ...EntityFields,

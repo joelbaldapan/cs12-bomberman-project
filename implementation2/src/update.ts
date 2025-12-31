@@ -1,9 +1,9 @@
 import { updateBlock } from "./entity/block";
-import { updateBomb } from "./entity/bomb";
+import { createExplosions, shouldDetonate, updateBomb } from "./entity/bomb";
 import { updateExplosion } from "./entity/explosion";
-import { updatePlayer } from "./entity/player";
+import { getPlayerById, removeBomb, updatePlayer } from "./entity/player";
 import { updatePowerup } from "./entity/powerup";
-import { addEntity, removeEntity } from "./helpers/world";
+import { addEntity, getAllType, removeEntity } from "./helpers/world";
 import {
   Model,
   Explosion,
@@ -73,6 +73,31 @@ function _update_entities(model: Model): Model {
 }
 
 function _detonate_bombs(model: Model): Model {
+  let newWorld = World.make({...model.world})
+  let result = UpdateResult.make({
+    events: Array.empty(),
+    sounds: Array.empty(),
+    animations: Array.empty(),
+  });
+  let newPlayers = model.players
+  const explodingBombs: Bomb[] = Array.filter(getAllType(model.world, Bomb), (entity) => entity._tag === "Bomb" && shouldDetonate(entity))
+  let explosionResult = UpdateResult.make({
+    events: Array.empty(),
+    sounds: Array.empty(),
+    animations: Array.empty(),
+  });
+  for (const bomb of explodingBombs) {
+    [newWorld, explosionResult] = createExplosions(bomb, newWorld)
+    result = {...result, events: Array.appendAll(result.events, explosionResult.events), 
+      sounds: Array.appendAll(result.sounds, explosionResult.sounds), 
+      animations: Array.appendAll(result.animations, explosionResult.animations)};
+      let owner: Player = getPlayerById(newPlayers, bomb.owner)!
+      newPlayers = new Set(Array.filter([...newPlayers], (player) => player.id !== owner.id)); // remove Player
+      newPlayers = new Set([...newPlayers, removeBomb(owner, bomb)]);
+  }
+  const expired: Entity[] = Array.filter(getAllType(newWorld, Block), (e) => e.isExpired)
+  
+
   return model; /* implement */
 }
 
