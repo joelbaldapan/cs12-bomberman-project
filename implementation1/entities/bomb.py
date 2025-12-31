@@ -107,7 +107,7 @@ class Bomb:
             result.add_event(SpawnEvent(center_explosion))
     
             def propagate(dr: int, dc: int, direction: Direction):
-                cells: list[tuple[int, int]] = [] # pang check if last cell of explosion lang
+                cells: list[tuple[int, int]] = [] # check if last cell in explosion
     
                 r, c = row, col
     

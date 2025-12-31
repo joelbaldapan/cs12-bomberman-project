@@ -13,6 +13,7 @@ import {
   DeathAnimation,
   AnimationCmd,
   PixelMode,
+  GridCoords,
 } from "../model";
 import { tickEffect } from "./powerup";
 import { Array , Option} from "effect";
@@ -72,4 +73,28 @@ export const hitboxX = (player: Player): number => player.x
 
 export const hitboxY = (player: Player): number => player.y + 8
 
+<<<<<<< HEAD
 export const getPlayerById = (players: ReadonlySet<Player>, id: number): Player | null => Option.getOrNull(Array.findFirst(players, p => p.id === id));
+=======
+// need this for pathfinding
+export const getOverlappingCells = (bot: Player): GridCoords[] => {
+  /*
+    TO IMPELEMENT
+    TO IMPELEMENT
+    TO IMPELEMENT
+    */
+  return [[bot.row, bot.col]];
+}; //pls implement thx
+
+export const isOverlapping = (player: Player, cell: GridCoords): boolean => {
+    const TILE_SIZE = 16
+
+    const pCX = player.x + (player.width / 2);
+    const pCY = player.y + (player.height / 2);
+    const cLeft = cell[1] * TILE_SIZE;
+    const cTop = cell[0] * TILE_SIZE;
+    
+    return (pCX >= cLeft && pCX < cLeft + TILE_SIZE && 
+            pCY >= cTop && pCY < cTop + TILE_SIZE);
+};
+>>>>>>> 56ab129715022db3a8fbbf69885c697be182b5ce

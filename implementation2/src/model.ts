@@ -341,7 +341,7 @@ export type BotConfig = typeof BotConfig.Type;
 
 export const BotBehavior = S.Union(
   S.TaggedStruct("Wander State", {}),
-  S.TaggedStruct("Escape State", {}), 
+  S.TaggedStruct("Escape State", { leftDanger: S.Boolean }),
   S.TaggedStruct("Get Powerup State", { target: GridCoords }),
   S.TaggedStruct("Attack State", { target: GridCoords })
 );
@@ -381,6 +381,23 @@ export const BotInternalState = S.Struct({
 export type BotInternalState = typeof BotInternalState.Type;
 
 
+export const BotAction = S.Union(
+  S.TaggedStruct("Idle Action", {}),
+  S.TaggedStruct("Place Bomb Action", {}),
+  S.TaggedStruct("Move Action", { direction: Direction })
+);
+
+export const [IdleAction, PlaceBombAction, MoveAction] = BotAction.members;
+
+export type BotAction = typeof BotAction.Type;
+export type IdleAction = typeof IdleAction.Type;
+export type PlaceBombAction = typeof PlaceBombAction.Type;
+export type MoveAction = typeof MoveAction.Type;
+
+export type BotUpdateResult = {
+  nextState: BotInternalState;
+  action: BotAction;
+};
 
 // MODEL
 

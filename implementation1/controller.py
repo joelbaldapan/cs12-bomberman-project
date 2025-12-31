@@ -17,7 +17,6 @@ class Controller:
         self._model.handle_input(key)
         self._model.update(1)
 
-        # not sure yet
         for sfx in self._model.pop_sfx:
             self._view.play_sound(sfx) 
 

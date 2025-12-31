@@ -272,7 +272,7 @@ class Player():
             direction = Direction.EAST
 
         if direction is not None:
-            self.direction_facing = direction # kung saan naka harap ung player
+            self.direction_facing = direction # direction where player is facing
             self.move(direction)
         return 1 if inputs.get(map[4]) else 0
 
