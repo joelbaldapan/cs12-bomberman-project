@@ -56,7 +56,6 @@ export function renderScreenAndSound(
     x: 0, y: 0,
     width: screenWidth,
     height: screenHeight,
-    color: "#2C3E50"
   }));
   
   // all entities
@@ -73,8 +72,6 @@ export function renderScreenAndSound(
         x: pixelX,
         y: pixelY,
         src: spritePath,
-        width: model.tileSize,
-        height: model.tileSize
       }));
     }
   });
@@ -89,8 +86,6 @@ export function renderScreenAndSound(
         x: player.x,
         y: player.y,
         src: spritePath,
-        width: player.width,
-        height: player.height
       }));
     }
   }
