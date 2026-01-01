@@ -70,6 +70,7 @@ export const Assets = {
         }
         return pipe(
             part,
+            Match.value,
             Match.tag("BlockSprite", (sprite: BlockSprite) => {
                 return `${Assets.orig}${sprite.name}.png`;
             }),
@@ -149,6 +150,7 @@ export const Assets = {
 export const directionToStr = (direction: Direction): string => 
     pipe(
         direction,
+        Match.value,
         Match.tag("North Direction", () => "north"),
         Match.tag("South Direction", () => "south"),
         Match.tag("East Direction", () => "east"),
@@ -159,6 +161,7 @@ export const directionToStr = (direction: Direction): string =>
 export const powerupToStr = (powerupType: PowerUpType): string =>
     pipe(
         powerupType,
+        Match.value,
         Match.tag("Fire Powerup", () => "fire"),
         Match.tag("Bomb Powerup", () => "bomb"),
         Match.tag("Speed Powerup", () => "speed"),
@@ -168,6 +171,7 @@ export const powerupToStr = (powerupType: PowerUpType): string =>
 export const explosionOryeToStr = (orientation: ExplosionOrientation): string =>
     pipe(
         orientation,
+        Match.value,
         Match.tag("Center Explosion", () => "center"),
         Match.tag("Vertical Explosion", () => "vertical"),
         Match.tag("Horizontal Explosion", () => "horizontal"),
@@ -177,6 +181,7 @@ export const explosionOryeToStr = (orientation: ExplosionOrientation): string =>
 export const createSpriteForEntity = (entity: Entity): SpriteParts | null => {
   return pipe(
     entity,
+    Match.value,
     Match.tag("Player", (player: Player) => {
       const direction = directionToStr(player.directionFacing);
       const isMoving = player.vx !== 0 || player.vy !== 0;
