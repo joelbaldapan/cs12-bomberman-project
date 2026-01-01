@@ -211,6 +211,7 @@ function _process_events(model: Model): Model {
 }
 
 function _check_explosion_powerup_collision(model: Model): Model {
+  console.log(model.world.board)
   return model; /* implement */
 }
 
