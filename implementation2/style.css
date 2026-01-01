@@ -1,0 +1,42 @@
+html,
+body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  background: #001708;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+
+#gameHeader {
+  margin-top: 12px;
+  margin-bottom: 12px;
+  text-align: center;
+  font-family: system-ui, "Segoe UI", sans-serif;
+  color: #ffffff;
+  font-size: 40px;
+  font-weight: bold;
+}
+
+#gameScreen {
+  height: 90vh;
+  width: auto;
+
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+#credit {
+  margin-top: 12px;
+  text-align: center;
+  font-family: system-ui, "Segoe UI", sans-serif;
+  color: #ffffff;
+  font-size: 20px;
+  margin-bottom: 12px;
+}
