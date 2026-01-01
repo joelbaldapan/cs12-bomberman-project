@@ -33,9 +33,9 @@ export const playSfxBuffer = (sfxBuffer: SoundType[]): void => {
   }
 }
 
-const SCREEN_WIDTH = 1
-const SCREEN_HEIGHT = 1
-const FPS = 1
+const SCREEN_WIDTH = 800
+const SCREEN_HEIGHT = 600
+const FPS = 60
 
 // we display sprites like this (example):
 // Where `en` = entity
