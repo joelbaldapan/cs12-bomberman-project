@@ -1,4 +1,4 @@
-import {Schema as S, Match, pipe} from "effect";
+import { Schema as S, Match, pipe, Option } from "effect";
 import {
   Player, 
   Block,
@@ -6,12 +6,14 @@ import {
   Explosion, 
   Direction,
   PowerUpType,
-  ExplosionOrientation 
+  ExplosionOrientation,
+  Entity, 
+  Powerup 
 } from "./model"; 
-import { Powerup } from "./model";
 
 export type SpriteParts = typeof SpriteParts.Type
-const SpriteParts = S.Union(
+
+export const SpriteParts = S.Union(
     // blocks
     S.TaggedStruct("BlockSprite", {
         name: S.String,
@@ -42,7 +44,6 @@ const SpriteParts = S.Union(
         isMoving: S.Option(S.Boolean),
         walkFrame: S.Option(S.Int),
     }),
-
     // player death animation
     S.TaggedStruct("PlayerDeathSprite", {
         playerId: S.Int,
@@ -75,76 +76,90 @@ export const Assets = {
                 return `${Assets.orig}${sprite.name}.png`;
             }),
             Match.tag("SoftBlockBreakSprite", (sprite: SoftBlockBreakSprite) => {
-                const frameNum = Math.min(sprite.frame, 4) + 1; // need i-adjust para hindi zero based yung naming, 4 frames
+                const frameNum = Math.min(sprite.frame, 4) + 1; 
                 return `${Assets.orig}soft_on_hit_${frameNum}.png`;
             }),
             Match.tag("BombSprite", (sprite: BombSprite) => {
-                const frameNum = (sprite.frame % 3) + 1; // 3 frames
+                const frameNum = (sprite.frame % 3) + 1; 
                 return `${Assets.orig}bomb_frame_${frameNum}.png`;
             }),
             Match.tag("ExplosionSprite", (sprite: ExplosionSprite) => {
-                const dir = sprite.direction ? `-${sprite.direction}` : "";
-                const frameNum = (sprite.frame % 4) + 1; // 4 frames
+                // Unwrap Option: if None -> null, if Some -> value
+                const dirVal = Option.getOrElse(sprite.direction, () => null);
+                const dir = dirVal ? `-${dirVal}` : "";
+                const frameNum = (sprite.frame % 4) + 1; 
                 return `${Assets.orig}explosion_${dir}_${sprite.orientation}_${frameNum}.png`;
             }),
             Match.tag("PowerupSprite", (sprite: PowerupSprite) => {
-                const frameNum = (sprite.frame % 2) + 1; // 2 frames
+                const frameNum = (sprite.frame % 2) + 1; 
                 return `${Assets.orig}powerup_${sprite.type}_${frameNum}.png`;
             }),
             Match.tag("PlayerSprite", (sprite: PlayerSprite) => {
-                const walkFrame = sprite.walkFrame ?? 0;
-                if (sprite.isMoving) {
-                        const walkFrameNum = (walkFrame % 2) + 1; // 2 frames; walking
+                // Unwrap Options
+                const isMoving = Option.getOrElse(sprite.isMoving, () => false);
+                const walkFrame = Option.getOrElse(sprite.walkFrame, () => 0);
+                
+                if (isMoving) {
+                        const walkFrameNum = (walkFrame % 2) + 1; 
                         return `${Assets.orig}${sprite.playerId}/walk_${sprite.direction}_${walkFrameNum}.png`;
                     } else {
-                        return `${Assets.orig}${sprite.playerId}/${sprite.direction}.png`; // idle
+                        return `${Assets.orig}${sprite.playerId}/${sprite.direction}.png`; 
                     }
             }),
-                Match.tag("PlayerDeathSprite", (sprite: PlayerDeathSprite) => {
-                    const frameNum = Math.min(sprite.frame, 5) + 1; // 6 frames for death animation
-                    return `${Assets.orig}${sprite.playerId}/death_${frameNum}.png`;
-                }),
-                Match.exhaustive
-            );
-        },
-        factory: {
-            block: (name: string): BlockSprite  =>
-                BlockSprite.make({name}),
+            Match.tag("PlayerDeathSprite", (sprite: PlayerDeathSprite) => {
+                const frameNum = Math.min(sprite.frame, 5) + 1; 
+                return `${Assets.orig}${sprite.playerId}/death_${frameNum}.png`;
+            }),
+            Match.exhaustive
+        );
+    },
+    factory: {
+        block: (name: string): BlockSprite  =>
+            BlockSprite.make({name}),
 
-            softBlockBreak: (frame: number): SoftBlockBreakSprite => 
-                SoftBlockBreakSprite.make({frame}),
+        softBlockBreak: (frame: number): SoftBlockBreakSprite => 
+            SoftBlockBreakSprite.make({frame}),
 
-            bomb: (frame: number): BombSprite => 
-                BombSprite.make({frame}),
+        bomb: (frame: number): BombSprite => 
+            BombSprite.make({frame}),
 
-            explosion: (
-                direction: string | null, 
-                orientation: string, 
-                frame: number
-            ): ExplosionSprite => 
-                ExplosionSprite.make({direction, orientation, frame}),
+        explosion: (
+            direction: string | null, 
+            orientation: string, 
+            frame: number
+        ): ExplosionSprite => 
+            ExplosionSprite.make({
+                direction: Option.fromNullable(direction), 
+                orientation, 
+                frame
+            }),
+        
+        powerup: (type: string, frame: number): PowerupSprite => 
+            PowerupSprite.make({type, frame}),
+
+        player: (playerId: number, direction: string): PlayerSprite => 
+            PlayerSprite.make({
+                playerId, 
+                direction,
+                isMoving: Option.none(),
+                walkFrame: Option.none()
+            }),
+        
+        playerWalk: (
+            playerId: number, 
+            direction: string, 
+            walkFrame: number
+        ): PlayerSprite => 
+            PlayerSprite.make({ 
+                playerId, 
+                direction, 
+                isMoving: Option.some(true), 
+                walkFrame: Option.some(walkFrame)
+            }),
             
-            powerup: (type: string, frame: number): PowerupSprite => 
-                PowerupSprite.make({type, frame}),
-
-            player: (playerId: number, direction: string): PlayerSprite => 
-                PlayerSprite.make({playerId, direction}),
-            
-            playerWalk: (
-                playerId: number, 
-                direction: string, 
-                walkFrame: number
-            ): PlayerSprite => 
-                PlayerSprite.make({ 
-                    playerId, 
-                    direction, 
-                    isMoving: true, 
-                    walkFrame 
-                }),
-            // no need for idle kasi isa lang e
-            playerDeath: (playerId: number, frame: number): PlayerDeathSprite => 
-                PlayerDeathSprite.make({playerId, frame}),
-        },
+        playerDeath: (playerId: number, frame: number): PlayerDeathSprite => 
+            PlayerDeathSprite.make({playerId, frame}),
+    },
 }
 
 export const directionToStr = (direction: Direction): string => 
@@ -186,23 +201,23 @@ export const createSpriteForEntity = (entity: Entity): SpriteParts | null => {
       const direction = directionToStr(player.directionFacing);
       const isMoving = player.vx !== 0 || player.vy !== 0;
       if (isMoving) {
-        const walkFrame = Math.floor(Date.now() / 200) % 2; // Walk animation
+        const walkFrame = Math.floor(Date.now() / 200) % 2; 
         return Assets.factory.playerWalk(player.player_id, direction, walkFrame);
       }
       return Assets.factory.player(player.player_id, direction);
     }),
     Match.tag("Bomb", () => {
-      const frame = Math.floor(Date.now() / 300) % 3; // Bomb animation
+      const frame = Math.floor(Date.now() / 300) % 3; 
       return Assets.factory.bomb(frame);
     }),
     Match.tag("Explosion", (explosion: Explosion) => {
       const orientation = explosionOryeToStr(explosion.orientation);
-      const frame = Math.min(explosion.currentTimer, 3); // Based on timer
+      const frame = Math.min(explosion.currentTimer, 3); 
       return Assets.factory.explosion(null, orientation, frame);
     }),
     Match.tag("Powerup", (powerup: Powerup) => {
       const type = powerupToStr(powerup.powerupType);
-      const frame = Math.floor(Date.now() / 500) % 2; // Flashing effect
+      const frame = Math.floor(Date.now() / 500) % 2; 
       return Assets.factory.powerup(type, frame);
     }),
     Match.tag("Block", (block: Block) => {
