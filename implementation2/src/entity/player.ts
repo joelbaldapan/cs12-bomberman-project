@@ -25,8 +25,8 @@ export const updatePlayer = (
 ): [Player, UpdateResult] => {
   let result = UpdateResult.make({ events: [], sounds: [], animations: [] });
   const tickedEffects = ent.effects.map((e) => tickEffect(dt, e));
-  const remainingEffects = tickedEffects.filter(
-    (e) => e.timeRemaining == null || e.timeRemaining > 0
+  const remainingEffects = tickedEffects.filter((e) =>
+    Option.getOrElse(e.timeRemaining, () => 1) > 0
   );
   if (!ent.isAlive) {
     let animation = AnimationCmd.make({
@@ -35,8 +35,8 @@ export const updatePlayer = (
       a: ent.x,
       b: ent.y,
       durationFrames: 60, //not sure about this yet,
-      id: ent.id,
-      powerupType: null,
+      id: Option.some(ent.id),
+      powerupType: Option.none(),
     });
     result = {
       ...result,

@@ -12,7 +12,7 @@ import { Model,
   SoundType,
   PowerupSound
 } from "../model";
-import { Array } from "effect";
+import { Array, Option, pipe } from "effect";
 
 export const updatePowerup = (ent: Powerup, dt: number): [Powerup, UpdateResult] => {
   let result = UpdateResult.make({events: [], sounds: [], animations: []})
@@ -34,15 +34,20 @@ export const onExplosionHitPowerup = (ent: Powerup): Powerup => Powerup.make({..
 
 export const onPickup = (ent: Powerup, player: Player): [Player, UpdateResult] => {
   let result = UpdateResult.make({events: Array.append(Array.empty(), RemoveEvent.make({entity: ent})), sounds: Array.append(Array.empty(), PowerupSound.make()), animations: []})
-  return [Player.make({...player, effects: Array.append(player.effects, ent.powerupType.effect)}), result]
+  return [Player.make({...player, effects: Array.append(player.effects, ent.effect)}), result]
 }
 
 
 export const tickEffect = (dt: number, effect: Effect): Effect => {
-  if (effect.timeRemaining == null) return effect
-  return {
+  return pipe(
+  effect.timeRemaining,
+  Option.match({
+    onSome: (value) => ({
     ...effect,
-    timeRemaining: effect.timeRemaining - dt,
-  }
+    timeRemaining: Option.some(value - dt),
+  }),
+    onNone: () => effect
+  })
+);
 }
 

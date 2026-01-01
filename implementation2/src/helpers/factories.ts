@@ -134,7 +134,7 @@ const _makePowerup = (
 // EFFECT FACTORY
 
 export const makeEffect = (
-  duration: number | null,
+  duration: Option.Option<number>,
   speedDelta: number,
   bombsDelta: number,
   rangeDelta: number
@@ -148,10 +148,10 @@ export const makeEffect = (
 
 
 export const makeFireUp = (row: number, col: number) =>
-  _makePowerup(row, col, FirePowerup.make({}), makeEffect(null, 0, 0, 1));
+  _makePowerup(row, col, FirePowerup.make({}), makeEffect(Option.none(), 0, 0, 1));
 
 export const makeBombUp = (row: number, col: number) =>
-  _makePowerup(row, col, BombPowerup.make({}), makeEffect(null, 0, 1, 0));
+  _makePowerup(row, col, BombPowerup.make({}), makeEffect(Option.none(), 0, 1, 0));
 
 export const makeSpeedUp = (row: number, col: number) =>
-  _makePowerup(row, col, SpeedPowerup.make({}), makeEffect(null, 0.2, 0, 0));
+  _makePowerup(row, col, SpeedPowerup.make({}), makeEffect(Option.none(), 0.2, 0, 0));

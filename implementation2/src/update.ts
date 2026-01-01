@@ -34,7 +34,7 @@ import {
   // add others if needed
 } from "./model";
 import { Msg } from "./msg";
-import { Array, HashMap, pipe, Match, HashSet } from "effect";
+import { Array, HashMap, pipe, Match, HashSet, Option } from "effect";
 
 function _clear_sfx_buffer(model: Model): Model {
   return Model.make({
@@ -225,10 +225,10 @@ function _check_round_end_conditions(model: Model): Model {
   if (model.timer <= 0) {
     const timeDrawResult: RoundResult = {
       outcome: DrawResult.make({}),
-      winnerId: null,
-      drawType: TimeResult.make({}),
+      winnerId: Option.none(),
+      drawType: Option.some(TimeResult.make({})),
       matchOver: false,
-      overallWinnerId: null,
+      overallWinnerId: Option.none(),
     };
 
     /*
@@ -238,7 +238,7 @@ function _check_round_end_conditions(model: Model): Model {
     */
     return {
       ...model,
-      roundResult: timeDrawResult,
+      roundResult: Option.some(timeDrawResult),
       state: TransitionModel.make({}),
     };
   }
@@ -252,10 +252,10 @@ function _check_round_end_conditions(model: Model): Model {
   if (alive.length === 0) {
     const deathDrawResult: RoundResult = {
       outcome: DrawResult.make({}),
-      winnerId: null,
-      drawType: DeathResult.make({}),
+      winnerId: Option.none(),
+      drawType: Option.some(DeathResult.make({})),
       matchOver: false,
-      overallWinnerId: null,
+      overallWinnerId: Option.none(),
     };
 
     /*
@@ -265,7 +265,7 @@ function _check_round_end_conditions(model: Model): Model {
     */
     return {
       ...model,
-      roundResult: deathDrawResult,
+      roundResult: Option.some(deathDrawResult),
       state: TransitionModel.make({}),
     };
   }

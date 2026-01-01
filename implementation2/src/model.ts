@@ -132,7 +132,7 @@ export type PixelMode = typeof PixelMode.Type;
 
 // Power-ups
 export const Effect = S.Struct({
-  timeRemaining: S.NullOr(S.Number),
+  timeRemaining: S.Option(S.Number),
   speedDelta: S.Number,
   bombsDelta: S.Number,
   rangeDelta: S.Number,
@@ -176,10 +176,10 @@ export type WestDirection = typeof WestDirection.Type;
 
 export const RoundResult = S.Struct({
   outcome: ResultType,
-  winnerId: S.NullOr(S.Number),
-  drawType: S.NullOr(DrawType),
+  winnerId: S.Option(S.Number),
+  drawType: S.Option(DrawType),
   matchOver: S.Boolean,
-  overallWinnerId: S.NullOr(S.Number),
+  overallWinnerId: S.Option(S.Number),
 });
 
 export const AnimationCmd = S.Struct({
@@ -188,8 +188,8 @@ export const AnimationCmd = S.Struct({
   a: S.Number,
   b: S.Number,
   durationFrames: S.Number,
-  id: S.NullOr(S.Number),
-  powerupType: S.NullOr(PowerUpType),
+  id: S.Option(S.Number),
+  powerupType: S.Option(PowerUpType),
 });
 
 // entities
@@ -359,7 +359,7 @@ export const BotMemory = S.Struct({
 
   // Navigation
   path: S.Array(GridCoords),
-  goal: S.NullOr(GridCoords),
+  goal: S.Option(GridCoords),
   isStrictMovement: S.Boolean,
 
   // Perception
@@ -429,8 +429,8 @@ export const Model = S.Struct({
 
   state: ModelState,
 
-  roundResult: S.NullOr(RoundResult),
-  winner: S.NullOr(Player),
+  roundResult: S.Option(RoundResult),
+  winner: S.Option(Player),
 
   spacedBlockCoords: S.Array(GridCoords),
   borderBlockCoords: S.Array(GridCoords),
@@ -521,8 +521,8 @@ export const initModel = (
     debugMode: false,
     scores: HashMap.empty(),
     tempWinner: -1,
-    roundResult: null,
-    winner: null,
+    roundResult: Option.none(),
+    winner: Option.none(),
     spacedBlockCoords: spacedCoords,
     borderBlockCoords: borderCoords,
     protectedCoords: protectedCoords,
