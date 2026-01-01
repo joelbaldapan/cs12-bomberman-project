@@ -7,7 +7,8 @@ import {
   CanvasImage,
 } from "cs12251-mvu/src/canvas";
 import { Array, HashMap, Match, pipe, Struct } from "effect";
-import { Model, SoundType } from "./model";
+import { Assets, createSpriteForEntity } from "./spritemap";
+import { Model, SoundType, Entity } from "./model";
 import type { Msg } from "./msg";
 import * as settings from "../settings.json";
 
@@ -32,8 +33,6 @@ export const playSfxBuffer = (sfxBuffer: SoundType[]): void => {
   }
 }
 
-
-
 const SCREEN_WIDTH = 1
 const SCREEN_HEIGHT = 1
 const FPS = 1
@@ -51,7 +50,54 @@ export function renderScreenAndSound(
   screenWidth: number,
   screenHeight: number,
 ): CanvasElement[] {
-  // to implement
+  const elements: CanvasElement[] = [];
+  // background
+  elements.push(SolidRectangle.make({ 
+    x: 0, y: 0,
+    width: screenWidth,
+    height: screenHeight,
+    color: "#2C3E50"
+  }));
+  
+  // all entities
+  HashMap.forEach(model.world.entities, (entity: Entity, id: number) => {
+    const sprite = createSpriteForEntity(entity);
+    if (sprite) {
+      const spritePath = Assets.path(sprite);
+      
+      // grid -> pixel
+      const pixelX = entity.col * model.tileSize;
+      const pixelY = entity.row * model.tileSize;
+      
+      elements.push(CanvasImage.make({
+        x: pixelX,
+        y: pixelY,
+        src: spritePath,
+        width: model.tileSize,
+        height: model.tileSize
+      }));
+    }
+  });
+  
+  // player rendering
+  for (const player of model.players) {
+    const sprite = createSpriteForEntity(player);
+    if (sprite) {
+      const spritePath = Assets.path(sprite);
+      
+      elements.push(CanvasImage.make({
+        x: player.x,
+        y: player.y,
+        src: spritePath,
+        width: player.width,
+        height: player.height
+      }));
+    }
+  }
+
+  // TODO: UI
+  
+  return elements;
 }
 
 // to implement settings blah blah
