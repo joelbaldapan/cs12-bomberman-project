@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Optional
 from common_types import ActionInfo, BotControllerInfo, PlayerAction, AnimationCmd, AnimationType, BombInfo, BotType, CoordMode, EffectInfo, GridCoords, PlayerInfo, SoundType, WorldInfo, Direction, EntityType, UpdateResultInfo
 from helpers.event import UpdateResult
 from helpers.grid_adapter import GridAdapter
@@ -259,7 +258,7 @@ class Player():
     def handle_input(self, inputs: dict[str, bool]) -> int:
         if not self._alive:
             return 0
-        direction: Optional[Direction] = None
+        direction: Direction | None = None
         key = self.id - 1
         map: tuple[str, str, str, str, str] = self._control_mapping[key]
         if inputs.get(map[0]):
