@@ -3,6 +3,7 @@ import { createExplosions, shouldDetonate, updateBomb } from "./entity/bomb";
 import { updateExplosion } from "./entity/explosion";
 import { getPlayerById, removeBomb, updatePlayer } from "./entity/player";
 import { updatePowerup } from "./entity/powerup";
+import { CONTROLS, isHeld, KEY_TIME_LIMIT } from "./helpers/controls";
 import { addEntity, getAllType, removeEntity } from "./helpers/world";
 import {
   Model,
@@ -25,6 +26,11 @@ import {
   DeathResult,
   EndDelayModel,
   TransitionModel,
+  InputState,
+  EastDirection,
+  NorthDirection,
+  SouthDirection,
+  WestDirection,
   // add others if needed
 } from "./model";
 import { Msg } from "./msg";
@@ -33,8 +39,73 @@ import { Array, HashMap, pipe, Match } from "effect";
 function _clear_sfx_buffer(model: Model): Model {
   return Model.make({
     ...model,
-    sfxBuffer: Array.empty()
-  })
+    sfxBuffer: Array.empty(),
+  });
+}
+
+const _decay_inputs = (model: Model): Model => {
+  const nextInputState = pipe(
+    model.inputState,
+    HashMap.map((time_left) => time_left - 1),
+    HashMap.filter((time_left) => time_left > 0)
+  );
+  return { ...model, inputState: nextInputState };
+};
+
+function _handle_input_for_players(model: Model): Model {
+  const { inputState } = model;
+
+  const nextEntities = pipe(
+    model.world.entities,
+    HashMap.map((entity) =>
+      pipe(
+        entity,
+        Match.value,
+        Match.tag("Player", (player) => {
+          // Get controls based on player_id
+          const controls = CONTROLS[player.player_id];
+          if (!controls) return player;
+
+          // get direction
+          const dx =
+            (isHeld(inputState, controls.right) ? 1 : 0) -
+            (isHeld(inputState, controls.left) ? 1 : 0);
+          const dy =
+            (isHeld(inputState, controls.down) ? 1 : 0) -
+            (isHeld(inputState, controls.up) ? 1 : 0);
+
+          // new facing direction
+          const newDirection =
+            dx > 0
+              ? EastDirection.make({ dr: 0, dc: 1 })
+              : dx < 0
+              ? WestDirection.make({ dr: 0, dc: -1 })
+              : dy > 0
+              ? SouthDirection.make({ dr: 1, dc: 0 })
+              : dy < 0
+              ? NorthDirection.make({ dr: -1, dc: 0 })
+              : player.directionFacing;
+
+          // Update player
+          return {
+            ...player,
+            vx: dx * player.speed,
+            vy: dy * player.speed,
+            directionFacing: newDirection,
+          };
+        }),
+        Match.orElse((other) => other)
+      )
+    )
+  );
+
+  return {
+    ...model,
+    world: World.make({
+      ...model.world,
+      entities: nextEntities,
+    }),
+  };
 }
 
 function _update_entities(model: Model): Model {
@@ -44,7 +115,7 @@ function _update_entities(model: Model): Model {
   let newEvents = model.eventBuffer;
   let newSfx = model.sfxBuffer;
   let newVfx = model.vfxBuffer;
-  let newPlayers = model.players
+  let newPlayers = model.players;
 
   for (const [id, ent] of model.world.entities) {
     const [updatedEntity, updateResult] = Match.value(ent).pipe(
@@ -63,7 +134,9 @@ function _update_entities(model: Model): Model {
   }
   for (const player of model.players) {
     const [updatedPlayer, updateResult] = updatePlayer(player, dt);
-    newPlayers = new Set(Array.filter([...newPlayers], (player) => player.id !== updatedPlayer.id)); // remove Player
+    newPlayers = new Set(
+      Array.filter([...newPlayers], (player) => player.id !== updatedPlayer.id)
+    ); // remove Player
     newPlayers = new Set([...newPlayers, updatedPlayer]);
     newEvents = [...newEvents, ...updateResult.events];
     newSfx = [...newSfx, ...updateResult.sounds];
@@ -81,30 +154,43 @@ function _update_entities(model: Model): Model {
 }
 
 function _detonate_bombs(model: Model): Model {
-  let newWorld = World.make({...model.world})
+  let newWorld = World.make({ ...model.world });
   let result = UpdateResult.make({
     events: Array.empty(),
     sounds: Array.empty(),
     animations: Array.empty(),
   });
-  let newPlayers = model.players
-  const explodingBombs: Bomb[] = Array.filter(getAllType(model.world, Bomb), (entity) => entity._tag === "Bomb" && shouldDetonate(entity))
+  let newPlayers = model.players;
+  const explodingBombs: Bomb[] = Array.filter(
+    getAllType(model.world, Bomb),
+    (entity) => entity._tag === "Bomb" && shouldDetonate(entity)
+  );
   let explosionResult = UpdateResult.make({
     events: Array.empty(),
     sounds: Array.empty(),
     animations: Array.empty(),
   });
   for (const bomb of explodingBombs) {
-    [newWorld, explosionResult] = createExplosions(bomb, newWorld)
-    result = {...result, events: Array.appendAll(result.events, explosionResult.events), 
-      sounds: Array.appendAll(result.sounds, explosionResult.sounds), 
-      animations: Array.appendAll(result.animations, explosionResult.animations)};
-      let owner: Player = getPlayerById(newPlayers, bomb.owner)!
-      newPlayers = new Set(Array.filter([...newPlayers], (player) => player.id !== owner.id)); // remove Player
-      newPlayers = new Set([...newPlayers, removeBomb(owner, bomb)]);
+    [newWorld, explosionResult] = createExplosions(bomb, newWorld);
+    result = {
+      ...result,
+      events: Array.appendAll(result.events, explosionResult.events),
+      sounds: Array.appendAll(result.sounds, explosionResult.sounds),
+      animations: Array.appendAll(
+        result.animations,
+        explosionResult.animations
+      ),
+    };
+    let owner: Player = getPlayerById(newPlayers, bomb.owner)!;
+    newPlayers = new Set(
+      Array.filter([...newPlayers], (player) => player.id !== owner.id)
+    ); // remove Player
+    newPlayers = new Set([...newPlayers, removeBomb(owner, bomb)]);
   }
-  const expired: Entity[] = Array.filter(getAllType(newWorld, Block), (e) => e.isExpired)
-  
+  const expired: Entity[] = Array.filter(
+    getAllType(newWorld, Block),
+    (e) => e.isExpired
+  );
 
   return model; /* implement */
 }
@@ -199,12 +285,18 @@ function _check_round_end_conditions(model: Model): Model {
   return model;
 }
 
+function _trySpawnBomb(model: Model, player_id_to_place: number): Model {
+  return model; // TO IMPLEMENT. add logic for spawning bombs here
+}
+
 export const update = (msg: Msg, model: Model) =>
   Match.value(msg).pipe(
     Match.tag("Canvas.MsgTick", () => {
       pipe(
         model,
         _clear_sfx_buffer,
+        _decay_inputs,
+        _handle_input_for_players, // to implement: for updating player positions sana
         _update_entities,
         _detonate_bombs,
         _process_events,
@@ -213,9 +305,29 @@ export const update = (msg: Msg, model: Model) =>
         _check_round_end_conditions
       );
     }),
-    Match.tag("Canvas.MsgKeyDown", ({ key }): Model => {
-      // Handle pressing of Keyboard
-      return model;
+    Match.tag("Canvas.MsgKeyDown", ({ key }) => {
+      // Pressing Key
+      const nextInputState = HashMap.set(model.inputState, key, KEY_TIME_LIMIT);
+      let nextModel = { ...model, inputState: nextInputState };
+
+      // Handle BOMB PLACEMENT
+      // TO IMPLEMENT. add logic for spawning bombs here
+      // TO IMPLEMENT. add logic for spawning bombs here
+      // TO IMPLEMENT. add logic for spawning bombs here
+      if (CONTROLS[0].bomb.includes(key)) {
+        nextModel = _trySpawnBomb(nextModel, 0); // player 1
+      }
+      // Check P2 Controls
+      if (CONTROLS[1].bomb.includes(key)) {
+        nextModel = _trySpawnBomb(nextModel, 1); // player 2
+      }
+
+      // Toggle DEBUG Mode
+      if (key === "Escape") {
+        return { ...nextModel, debugMode: !nextModel.debugMode };
+      }
+
+      return nextModel;
     }),
     Match.tag("Canvas.MsgMouseDown", () => {
       // Handle pressing of Mouse

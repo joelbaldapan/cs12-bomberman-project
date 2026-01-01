@@ -4,6 +4,13 @@ import * as settings from "../settings.json";
 // FOR CONSISTENCY:
 //    ADD ALL TYPES UP IN THE FILE
 
+/*
+TODO: add all types up here
+TODO: add all types up here
+TODO: add all types up here
+TODO: add all types up here
+*/
+
 export type BotType = typeof BotType.Type;
 export type ModelState = typeof ModelState.Type;
 export type ResultType = typeof ResultType.Type;
@@ -399,6 +406,9 @@ export type BotUpdateResult = {
   action: BotAction;
 };
 
+export const InputState = S.HashMap({key: S.String, value: S.Int});
+export type InputState = typeof InputState.Type;
+
 // MODEL
 
 export const Model = S.Struct({
@@ -418,7 +428,9 @@ export const Model = S.Struct({
   fps: S.Number,
 
   draw: S.Boolean,
-  debug: S.Boolean,
+
+  inputState: InputState,
+  debugMode: S.Boolean,
 
   scores: S.HashMap({ key: S.Number, value: S.Number }),
 
