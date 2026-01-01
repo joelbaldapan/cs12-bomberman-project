@@ -1,4 +1,3 @@
-import { boolean } from "effect/FastCheck";
 import { generateId } from "../helpers/id_gen";
 import { addEntity, getEntityAt, inBounds, removeEntity } from "../helpers/world";
 import {
@@ -22,7 +21,7 @@ import {
   HorizontalExplosion,
   BombMember,
 } from "../model";
-import { Array, Match } from "effect";
+import { Array, Match, Option } from "effect";
 import { onExplosionHitBlock } from "./block";
 import { onExplosionHitPowerup } from "./powerup";
 import { onExplosionHitExplosion } from "./explosion";
@@ -100,6 +99,7 @@ export const createExplosions = (bomb: Bomb, world: World): [World, UpdateResult
     currentTimer: 0,
     fullTimer: duration,
     orientation: CenterExplosion.make({}),
+    terminalDirection: Option.none()
   });
 
   let result = UpdateResult.make({
@@ -171,6 +171,7 @@ export const createExplosions = (bomb: Bomb, world: World): [World, UpdateResult
         currentTimer: 0,
         fullTimer: duration,
         orientation: orient,
+        terminalDirection: Option.none()
       });
 
       result = UpdateResult.make({

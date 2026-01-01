@@ -1,3 +1,4 @@
+import { HashSet } from "effect"
 import {
   Model,
   Explosion,
@@ -73,7 +74,7 @@ export const hitboxX = (player: Player): number => player.x
 
 export const hitboxY = (player: Player): number => player.y + 8
 
-export const getPlayerById = (players: ReadonlySet<Player>, id: number): Player | null => Option.getOrNull(Array.findFirst(players, p => p.id === id));
+export const getPlayerById = (players: HashSet.HashSet<Player>, id: number): Player | null =>Option.getOrNull(Array.findFirst(players, p => p.id === id));
 // need this for pathfinding
 export const getOverlappingCells = (bot: Player): GridCoords[] => {
   /*

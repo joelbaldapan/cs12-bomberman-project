@@ -34,7 +34,7 @@ import {
   // add others if needed
 } from "./model";
 import { Msg } from "./msg";
-import { Array, HashMap, pipe, Match } from "effect";
+import { Array, HashMap, pipe, Match, HashSet } from "effect";
 
 function _clear_sfx_buffer(model: Model): Model {
   return Model.make({
@@ -132,12 +132,12 @@ function _update_entities(model: Model): Model {
     newSfx = [...newSfx, ...updateResult.sounds];
     newVfx = [...newVfx, ...updateResult.animations];
   }
+  let nextPlayers = model.players;
   for (const player of model.players) {
     const [updatedPlayer, updateResult] = updatePlayer(player, dt);
-    newPlayers = new Set(
-      Array.filter([...newPlayers], (player) => player.id !== updatedPlayer.id)
-    ); // remove Player
-    newPlayers = new Set([...newPlayers, updatedPlayer]);
+    nextPlayers = HashSet.remove(nextPlayers, player);
+    nextPlayers = HashSet.add(nextPlayers, updatedPlayer);
+
     newEvents = [...newEvents, ...updateResult.events];
     newSfx = [...newSfx, ...updateResult.sounds];
     newVfx = [...newVfx, ...updateResult.animations];
@@ -171,22 +171,20 @@ function _detonate_bombs(model: Model): Model {
     animations: Array.empty(),
   });
   for (const bomb of explodingBombs) {
-    [newWorld, explosionResult] = createExplosions(bomb, newWorld);
-    result = {
-      ...result,
-      events: Array.appendAll(result.events, explosionResult.events),
-      sounds: Array.appendAll(result.sounds, explosionResult.sounds),
-      animations: Array.appendAll(
-        result.animations,
-        explosionResult.animations
-      ),
-    };
-    let owner: Player = getPlayerById(newPlayers, bomb.owner)!;
-    newPlayers = new Set(
-      Array.filter([...newPlayers], (player) => player.id !== owner.id)
-    ); // remove Player
-    newPlayers = new Set([...newPlayers, removeBomb(owner, bomb)]);
-  }
+      [newWorld, explosionResult] = createExplosions(bomb, newWorld);
+      
+      // Update buffers
+      result = {
+        ...result,
+        events: Array.appendAll(result.events, explosionResult.events),
+        sounds: Array.appendAll(result.sounds, explosionResult.sounds),
+        animations: Array.appendAll(result.animations, explosionResult.animations),
+      };
+      let owner: Player = getPlayerById(newPlayers, bomb.owner)!;
+      newPlayers = HashSet.remove(newPlayers, owner);
+      const updatedOwner = removeBomb(owner, bomb);
+      newPlayers = HashSet.add(newPlayers, updatedOwner);
+    }
   const expired: Entity[] = Array.filter(
     getAllType(newWorld, Block),
     (e) => e.isExpired
@@ -292,7 +290,7 @@ function _trySpawnBomb(model: Model, player_id_to_place: number): Model {
 export const update = (msg: Msg, model: Model) =>
   Match.value(msg).pipe(
     Match.tag("Canvas.MsgTick", () => {
-      pipe(
+      return pipe(
         model,
         _clear_sfx_buffer,
         _decay_inputs,

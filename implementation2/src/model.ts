@@ -1,5 +1,12 @@
-import { Schema as S } from "effect";
+import { Schema as S, HashMap, HashSet, Array, Option } from "effect";
 import * as settings from "../settings.json";
+import { makeHardBlock, makeSoftBlock, makePlayer } from "./helpers/factories";
+import {
+  getSpacedBlockCoords,
+  getBorderBlockCoords,
+  getProtectedCoords,
+  generateSoftBlockCoords,
+} from "./helpers/init_world_gen";
 
 // FOR CONSISTENCY:
 //    ADD ALL TYPES UP IN THE FILE
@@ -24,7 +31,7 @@ export type UpdateResult = typeof UpdateResult.Type;
 export type CoordMode = typeof CoordMode.Type;
 export type RoundResult = typeof RoundResult.Type;
 export type AnimationCmd = typeof AnimationCmd.Type;
-export type Effect = typeof Effect.Type
+export type Effect = typeof Effect.Type;
 export type Direction = typeof Direction.Type;
 export type ExplosionOrientation = typeof ExplosionOrientation.Type;
 
@@ -39,7 +46,7 @@ export type GridCoords = typeof GridCoords.Type;
 export type World = typeof World.Type;
 export type Board = typeof Board.Type;
 
-export type IdGenerator = typeof makeIdGenerator
+export type GameConfig = typeof GameConfig.Type;
 
 export type Model = typeof Model.Type;
 export type initModel = typeof initModel;
@@ -47,7 +54,6 @@ export type initModel = typeof initModel;
 // ^^ TYPES
 // ^^ TYPES
 // ^^ TYPES
-
 
 // BotType
 export const BotType = S.Union(
@@ -67,7 +73,8 @@ export const ModelState = S.Union(
   S.TaggedStruct("Playing Model", {}),
   S.TaggedStruct("EndDelay Model", {})
 );
-export const [TransitionModel, CountdownModel, PlayingModel, EndDelayModel] = ModelState.members;
+export const [TransitionModel, CountdownModel, PlayingModel, EndDelayModel] =
+  ModelState.members;
 export type TransitionModel = typeof TransitionModel.Type;
 export type CountdownModel = typeof CountdownModel.Type;
 export type PlayingModel = typeof PlayingModel.Type;
@@ -91,7 +98,6 @@ export const [TimeResult, DeathResult] = DrawType.members;
 export type TimeResult = typeof TimeResult.Type;
 export type DeathResult = typeof DeathResult.Type;
 
-
 // Sounds
 export const SoundType = S.Union(
   S.TaggedStruct("Explosion Sound", {}),
@@ -109,7 +115,8 @@ export const AnimationType = S.Union(
   S.TaggedStruct("Soft Break Animation", {}),
   S.TaggedStruct("PowerupBreak Animation", {})
 );
-export const [DeathAnimation, SoftBreakAnimation, PowerupBreakAnimation] = AnimationType.members;
+export const [DeathAnimation, SoftBreakAnimation, PowerupBreakAnimation] =
+  AnimationType.members;
 export type DeathAnimation = typeof DeathAnimation.Type;
 export type SoftBreakAnimation = typeof SoftBreakAnimation.Type;
 export type PowerupBreakAnimation = typeof PowerupBreakAnimation.Type;
@@ -147,7 +154,8 @@ export const ExplosionOrientation = S.Union(
   S.TaggedStruct("Vertical Explosion", {}),
   S.TaggedStruct("Horizontal Explosion", {})
 );
-export const [CenterExplosion, VerticalExplosion, HorizontalExplosion] = ExplosionOrientation.members;
+export const [CenterExplosion, VerticalExplosion, HorizontalExplosion] =
+  ExplosionOrientation.members;
 export type CenterExplosion = typeof CenterExplosion.Type;
 export type VerticalExplosion = typeof VerticalExplosion.Type;
 export type HorizontalExplosion = typeof HorizontalExplosion.Type;
@@ -155,25 +163,23 @@ export type HorizontalExplosion = typeof HorizontalExplosion.Type;
 // Directions
 export const Direction = S.Union(
   S.TaggedStruct("North Direction", { dr: S.Literal(-1), dc: S.Literal(0) }),
-  S.TaggedStruct("South Direction", { dr: S.Literal(1),  dc: S.Literal(0) }),
-  S.TaggedStruct("East Direction",  { dr: S.Literal(0),  dc: S.Literal(1) }),
-  S.TaggedStruct("West Direction",  { dr: S.Literal(0),  dc: S.Literal(-1) })
+  S.TaggedStruct("South Direction", { dr: S.Literal(1), dc: S.Literal(0) }),
+  S.TaggedStruct("East Direction", { dr: S.Literal(0), dc: S.Literal(1) }),
+  S.TaggedStruct("West Direction", { dr: S.Literal(0), dc: S.Literal(-1) })
 );
-export const [NorthDirection, SouthDirection, EastDirection, WestDirection] = Direction.members;
+export const [NorthDirection, SouthDirection, EastDirection, WestDirection] =
+  Direction.members;
 export type NorthDirection = typeof NorthDirection.Type;
 export type SouthDirection = typeof SouthDirection.Type;
 export type EastDirection = typeof EastDirection.Type;
 export type WestDirection = typeof WestDirection.Type;
-
-
-
 
 export const RoundResult = S.Struct({
   outcome: ResultType,
   winnerId: S.NullOr(S.Number),
   drawType: S.NullOr(DrawType),
   matchOver: S.Boolean,
-  overallWinnerId: S.NullOr(S.Number)
+  overallWinnerId: S.NullOr(S.Number),
 });
 
 export const AnimationCmd = S.Struct({
@@ -183,9 +189,8 @@ export const AnimationCmd = S.Struct({
   b: S.Number,
   durationFrames: S.Number,
   id: S.NullOr(S.Number),
-  powerupType: S.NullOr(PowerUpType)
+  powerupType: S.NullOr(PowerUpType),
 });
-
 
 // entities
 
@@ -193,14 +198,14 @@ export const EntityFields = {
   row: S.Int,
   col: S.Int,
   id: S.Int,
-  isExpired: S.Boolean,
+  isExpired: S.Boolean
 };
 export const Explosion = S.TaggedStruct("Explosion", {
   ...EntityFields,
   currentTimer: S.Int,
   fullTimer: S.Int,
   orientation: ExplosionOrientation,
-  terminalDirection: S.Option(Direction)
+  terminalDirection: S.Option(Direction),
 });
 export const Player = S.TaggedStruct("Player", {
   ...EntityFields,
@@ -217,15 +222,15 @@ export const Player = S.TaggedStruct("Player", {
   activeBombs: S.Array(S.Int),
 
   vx: S.Int,
-  vy: S.Int
+  vy: S.Int,
 });
 export const Bomb = S.TaggedStruct("Bomb", {
   ...EntityFields,
   moveAwayIds: S.Array(S.Int),
   currentTimer: S.Int,
-  fuse: S.Int, 
+  fuse: S.Int,
   explosionRange: S.Int,
-  owner: S.Int
+  owner: S.Int,
 });
 export const Block = S.TaggedStruct("Block", {
   ...EntityFields,
@@ -236,18 +241,17 @@ export const Powerup = S.TaggedStruct("Powerup", {
   powerupType: PowerUpType,
   effect: Effect,
 });
-export const Entity = S.Union(
-  Explosion,
-  Bomb,
-  Block,
-  Player,
-  Powerup
-);
-export const [ExplosionMember, BombMember, BlockMember, PlayerMember, PowerupMember] = Entity.members;
-
+export const Entity = S.Union(Explosion, Bomb, Block, Player, Powerup);
+export const [
+  ExplosionMember,
+  BombMember,
+  BlockMember,
+  PlayerMember,
+  PowerupMember,
+] = Entity.members;
 
 export const GridCoords = S.Tuple(S.Int, S.Int);
-export const Board = S.Array(S.Array(S.NullOr(Entity)));
+export const Board = S.Array(S.Array(S.Option(Entity)));
 export const World = S.Struct({
   rows: S.Int,
   cols: S.Int,
@@ -257,12 +261,9 @@ export const World = S.Struct({
     value: Entity,
   }),
   board: Board,
-
 });
 
-
-export const PowerupSpawner = S.Struct({});
-export const Config = S.Struct({
+export const GameConfig = S.Struct({
   softBlockSpawnChance: S.Number,
   powerupSpawnChance: S.Number,
   timerSeconds: S.Number,
@@ -272,29 +273,17 @@ export const Config = S.Struct({
 });
 
 export const EventType = S.Union(
-  S.TaggedStruct("Spawn", {entity: Entity}),
-  S.TaggedStruct("Remove", {entity: Entity})
+  S.TaggedStruct("Spawn", { entity: Entity }),
+  S.TaggedStruct("Remove", { entity: Entity })
 );
 
-export const [SpawnEvent, RemoveEvent] = EventType.members
+export const [SpawnEvent, RemoveEvent] = EventType.members;
 
 export const UpdateResult = S.Struct({
   events: S.Array(EventType),
   sounds: S.Array(SoundType),
   animations: S.Array(AnimationCmd),
 });
-
-export const makeIdGenerator = (start: number = 0) => {
-  let count = start;
-
-  return (): number => {
-    count++;
-    return count;
-  };
-};
-
-
-
 
 // POLICIES
 
@@ -303,10 +292,11 @@ export const DangerPolicyType = S.Union(
   S.TaggedStruct("Bomb Only Danger Policy", {}),
   S.TaggedStruct("Explosion Prediction Danger Policy", {})
 );
-export const [BombOnlyDangerPolicy, ExplosionPredictionDangerPolicy] = DangerPolicyType.members;
+export const [BombOnlyDangerPolicy, ExplosionPredictionDangerPolicy] =
+  DangerPolicyType.members;
 export type BombOnlyDangerPolicy = typeof BombOnlyDangerPolicy.Type;
-export type ExplosionPredictionDangerPolicy = typeof ExplosionPredictionDangerPolicy.Type;
-
+export type ExplosionPredictionDangerPolicy =
+  typeof ExplosionPredictionDangerPolicy.Type;
 
 // Attack Policies
 export const AttackPolicyType = S.Union(
@@ -317,7 +307,6 @@ export const [AttackPolicy1, AttackPolicy2] = AttackPolicyType.members;
 export type AttackPolicy1 = typeof AttackPolicy1.Type;
 export type AttackPolicy2 = typeof AttackPolicy2.Type;
 
-
 // Powerup Policies
 export const PowerupPolicyType = S.Union(
   S.TaggedStruct("Powerup Policy 1", {}),
@@ -327,15 +316,14 @@ export const [PowerupPolicy1, PowerupPolicy2] = PowerupPolicyType.members;
 export type PowerupPolicy1 = typeof PowerupPolicy1.Type;
 export type PowerupPolicy2 = typeof PowerupPolicy2.Type;
 
-
 // CONFIGURATION
 
-export const BotConfig = S.Struct({
+export const BotGameConfig = S.Struct({
   botType: BotType,
-  
+
   reevalInterval: S.Number,
   reevalChance: S.Number,
-  
+
   dangerRadius: S.Number,
   dangerPolicy: DangerPolicyType,
 
@@ -344,10 +332,9 @@ export const BotConfig = S.Struct({
   attackPolicy: AttackPolicyType,
 
   powerupChance: S.Number,
-  powerupPolicy: PowerupPolicyType
+  powerupPolicy: PowerupPolicyType,
 });
-export type BotConfig = typeof BotConfig.Type;
-
+export type BotGameConfig = typeof BotGameConfig.Type;
 
 // STATE MACHINE STATES
 
@@ -357,41 +344,39 @@ export const BotBehavior = S.Union(
   S.TaggedStruct("Get Powerup State", { target: GridCoords }),
   S.TaggedStruct("Attack State", { target: GridCoords })
 );
-export const [WanderState, EscapeState, GetPowerupState, AttackState] = BotBehavior.members;
+export const [WanderState, EscapeState, GetPowerupState, AttackState] =
+  BotBehavior.members;
 export type BotBehavior = typeof BotBehavior.Type;
 export type WanderState = typeof WanderState.Type;
 export type EscapeState = typeof EscapeState.Type;
 export type GetPowerupState = typeof GetPowerupState.Type;
 export type AttackState = typeof AttackState.Type;
 
-
 // MEMORY
 
 export const BotMemory = S.Struct({
   reevalTimer: S.Number,
-  
+
   // Navigation
   path: S.Array(GridCoords),
   goal: S.NullOr(GridCoords),
   isStrictMovement: S.Boolean,
 
-  // Perception 
-  lastBombCoords: S.HashSet(GridCoords), 
+  // Perception
+  lastBombCoords: S.HashSet(GridCoords),
   lastExplosionCoords: S.HashSet(GridCoords),
 });
 export type BotMemory = typeof BotMemory.Type;
 
-
-// THE CONTAINER 
+// THE CONTAINER
 
 export const BotInternalState = S.Struct({
   initialized: S.Boolean,
-  config: BotConfig,
+  config: BotGameConfig,
   memory: BotMemory,
-  currentState: BotBehavior
+  currentState: BotBehavior,
 });
 export type BotInternalState = typeof BotInternalState.Type;
-
 
 export const BotAction = S.Union(
   S.TaggedStruct("Idle Action", {}),
@@ -411,20 +396,20 @@ export type BotUpdateResult = {
   action: BotAction;
 };
 
-export const InputState = S.HashMap({key: S.String, value: S.Int});
+export const InputState = S.HashMap({ key: S.String, value: S.Int });
 export type InputState = typeof InputState.Type;
 
 // MODEL
 
 export const Model = S.Struct({
   world: World,
-  config: Config,
+  config: GameConfig,
 
   eventBuffer: S.Array(EventType),
   sfxBuffer: S.Array(SoundType),
   vfxBuffer: S.Array(AnimationCmd),
 
-  players: S.Set(Player),
+  players: S.HashSet(Player),
 
   tileSize: S.Number,
 
@@ -451,33 +436,95 @@ export const Model = S.Struct({
   borderBlockCoords: S.Array(GridCoords),
   protectedCoords: S.Array(GridCoords),
 
-  botInternals: S.HashMap({key: S.Int, value: BotInternalState})
+  botInternals: S.HashMap({ key: S.Int, value: BotInternalState }),
 });
 
-export const initModel = () => ({
-  // add the others pls
+export const initModel = (
+  rows: number,
+  cols: number,
+  fps: number,
+  config: GameConfig
+): Model => {
+  const spacedCoords = getSpacedBlockCoords();
+  const borderCoords = getBorderBlockCoords(rows, cols);
+  const protectedCoords = getProtectedCoords(rows, cols);
 
-  spacedBlockCoords: [
-    [2, 2], [2, 4], [2, 6], [2, 8], [2, 10], [2, 12],
-    [4, 2], [4, 4], [4, 6], [4, 8], [4, 10], [4, 12],
-    [6, 2], [6, 4], [6, 6], [6, 8], [6, 10], [6, 12],
-    [8, 2], [8, 4], [8, 6], [8, 8], [8, 10], [8, 12],
-    [10, 2], [10, 4], [10, 6], [10, 8], [10, 10], [10, 12],
-  ],
+  // Hard blocks
+  let entities = HashMap.empty<number, Entity>();
+  const hardBlocks = [...spacedCoords, ...borderCoords];
 
-  borderBlockCoords: [
-    ...Array.from({ length: world.cols }, (_, c) => [0, c]),
-    ...Array.from({ length: world.cols }, (_, c) => [world.rows - 1, c]),
-    ...Array.from({ length: world.rows - 2 }, (_, r) => [r + 1, 0]),
-    ...Array.from({ length: world.rows - 2 }, (_, r) => [r + 1, world.cols - 1]),
-  ],
+  hardBlocks.forEach(([r, c]) => {
+    const block = makeHardBlock(r, c);
+    entities = HashMap.set(entities, block.id, block);
+  });
 
-  protectedCoords: [
-    [1, 1], [2, 1], [1, 2],
-    [1, 13], [2, 13], [1, 12],
-    [11, 1], [10, 1], [11, 2],
-    [11, 13], [10, 13], [11, 12],
-  ],
-});
+  // Soft blocks
+  const softBlockCoords = generateSoftBlockCoords(
+    rows,
+    cols,
+    hardBlocks,
+    protectedCoords,
+    config
+  );
 
+  softBlockCoords.forEach(([r, c]) => {
+    const block = makeSoftBlock(r, c);
+    entities = HashMap.set(entities, block.id, block);
+  });
 
+  // Players
+  const playerStartCoords: GridCoords[] = [
+    [1, 1], // P1: Top-Left
+    [rows - 2, cols - 2], // P2: Bottom-Right
+    [rows - 2, 1], // P3: Bottom-Left
+    [1, cols - 2], // P4: Top-Right
+  ];
+
+  let players = HashSet.empty<Player>();
+
+  for (let i = 0; i < config.numHumanPlayers; i++) {
+    const startCoord = playerStartCoords[i];
+
+    if (!startCoord) continue;
+
+    const [r, c] = startCoord;
+    const p = makePlayer(i, r, c, 16, fps);
+
+    players = HashSet.add(players, p);
+    entities = HashMap.set(entities, p.id, p);
+  }
+
+  // SYNC TO WORLD
+  const entityList = Array.fromIterable(HashMap.values(entities));
+  const board = Array.makeBy(rows, (r) =>
+    Array.makeBy(cols, (c) =>
+      Array.findFirst(entityList, (e) => e.row === r && e.col === c)
+    )
+  );
+
+  return Model.make({
+    world: World.make({ rows, cols, entities, board }),
+    config,
+    state: CountdownModel.make({}),
+    eventBuffer: [],
+    sfxBuffer: [],
+    vfxBuffer: [],
+    players,
+    botInternals: HashMap.empty(),
+    fps,
+    tileSize: 16,
+    timer: config.timerSeconds * fps,
+    winCountdown: fps,
+    roundsToWin: config.roundsToWin,
+    draw: false,
+    inputState: HashMap.empty(),
+    debugMode: false,
+    scores: HashMap.empty(),
+    tempWinner: -1,
+    roundResult: null,
+    winner: null,
+    spacedBlockCoords: spacedCoords,
+    borderBlockCoords: borderCoords,
+    protectedCoords: protectedCoords,
+  });
+};

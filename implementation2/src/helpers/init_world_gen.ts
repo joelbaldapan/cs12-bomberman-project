@@ -1,5 +1,6 @@
-import { Array, pipe } from "effect";
-import { GridCoords } from "../model"; 
+import { Array, HashMap, HashSet, pipe, Option } from "effect";
+import { Entity, GameConfig, GridCoords } from "../model"; 
+import { makeSoftBlock } from "./factories";
 
 export const getSpacedBlockCoords = (): GridCoords[] => {
   const rows = [2, 4, 6, 8, 10];
@@ -48,4 +49,64 @@ export const getProtectedCoords = (rows: number, cols: number): GridCoords[] => 
     [1, cols - 2], [2, cols - 2], [1, cols - 3],
   ];
   return coords;
+};
+
+
+export const generateSoftBlockCoords = (
+  rows: number,
+  cols: number,
+  hardBlocks: GridCoords[],
+  protectedCoords: GridCoords[],
+  config: GameConfig
+): GridCoords[] => {
+
+  const hardSet = HashSet.fromIterable(
+    hardBlocks.map(([r, c]) => `${r},${c}`)
+  );
+  const protectedSet = HashSet.fromIterable(
+    protectedCoords.map(([r, c]) => `${r},${c}`)
+  );
+
+  const softSpawnable = Array.flatMap(Array.range(1, rows - 2), (r) =>
+    Array.filterMap(Array.range(1, cols - 2), (c) => {
+      const key = `${r},${c}`;
+      
+      if (HashSet.has(protectedSet, key) || HashSet.has(hardSet, key)) {
+        return Option.none();
+      }
+      return Option.some([r, c] as GridCoords);
+    })
+  );
+
+  const shuffled = [...softSpawnable];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+
+  const finalSelection: GridCoords[] = [];
+  let selectedSet = HashSet.empty<string>();
+  let placedCount = 0;
+
+  for (const [r, c] of shuffled) {
+    if (Math.random() * 100 <= config.softBlockSpawnChance) {
+      finalSelection.push([r, c]);
+      selectedSet = HashSet.add(selectedSet, `${r},${c}`);
+      placedCount++;
+    }
+  }
+
+  if (placedCount < 10) {
+    for (const [r, c] of shuffled) {
+      if (placedCount >= 10) break;
+
+      const key = `${r},${c}`;
+      if (!HashSet.has(selectedSet, key)) {
+        finalSelection.push([r, c]);
+        placedCount++;
+      }
+    }
+  }
+
+  return finalSelection;
 };

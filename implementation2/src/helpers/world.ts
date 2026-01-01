@@ -1,15 +1,5 @@
-import { Model,
-  Explosion,
-  Bomb,
-  Block,
-  Player,
-  Powerup,
-  Entity,
-  World,
-  UpdateResult
-} from "../model";
-import { Schema as S, Array, HashMap, pipe, Match, HashSet } from "effect";
-
+import { Model, Entity, World } from "../model";
+import { Schema as S, HashMap, Match, HashSet, Option } from "effect";
 
 export const addEntity = (
   world: World,
@@ -18,11 +8,13 @@ export const addEntity = (
   const { row, col, id } = entity
 
   if (!inBounds(world, row, col)) return world
-  if (world.board[row][col] !== null) return world
+  if (Option.isSome(world.board[row][col])) return world
 
   const newBoard = world.board.map((r, i) =>
     i === row
-      ? r.map((cell, j) => (j === col ? entity : cell))
+      ? r.map((cell, j) => 
+          j === col ? Option.some(entity) : cell
+        )
       : r,
   )
 
@@ -46,14 +38,13 @@ export const removeEntity = (
         ? world.board.map((r, i) =>
             i === row
               ? r.map((cell, j) =>
-                  j === col ? null : cell,
+                  j === col ? Option.none() : cell,
                 )
               : r,
           )
         : world.board,
   }
 }
-
 
 export const getAllType = <A extends Entity>(
   world: World, 
@@ -70,9 +61,6 @@ export const getAllType = <A extends Entity>(
   })
 }
 
-
-
-
 export const inBounds = (
   world: World,
   row: number,
@@ -87,11 +75,10 @@ export const getEntityAt = (
   world: World,
   row: number,
   col: number,
-): Entity | null =>
-  inBounds(world, row, col)
-    ? world.board[row][col]
-    : null
-
+): Entity | null => {
+  if (!inBounds(world, row, col)) return null;
+  return Option.getOrNull(world.board[row][col]);
+}
 
 export const isCellBlocking = (
   world: World,
@@ -112,4 +99,3 @@ export const isCellBlocking = (
     Match.orElse(() => false),
   )
 }
-
