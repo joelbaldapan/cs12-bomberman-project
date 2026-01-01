@@ -8,7 +8,7 @@ import {
   PowerUpType,
   ExplosionOrientation 
 } from "/model"; 
-import { Powerup } from "./model";
+import { Entity, Powerup } from "./model";
 
 export type SpriteParts = typeof SpriteParts.Type
 const SpriteParts = S.Union(
@@ -174,7 +174,7 @@ export const explosionOryeToStr = (orientation: ExplosionOrientation): string =>
         Match.exhaustive
     );
 
-export const createSpriteForEntity = (entity: any): SpriteParts | null => {
+export const createSpriteForEntity = (entity: Entity): SpriteParts | null => {
   return pipe(
     entity,
     Match.tag("Player", (player: Player) => {

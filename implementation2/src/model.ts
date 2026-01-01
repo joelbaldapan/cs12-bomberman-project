@@ -194,10 +194,6 @@ export const EntityFields = {
   col: S.Int,
   id: S.Int,
   isExpired: S.Boolean,
-  spriteData: S.Optional(S.Struct({
-    type: S.String,
-    frame: S.Number,
-  }))
 };
 export const Explosion = S.TaggedStruct("Explosion", {
   ...EntityFields,
