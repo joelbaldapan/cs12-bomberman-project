@@ -56,6 +56,7 @@ export function renderScreenAndSound(
     x: 0, y: 0,
     width: screenWidth,
     height: screenHeight,
+    color: "#008000"
   }));
   
   // all entities

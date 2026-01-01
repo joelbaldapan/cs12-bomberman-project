@@ -7,8 +7,8 @@ import {
   Direction,
   PowerUpType,
   ExplosionOrientation 
-} from "/model"; 
-import { Entity, Powerup } from "./model";
+} from "./model"; 
+import { Powerup } from "./model";
 
 export type SpriteParts = typeof SpriteParts.Type
 const SpriteParts = S.Union(
@@ -26,7 +26,7 @@ const SpriteParts = S.Union(
     }),
     // explosion
     S.TaggedStruct("ExplosionSprite", {
-        direction: S.Optional(S.String),
+        direction: S.Option(S.String),
         orientation: S.String,
         frame: S.Int,
     }),
@@ -39,8 +39,8 @@ const SpriteParts = S.Union(
     S.TaggedStruct("PlayerSprite", {
         playerId: S.Int,
         direction: S.String,
-        isMoving: S.Optional(S.Boolean),
-        walkFrame: S.Optional(S.Int),
+        isMoving: S.Option(S.Boolean),
+        walkFrame: S.Option(S.Int),
     }),
 
     // player death animation
