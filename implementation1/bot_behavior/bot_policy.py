@@ -1,6 +1,6 @@
 
 import random
-from common_types import BotMemoryInfo, BombInfo, ExplosionInfo, GridCoords, PlayerInfo, BotPlayerInfo, PowerupInfo, WorldInfo
+from common_types import BotMemoryInfo, BombInfo, ExplosionInfo, GridCoords, BotPlayerInfo, PowerupInfo, WorldInfo
 from bot_behavior.helpers.pathfinding import get_shortest_path, get_manhattan
 
 # ATTACK POLICIES
@@ -16,7 +16,9 @@ class AttackPolicy1:
         return True
 
     def get_goal(self, world: WorldInfo, bot: BotPlayerInfo) -> GridCoords | None:
-        players = world.get_all_type(PlayerInfo)
+        players = world.players
+        print("a1")
+        input(players)
         opponents = [p for p in players if p.id != bot.id]
         candidates: list[tuple[GridCoords, int]] = []
 
@@ -67,7 +69,9 @@ class AttackPolicy2:
         return True
 
     def get_goal(self, world: WorldInfo, bot: BotPlayerInfo) -> GridCoords | None:
-        players = world.get_all_type(BotPlayerInfo)
+        players = world.players
+        print("a2")
+        input(players)
         opponents = [p for p in players if p.id != bot.id]
 
         if not opponents:

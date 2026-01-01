@@ -26,6 +26,7 @@ class World:
             [None for _ in range(cols)] for _ in range(rows)
         ]
         self._entities: set[EntityInfo] = set()
+        self._players: set[PlayerInfo] = set()
 
     @property
     def rows(self) -> int:
@@ -38,6 +39,10 @@ class World:
     @property
     def entities(self) -> set[EntityInfo]:
         return set(self._entities)
+    
+    @property
+    def players(self) -> set[PlayerInfo]:
+        return set(self._players)
 
     @property
     def board(self) -> Board:
@@ -57,6 +62,9 @@ class World:
         self._entities.discard(entity)
         if self.in_bounds(entity.row, entity.col):
             self._board[entity.row][entity.col] = None
+
+    def register_player(self, player: PlayerInfo) -> None:
+        self._players.add(player)
 
     def get_entity_at(self, i: int, j: int) -> EntityInfo | None:
         if self.in_bounds(i, j):
@@ -478,6 +486,7 @@ class Model:
             player = PlayerFactory.make(
                 0, 0, self._world, self._grid, current_id, self._fps, None)
             self._players.add(player)
+            self._world.register_player(player)
             current_id += 1
         for bot_enum in self._config.bot_types:
             if current_id > 4:
@@ -485,6 +494,7 @@ class Model:
             player = PlayerFactory.make(
                 0, 0, self._world, self._grid, current_id, self._fps, bot_type=bot_enum)
             self._players.add(player)
+            self._world.register_player(player)
             current_id += 1
 
     def _player_by_id(self, id: int) -> PlayerInfo | None:

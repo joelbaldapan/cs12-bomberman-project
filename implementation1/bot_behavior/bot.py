@@ -74,7 +74,6 @@ class BotController:
         # Check if danger!
         if is_in_danger:
             if not isinstance(self._current_state, EscapeState):
-                print("Danger detected - Transitioning")
                 self.transition_to(EscapeState(), world, host_entity)
 
         if timer_trigger or should_force_reeval or is_in_danger:
