@@ -132,9 +132,9 @@ export const Effect = S.Struct({
 });
 
 export const PowerUpType = S.Union(
-  S.TaggedStruct("Fire Powerup", {effect: Effect}),
-  S.TaggedStruct("Bomb Powerup", {effect: Effect}),
-  S.TaggedStruct("Speed Powerup", {effect: Effect})
+  S.TaggedStruct("Fire Powerup", {}),
+  S.TaggedStruct("Bomb Powerup", {}),
+  S.TaggedStruct("Speed Powerup", {})
 );
 export const [FirePowerup, BombPowerup, SpeedPowerup] = PowerUpType.members;
 export type FirePowerup = typeof FirePowerup.Type;
@@ -199,7 +199,8 @@ export const Explosion = S.TaggedStruct("Explosion", {
   ...EntityFields,
   currentTimer: S.Int,
   fullTimer: S.Int,
-  orientation: ExplosionOrientation
+  orientation: ExplosionOrientation,
+  terminalDirection: S.Option(Direction)
 });
 export const Player = S.TaggedStruct("Player", {
   ...EntityFields,
@@ -213,7 +214,10 @@ export const Player = S.TaggedStruct("Player", {
   directionFacing: Direction,
   effects: S.Array(Effect),
   isAlive: S.Boolean,
-  activeBombs: S.Array(S.Int)
+  activeBombs: S.Array(S.Int),
+
+  vx: S.Int,
+  vy: S.Int
 });
 export const Bomb = S.TaggedStruct("Bomb", {
   ...EntityFields,
@@ -230,6 +234,7 @@ export const Block = S.TaggedStruct("Block", {
 export const Powerup = S.TaggedStruct("Powerup", {
   ...EntityFields,
   powerupType: PowerUpType,
+  effect: Effect,
 });
 export const Entity = S.Union(
   Explosion,
