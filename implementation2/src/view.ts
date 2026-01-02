@@ -233,6 +233,81 @@ const hasPlayerDeathAnimation = (playerId: number): boolean => {
   });
 };
 
+// ui timer
+
+const renderUI = (model: Model): CanvasElement[] => {
+  const elements: CanvasElement[] = [];
+
+  const timerSeconds = Math.floor(model.timer / model.fps);
+  const minutes = Math.floor(timerSeconds / 60);
+  const seconds = timerSeconds % 60;
+  const timerText = `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+
+  const textWidth = timerText.length * 4;
+  const textHeight = 6;
+  const textX = (SCREEN_WIDTH - textWidth) / 2;
+  const textY = 4;
+
+  elements.push(
+    SolidRectangle.make({
+      x: textX - 3,
+      y: textY - 2,
+      width: textWidth + 6,
+      height: textHeight + 5,
+      color: "#000000ff",
+    })
+  );
+
+  elements.push(
+    Text.make({
+      x: textX + 10,
+      y: textY + 6.5,
+      text: timerText,
+      color: "#ffe600ff",
+      fontSize: 8,
+    })
+  );
+
+  return elements;
+};
+
+// countdown
+
+const renderCountdown = (model: Model): CanvasElement[] => {
+  if (model.state._tag !== "Countdown Model") return [];
+
+  const secondsRemaining = 3;
+
+  const text =
+    secondsRemaining === 3
+      ? "Ready"
+      : secondsRemaining === 2
+      ? "Set"
+      : secondsRemaining === 1
+      ? "Go!"
+      : String(secondsRemaining);
+
+  const textWidth = text.length * 4;
+  const centerX = SCREEN_WIDTH / 2;
+  const centerY = SCREEN_HEIGHT / 2;
+
+  return [
+    SolidRectangle.make({
+      x: centerX - textWidth / 2 - 4,
+      y: centerY - 4,
+      width: textWidth + 16,
+      height: 14,
+      color: "#000000",
+    }),
+    Text.make({
+      x: centerX - textWidth / 2 + 14,
+      y: centerY + 8,
+      text: text,
+      color: "#ffe600ff",
+      fontSize: 12,
+    }),
+  ];
+};
 
 export function renderGame(
   model: Model,
@@ -324,6 +399,8 @@ export function renderGame(
 
   // render animations
   elements.push(...renderAnimations(model));
+  elements.push(...renderUI(model));
+  elements.push(...renderCountdown(model));
 
   return elements;
 }
