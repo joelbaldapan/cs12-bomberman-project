@@ -4,6 +4,7 @@ import { updateExplosion } from "./entity/explosion";
 import { getPlayerById, hitboxX, hitboxY, onExplosionHitPlayer, removeBomb, updatePlayer } from "./entity/player";
 import { onPickup, updatePowerup } from "./entity/powerup";
 import { CONTROLS, isHeld, KEY_TIME_LIMIT } from "./helpers/controls";
+import { choicePowerups } from "./helpers/factories";
 import { addEntity, getAllType, removeEntity } from "./helpers/world";
 import {
   Model,
@@ -16,6 +17,7 @@ import {
   World,
   UpdateResult,
   RemoveEvent,
+  SpawnEvent
   ExplosionSound,
   EventType,
   SoundType,
@@ -194,6 +196,7 @@ function _detonate_bombs(model: Model): Model {
   );
   for (const entity of expiredBlocks) {
     newWorld = removeEntity(newWorld, entity)
+
     result = {...result, animations: Array.append(result.animations,
                   AnimationCmd.make({
                         type: SoftBreakAnimation.make(),
@@ -205,6 +208,12 @@ function _detonate_bombs(model: Model): Model {
                         powerupType: Option.none(),
                       })
                 )}
+    if (Math.random() * 100 < model.config.powerupSpawnChance) {
+      const pw = choicePowerups[Math.floor(Math.random() * choicePowerups.length)]
+      result = {...result,
+        events: Array.append(result.events, SpawnEvent.make({entity: pw(entity.row, entity.col)}))
+       }
+    }
   };
   const newEvents = [...model.eventBuffer, ...result.events];
   const newSfx = [...model.sfxBuffer, ...result.sounds];
@@ -334,7 +343,7 @@ function _check_round_end_conditions(model: Model): Model {
   }
 
   // TODO: IMPLEMENT _alive_players
-  const alive = (model: Model): Player[] => {
+  const getAlive = (model: Model): Player[] => {
     let alive_players: Player[] = []
     for (const player of model.players) {
       if (player.isAlive) {
@@ -343,6 +352,7 @@ function _check_round_end_conditions(model: Model): Model {
     }
     return alive_players
   };
+  const alive = getAlive(model)
 
   // 3. All dead -> Draw (Death)
   if (alive.length === 0) {

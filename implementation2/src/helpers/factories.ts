@@ -155,3 +155,5 @@ export const makeBombUp = (row: number, col: number) =>
 
 export const makeSpeedUp = (row: number, col: number) =>
   _makePowerup(row, col, SpeedPowerup.make({}), makeEffect(Option.none(), 0.2, 0, 0));
+
+export const choicePowerups = [makeFireUp, makeBombUp, makeSpeedUp]
