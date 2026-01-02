@@ -29,6 +29,5 @@ export const CONTROLS: Record<number, PlayerControlScheme> = {
 };
 
 export const isHeld = (inputState: InputState, keys: string[]): boolean => {
-  // HashSet.has returns true if the key exists
   return keys.some((k) => HashSet.has(inputState, k));
 };

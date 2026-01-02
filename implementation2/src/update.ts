@@ -675,11 +675,10 @@ export const update = (msg: Msg, model: Model) =>
       );
     }),
     Match.tag("Canvas.MsgKeyDown", ({ key }) => {
-      // HashSet.add ensures the key is in the set (idempotent)
       const nextInputState = HashSet.add(model.inputState, key);
       let nextModel = { ...model, inputState: nextInputState };
 
-      // --- Triggers (Bombs, Debug, Escape) ---
+      // Triggers
       if (key === "L" || key === "l") {
         let explosions = getAllType(model.world, Explosion);
         for (const explosion of explosions) {
@@ -701,7 +700,6 @@ export const update = (msg: Msg, model: Model) =>
         return nextModel;
       }
 
-      // Handle Bomb Spawning
       if (CONTROLS[0].bomb.includes(key))
         nextModel = _trySpawnBomb(nextModel, 0);
       if (CONTROLS[1].bomb.includes(key))
@@ -709,10 +707,7 @@ export const update = (msg: Msg, model: Model) =>
 
       return nextModel;
     }),
-
-    // NEW: Handle Key Up
     Match.tag("Canvas.MsgKeyUp", ({ key }) => {
-      // Remove the key from the set when released
       const nextInputState = HashSet.remove(model.inputState, key);
       return { ...model, inputState: nextInputState };
     }),
