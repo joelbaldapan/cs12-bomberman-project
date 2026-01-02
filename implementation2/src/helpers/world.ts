@@ -104,3 +104,13 @@ export const isCellBlocking = (
     Match.orElse(() => false),
   )
 }
+
+export const getAllByTag = (world: World, tag: string): any[] => {
+  const result: any[] = [];
+  for (const [id, entity] of world.entities) {
+    if (entity._tag === tag) {
+      result.push(entity);
+    }
+  }
+  return result;
+}

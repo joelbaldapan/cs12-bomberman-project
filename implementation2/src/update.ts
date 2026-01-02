@@ -7,7 +7,7 @@ import { CONTROLS, isHeld, KEY_TIME_LIMIT } from "./helpers/controls";
 import { choicePowerups, makeBomb, makeHardBlock, makePlayer, makeSoftBlock } from "./helpers/factories";
 import { generateId } from "./helpers/id_gen";
 import { generateSoftBlockCoords, PLAYER_START_COORDS } from "./helpers/init_world_gen";
-import { addEntity, getAllType, getEntityAt, removeEntity } from "./helpers/world";
+import { addEntity, getAllByTag, getAllType, getEntityAt, removeEntity } from "./helpers/world";
 import {
   Model,
   Explosion,
@@ -48,7 +48,7 @@ import { Msg } from "./msg";
 import { Array, HashMap, pipe, Match, HashSet, Option } from "effect";
 
 const _refresh_players_cache = (world: World): HashSet.HashSet<Player> => 
-  getAllType(world, Player);
+  HashSet.fromIterable(getAllByTag(world, "Player"));
 
 function _update_timers(model: Model): Model {
   const dt = 1
@@ -347,16 +347,18 @@ function _check_explosion_powerup_collision(model: Model): Model {
 
 function _resolve_bomb_passthrough(model: Model): Model {
   let newWorld = model.world;
-  
-  const bombs = getAllType(model.world, Bomb);
+
+  const bombs = getAllByTag(model.world, "Bomb") as Bomb[];
 
   for (const bomb of bombs) {
-
     if (bomb.moveAwayIds.length === 0) continue;
 
     const nextMoveAwayIds = bomb.moveAwayIds.filter((pid) => {
+
       const player = getPlayerById(model.players, pid);
+
       if (!player || !player.isAlive) return false;
+
       return _checkPlayerOverlap(player, bomb.row, bomb.col);
     });
 
@@ -447,17 +449,20 @@ if (Option.isNone(playerOption)) return model;
   }
   const fuseDuration = 3;
 
-  let newBomb = makeBomb(r, c, fuseDuration, playerRange(player), player.id)
-  
-  const activePlayers = Array.filter(getAllType(model.world, Player), (player) => player.isAlive)
-  let overlappingIds: number[] = [];
+  const activePlayers = getAllByTag(model.world, "Player");
 
+  const overlappingIds: number[] = [];
   for (const p of activePlayers) {
-    if (_checkPlayerOverlap(p, r, c)) {
-      overlappingIds = Array.append(overlappingIds,p.player_id);
-    }
+
+  if (_checkPlayerOverlap(p, r, c)) {
+    overlappingIds.push(p.player_id);
   }
-  newBomb = {...newBomb, moveAwayIds: [...overlappingIds]}
+}
+
+
+  let newBomb = makeBomb(r, c, fuseDuration, playerRange(player), player.id);
+  newBomb = { ...newBomb, moveAwayIds: overlappingIds };
+  console.log(overlappingIds)
 
   let newWorld = addEntity(model.world, newBomb);
 

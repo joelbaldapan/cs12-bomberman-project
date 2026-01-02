@@ -93,7 +93,7 @@ export const makePlayer = (
   fps: number
 ) =>
   Player.make({
-    id: generateId(row, col),
+    id: playerId,
     player_id: playerId,
     row,
     col,
