@@ -341,7 +341,7 @@ const renderResultScreen = (model: Model): CanvasElement[] => {
 
   elements.push(
     Text.make({
-      x: centerX - (resultText.length * 4) / 2,
+      x: centerX - (resultText.length * 4) / 2 + 50,
       y: yOffset,
       text: resultText,
       color: resultColor,
@@ -355,7 +355,7 @@ const renderResultScreen = (model: Model): CanvasElement[] => {
   const scoresTitle = "SCORES";
   elements.push(
     Text.make({
-      x: centerX - (scoresTitle.length * 4) / 2,
+      x: centerX - (scoresTitle.length * 4) / 2 + 10,
       y: yOffset,
       text: scoresTitle,
       color: "#FFFFFF",
@@ -373,7 +373,7 @@ const renderResultScreen = (model: Model): CanvasElement[] => {
 
     elements.push(
       Text.make({
-        x: centerX - (scoreText.length * 4) / 2,
+        x: centerX - (scoreText.length * 4) / 2 + 10,
         y: yOffset,
         text: scoreText,
         color: "#FFFFFF",
@@ -405,7 +405,7 @@ const renderResultScreen = (model: Model): CanvasElement[] => {
 
     elements.push(
       Text.make({
-        x: centerX - (instruction.length * 4) / 2,
+        x: centerX - (instruction.length * 4) / 2 + 40,
         y: yOffset,
         text: instruction,
         color: "#ffffffff",
