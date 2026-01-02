@@ -5,6 +5,7 @@ import {
   SolidRectangle,
   Text,
   CanvasImage,
+  Circle,
 } from "cs12251-mvu/src/canvas";
 import { Array, HashMap, Match, pipe, Option } from "effect";
 import { Assets, createSpriteForEntity, updateAnimationFrame } from "./spritemap";
@@ -36,6 +37,7 @@ export const soundToPath = (sound: SoundType): string =>
 
 export const playSound = (sound: SoundType): void => {
   const audio = new Audio(soundToPath(sound));
+  audio.volume = 0.5;
   audio.currentTime = 0;
   audio.play();
 };
@@ -97,19 +99,11 @@ const renderAnimations = (model: Model): CanvasElement[] => {
         if (sprite) elements.push(sprite);
       }),
       Match.tag("Soft Break Animation", () => {
-        const sprite = renderSoftBreakAnimation(
-          cmd,
-          frameCounter,
-          model.tileSize
-        );
+        const sprite = renderSoftBreakAnimation(cmd, frameCounter, model.tileSize);
         if (sprite) elements.push(sprite);
       }),
       Match.tag("PowerupBreak Animation", () => {
-        const sprite = renderPowerupBreakAnimation(
-          cmd,
-          frameCounter,
-          model.tileSize
-        );
+        const sprite = renderPowerupBreakAnimation(cmd, frameCounter, model.tileSize);
         if (sprite) elements.push(sprite);
       }),
       Match.exhaustive
@@ -135,13 +129,11 @@ const renderDeathAnimation = (
     Match.exhaustive
   );
 
-  const spritePath = Assets.path(
-    Assets.factory.playerDeath(playerId, spriteFrame)
-  );
+  const spritePath = Assets.path(Assets.factory.playerDeath(playerId, spriteFrame));
 
   return CanvasImage.make({
     x: x,
-    y: y - 8,
+    y: y,
     src: spritePath,
   });
 };
@@ -309,6 +301,124 @@ const renderCountdown = (model: Model): CanvasElement[] => {
   ];
 };
 
+
+// result screen rendering
+
+const renderResultScreen = (model: Model): CanvasElement[] => {
+  if (Option.isNone(model.roundResult)) return [];
+
+  const result = Option.getOrThrow(model.roundResult);
+  const elements: CanvasElement[] = [];
+
+  const centerX = SCREEN_WIDTH / 2;
+  let yOffset = 30;
+
+  // results
+  const resultText = Match.value(result.outcome).pipe(
+    Match.tag("Win Result", () => {
+      const winnerId = Option.getOrElse(result.winnerId, () => -1);
+      return `Player ${winnerId + 1} Wins the Round!`;
+    }),
+    Match.tag("Draw Result", () => {
+      return Option.match(result.drawType, {
+        onSome: (drawType) =>
+          Match.value(drawType).pipe(
+            Match.tag("Time Result", () => "Time Out - Draw!"),
+            Match.tag("Death Result", () => "Draw!"),
+            Match.exhaustive
+          ),
+        onNone: () => "Draw!",
+      });
+    }),
+    Match.exhaustive
+  );
+
+  const resultColor = Match.value(result.outcome).pipe(
+    Match.tag("Win Result", () => "#00FF00"),
+    Match.tag("Draw Result", () => "#FFFF00"),
+    Match.exhaustive
+  );
+
+  elements.push(
+    Text.make({
+      x: centerX - (resultText.length * 4) / 2,
+      y: yOffset,
+      text: resultText,
+      color: resultColor,
+      fontSize: 12,
+    })
+  );
+
+  yOffset += 20;
+
+  // scores
+  const scoresTitle = "SCORES";
+  elements.push(
+    Text.make({
+      x: centerX - (scoresTitle.length * 4) / 2,
+      y: yOffset,
+      text: scoresTitle,
+      color: "#FFFFFF",
+      fontSize: 10,
+    })
+  );
+
+  yOffset += 15;
+
+  // individual scores
+  for (let playerId = 0; playerId < 4; playerId++) {
+    const score = HashMap.get(model.scores, playerId);
+    const scoreValue = Option.getOrElse(score, () => 0);
+    const scoreText = `P${playerId + 1}: ${scoreValue}`;
+
+    elements.push(
+      Text.make({
+        x: centerX - (scoreText.length * 4) / 2,
+        y: yOffset,
+        text: scoreText,
+        color: "#FFFFFF",
+        fontSize: 8,
+      })
+    );
+
+    yOffset += 10;
+  }
+
+  // match over
+  if (result.matchOver && Option.isSome(result.overallWinnerId)) {
+    yOffset += 10;
+    const winnerId = Option.getOrThrow(result.overallWinnerId);
+    const winnerText = `Player ${winnerId + 1} Wins the Match!`;
+
+    elements.push(
+      Text.make({
+        x: centerX - (winnerText.length * 4) / 2,
+        y: yOffset,
+        text: winnerText,
+        color: "#FFD700",
+        fontSize: 12,
+      })
+    );
+  } else {
+    yOffset += 15;
+    const instruction = "Press ESC to continue";
+
+    elements.push(
+      Text.make({
+        x: centerX - (instruction.length * 4) / 2,
+        y: yOffset,
+        text: instruction,
+        color: "#ffffffff",
+        fontSize: 8,
+      })
+    );
+  }
+
+  return elements;
+};
+
+// main game render
+
 export function renderGame(
   model: Model,
   screenWidth: number,
@@ -316,14 +426,14 @@ export function renderGame(
 ): CanvasElement[] {
   const elements: CanvasElement[] = [];
 
-  // update animation frame counter 
-  updateAnimationFrame(); // update also
+  // update animation
+  updateAnimationFrame();
 
-  // process sfx and vfx
+  // TODO: handled sa update
   // playSfxBuffer(model.sfxBuffer);
-  // processAnimations(model.vfxBuffer);   put sa update
+  // processAnimations(model.vfxBuffer);
 
-  // bg
+  //bg
   elements.push(
     SolidRectangle.make({
       x: 0,
@@ -333,6 +443,12 @@ export function renderGame(
       color: BACKGROUND_COLOR,
     })
   );
+
+  // transition screen
+  if (model.state._tag === "Transition Model") {
+    elements.push(...renderResultScreen(model));
+    return elements;
+  }
 
   // render grid entities
   HashMap.forEach(model.world.entities, (entity) => {
@@ -358,7 +474,7 @@ export function renderGame(
       const x = entity.col * model.tileSize;
       const y = entity.row * model.tileSize;
 
-      // Simple culling
+      // simple culling
       if (
         x >= -model.tileSize &&
         x <= screenWidth &&
@@ -376,13 +492,13 @@ export function renderGame(
     }
   });
 
-  // render players
+  // render players (16x24 sprites, hitbox is bottom 16x16)
   for (const player of model.players) {
+    // skip if death animation is playing
     if (hasPlayerDeathAnimation(player.player_id)) {
       continue;
     }
 
-    const HEAD_OFFSET = 8;
     const spriteParts = createSpriteForEntity(player);
 
     if (spriteParts) {
@@ -394,12 +510,28 @@ export function renderGame(
           src: spritePath,
         })
       );
+
+      // player label (P1, P2, etc.)
+      const label = `P${player.player_id + 1}`;
+      elements.push(
+        Text.make({
+          x: player.x + 7,
+          y: player.y - 4,
+          text: label,
+          color: "#FF0000",
+          fontSize: 8,
+        })
+      );
     }
   }
 
-  // render animations
+  // render animations (on top of entities)
   elements.push(...renderAnimations(model));
+
+  // render UI
   elements.push(...renderUI(model));
+
+  // render countdown
   elements.push(...renderCountdown(model));
 
   return elements;
