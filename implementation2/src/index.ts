@@ -2,22 +2,29 @@ import { startModelCmd } from "cs12251-mvu/src";
 import { GameConfig, initModel } from "./model";
 import { update } from "./update";
 import { view } from "./view";
+import { loadGameConfig } from "./helpers/settings";
 
 const root = document.getElementById("app")!;
 
 const ROWS = 13
 const COLS = 15
 const FPS = 60
-const TEMP_CONFIG: GameConfig = GameConfig.make({
-  softBlockSpawnChance: 0.7,
-  powerupSpawnChance: 0.3,
-  timerSeconds: 180,
-  numHumanPlayers: 2,
-  botTypes: [],
-  roundsToWin: 3,
-});
+const SETTINGS_URL = "/settings.json";
 
-const _initModel = initModel(ROWS,COLS,FPS, TEMP_CONFIG)
-console.log("running rn dawg")
+async function main() {
+  try {
+    console.log("TRY");
+    const config = await loadGameConfig(SETTINGS_URL);
+    console.log("LOADED:", config);
+    const model = initModel(ROWS, COLS, FPS, config);
+    console.log("SUCCESS");
 
-startModelCmd(root, _initModel, update, view);
+    startModelCmd(root, model, update, view);
+
+  } catch (e) {
+
+    console.error("ERROR:", e);
+  }
+}
+
+main();

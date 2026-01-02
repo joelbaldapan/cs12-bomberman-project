@@ -275,7 +275,7 @@ function _detonate_bombs(model: Model): Model {
         })
       ),
     };
-    if (Math.random() * 100 < model.config.powerupSpawnChance) {
+    if (Math.random() * 100 <= model.config.powerupSpawnChance) {
       const pw =
         choicePowerups[Math.floor(Math.random() * choicePowerups.length)];
       result = {
