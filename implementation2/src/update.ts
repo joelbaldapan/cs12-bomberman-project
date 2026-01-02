@@ -17,7 +17,7 @@ import {
   World,
   UpdateResult,
   RemoveEvent,
-  SpawnEvent
+  SpawnEvent,
   ExplosionSound,
   EventType,
   SoundType,
