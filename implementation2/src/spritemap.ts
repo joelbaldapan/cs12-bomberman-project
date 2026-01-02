@@ -69,6 +69,19 @@ export type PowerupSprite = typeof PowerupSprite.Type;
 export type PlayerSprite = typeof PlayerSprite.Type;
 export type PlayerDeathSprite = typeof PlayerDeathSprite.Type;
 
+
+// animation frame counter
+
+let animationFrame = 0;
+
+export const updateAnimationFrame = (): void => {
+  animationFrame++;
+};
+
+export const getAnimationFrame = (): number => {
+  return animationFrame;
+};
+
 // Helper to map 0-based IDs to folder names (p1, p2...)
 const getPlayerFolder = (id: number) => `p${id + 1}`;
 
@@ -86,8 +99,8 @@ export const Assets = {
         return `${Assets.orig}blocks/${sprite.name}_block.png`;
       }),
       Match.tag("SoftBlockBreakSprite", (sprite: SoftBlockBreakSprite) => {
-        // example:  assets/images/blocks/soft_on_hit_2.png
-        const frameNum = Math.min(sprite.frame, 4) + 1;
+        // frames 0-4 map to soft_on_hit_2 through soft_on_hit_5
+        const frameNum = sprite.frame + 2;
         return `${Assets.orig}blocks/soft_on_hit_${frameNum}.png`;
       }),
       Match.tag("BombSprite", (sprite: BombSprite) => {
@@ -108,14 +121,14 @@ export const Assets = {
         return `${Assets.orig}explosions/explosion_${dir}_${sprite.shape}_${frameNum}.png`;
       }),
       Match.tag("PowerupSprite", (sprite: PowerupSprite) => {
-        // example: assets/images/powerups/powerup_fire.png (No animation in tree)
-        return `${Assets.orig}powerups/powerup_${sprite.type}.png`;
-        // IMPORTANT: UNCOMMENT BELOW IF MAY ANIMATION NA TAYO:
-        // IMPORTANT: UNCOMMENT BELOW IF MAY ANIMATION NA TAYO:
-        // IMPORTANT: UNCOMMENT BELOW IF MAY ANIMATION NA TAYO:
-        // const frameNum = (sprite.frame % 2) + 1;
-        // return `${Assets.orig}powerups/powerup_${sprite.type}_${frameNum}.png`;
+        if (sprite.frame === 0) {
+          return `${Assets.orig}powerups/powerup_${sprite.type}.png`;
+        } else {
+          const frameNum = (sprite.frame % 2) + 1;
+          return `${Assets.orig}powerups/powerup_${sprite.type}_${frameNum}.png`;
+        }
       }),
+
       Match.tag("PlayerSprite", (sprite: PlayerSprite) => {
         // example: assets/images/players/p1/walk_north_1.png
         const folder = getPlayerFolder(sprite.playerId);
@@ -215,7 +228,7 @@ export const createSpriteForEntity = (entity: Entity): SpriteParts | null => {
       const direction = directionToStr(player.directionFacing);
       const isMoving = player.vx !== 0 || player.vy !== 0;
       if (isMoving) {
-        const walkFrame = Math.floor(Date.now() / 200) % 2;
+        const walkFrame = Math.floor(animationFrame / 6) % 4;
         return Assets.factory.playerWalk(
           player.player_id,
           direction,
@@ -225,11 +238,11 @@ export const createSpriteForEntity = (entity: Entity): SpriteParts | null => {
       return Assets.factory.player(player.player_id, direction);
     }),
     Match.tag("Bomb", () => {
-      const frame = Math.floor(Date.now() / 300) % 3;
+      const frame = Math.floor(animationFrame / 10) % 3;
       return Assets.factory.bomb(frame);
     }),
     Match.tag("Explosion", (explosion: Explosion) => {
-      const frame = Math.min(explosion.currentTimer, 3);
+      const frame = Math.floor(explosion.currentTimer / 7) % 4;
 
       return pipe(
         explosion.orientation,
@@ -267,10 +280,7 @@ export const createSpriteForEntity = (entity: Entity): SpriteParts | null => {
     Match.tag("Powerup", (powerup: Powerup) => {
       const type = powerupToStr(powerup.powerupType);
 
-      // Calculate frame now (e.g., 2 frames, switching every 200ms)
-      // This logic is now "live", waiting for the assets to support it.
-      const frame = Math.floor(Date.now() / 200) % 2;
-
+      const frame = Math.floor(animationFrame / 15) % 2;
       return Assets.factory.powerup(type, frame);
     }),
     Match.tag("Block", (block: Block) => {
