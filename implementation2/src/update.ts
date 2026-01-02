@@ -1,8 +1,8 @@
 import { updateBlock } from "./entity/block";
 import { createExplosions, shouldDetonate, updateBomb } from "./entity/bomb";
 import { updateExplosion } from "./entity/explosion";
-import { getPlayerById, removeBomb, updatePlayer } from "./entity/player";
-import { updatePowerup } from "./entity/powerup";
+import { getPlayerById, hitboxX, hitboxY, onExplosionHitPlayer, removeBomb, updatePlayer } from "./entity/player";
+import { onPickup, updatePowerup } from "./entity/powerup";
 import { CONTROLS, isHeld, KEY_TIME_LIMIT } from "./helpers/controls";
 import { addEntity, getAllType, removeEntity } from "./helpers/world";
 import {
@@ -31,6 +31,9 @@ import {
   NorthDirection,
   SouthDirection,
   WestDirection,
+  SoftBreakAnimation,
+  CellMode,
+  GridCoords
   // add others if needed
 } from "./model";
 import { Msg } from "./msg";
@@ -185,21 +188,44 @@ function _detonate_bombs(model: Model): Model {
       const updatedOwner = removeBomb(owner, bomb);
       newPlayers = HashSet.add(newPlayers, updatedOwner);
     }
-  const expired: Entity[] = Array.filter(
+  const expiredBlocks: Entity[] = Array.filter(
     getAllType(newWorld, Block),
     (e) => e.isExpired
   );
+  for (const entity of expiredBlocks) {
+    newWorld = removeEntity(newWorld, entity)
+    result = {...result, animations: Array.append(result.animations,
+                  AnimationCmd.make({
+                        type: SoftBreakAnimation.make(),
+                        mode: CellMode.make({}),
+                        a: entity.row,
+                        b: entity.col,
+                        durationFrames: 60, //not sure about this yet,
+                        id: Option.some(entity.id),
+                        powerupType: Option.none(),
+                      })
+                )}
+  };
+  const newEvents = [...model.eventBuffer, ...result.events];
+  const newSfx = [...model.sfxBuffer, ...result.sounds];
+  const newVfx = [...model.vfxBuffer, ...result.animations];
 
-  return model; /* implement */
+  return {...model,
+    world: newWorld,
+    players: newPlayers,
+    eventBuffer: newEvents,
+    sfxBuffer: newSfx,
+    vfxBuffer: newVfx,
+  }; /* implement */
 }
 
 function _process_events(model: Model): Model {
-  const newWorld = model.world;
+  let newWorld = model.world;
 
   Array.map(model.eventBuffer, (event) => {
     Match.value(event).pipe(
-      Match.tag("Spawn", ({ entity }) => addEntity(newWorld, entity)),
-      Match.tag("Remove", ({ entity }) => removeEntity(newWorld, entity))
+      Match.tag("Spawn", ({ entity }) => {newWorld = addEntity(newWorld, entity)}),
+      Match.tag("Remove", ({ entity }) => {newWorld = removeEntity(newWorld, entity)})
     );
   });
 
@@ -210,9 +236,73 @@ function _process_events(model: Model): Model {
   });
 }
 
+function _checkPlayerOverlap(player: Player, row: number, col: number): boolean {
+  const cellX1 = col * 16;
+  const cellY1 = row * 16;
+  const cellX2 = cellX1 + 16;
+  const cellY2 = cellY1 + 16;
+
+  // Player bounds (bottom 16x16)
+  const px1 = hitboxX(player);
+  const py1 = hitboxY(player);
+  const px2 = px1 + 16;
+  const py2 = py1 + 16;
+
+  // AABB overlap test
+  if (px2 <= cellX1 || px1 >= cellX2) return false;
+  if (py2 <= cellY1 || py1 >= cellY2) return false;
+
+  return true;
+}
+
 function _check_explosion_powerup_collision(model: Model): Model {
-  console.log(model.world.board)
-  return model; /* implement */
+  const explosions = Array.filter([...model.world.entities], (ent) => ent[1]._tag === "Explosion")
+  const powerups = Array.filter([...model.world.entities], (ent) => ent[1]._tag === "Powerup")
+  let picked: GridCoords[] = []
+  let newPlayers = model.players
+  let newWorld = model.world
+  let results = UpdateResult.make({
+    events: Array.empty(),
+    sounds: Array.empty(),
+    animations: Array.empty(),
+  });
+  for (const player of model.players) {
+    if (player.isExpired) continue;
+    for (const explosion of explosions) {
+      if (_checkPlayerOverlap(player, explosion[1].row, explosion[1].col)) {
+      newPlayers = HashSet.remove(newPlayers, player);
+      const updatedPlayer = onExplosionHitPlayer(player)
+      newPlayers = HashSet.add(newPlayers, updatedPlayer);
+      break
+      }
+    }
+    for (const powerup of powerups) {
+      if (powerup[1].isExpired) {
+        continue
+      }
+      let position: GridCoords = [powerup[1].row, powerup[1].col]
+      if (Array.contains(picked, position)) {
+        continue
+      }
+      if (_checkPlayerOverlap(player, powerup[1].row, powerup[1].col)) {
+        const p = powerup[1] as Powerup
+        const [newPlayer, result] = onPickup(p, player)
+        newPlayers = HashSet.remove(newPlayers, player);
+        newPlayers = HashSet.add(newPlayers, newPlayer);
+        results = {...results, events: Array.appendAll(results.events, result.events), 
+          sounds: Array.appendAll(results.sounds, result.sounds),
+          animations: Array.appendAll(results.animations, result.animations)}
+        picked = Array.append(picked, position)
+        break
+      }
+    }
+  }
+
+  return {...model, world: newWorld, players: newPlayers, 
+    eventBuffer: Array.appendAll(model.eventBuffer,results.events),
+  sfxBuffer: Array.appendAll(model.sfxBuffer, results.sounds),
+  vfxBuffer: Array.appendAll(model.vfxBuffer, results.animations)
+}; /* implement */
 }
 
 function _check_round_end_conditions(model: Model): Model {
@@ -244,9 +334,15 @@ function _check_round_end_conditions(model: Model): Model {
   }
 
   // TODO: IMPLEMENT _alive_players
-  const alive = [
-    /* implement pls */
-  ];
+  const alive = (model: Model): Player[] => {
+    let alive_players: Player[] = []
+    for (const player of model.players) {
+      if (player.isAlive) {
+        alive_players = Array.append(alive_players, player)
+      }
+    }
+    return alive_players
+  };
 
   // 3. All dead -> Draw (Death)
   if (alive.length === 0) {

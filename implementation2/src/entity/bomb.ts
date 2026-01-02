@@ -20,6 +20,10 @@ import {
   VerticalExplosion,
   HorizontalExplosion,
   BombMember,
+  PowerupBreakAnimation,
+  CoordMode,
+  AnimationCmd,
+  CellMode
 } from "../model";
 import { Array, Match, Option } from "effect";
 import { onExplosionHitBlock } from "./block";
@@ -135,6 +139,17 @@ export const createExplosions = (bomb: Bomb, world: World): [World, UpdateResult
           Match.tag("Powerup", (e) => {
             hitCells.push([r, c]);
             newWorld = removeEntity(newWorld, entity)
+            result = {...result, animations: Array.append(result.animations,
+              AnimationCmd.make({
+                    type: PowerupBreakAnimation.make(),
+                    mode: CellMode.make({}),
+                    a: e.row,
+                    b: e.col,
+                    durationFrames: 60, //not sure about this yet,
+                    id: Option.some(e.id),
+                    powerupType: Option.none(),
+                  })
+            )}
           }),
           Match.tag("Block", (e) => {
             newWorld = addEntity(newWorld,onExplosionHitBlock(e))
