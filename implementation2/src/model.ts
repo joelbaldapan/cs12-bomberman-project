@@ -202,16 +202,16 @@ export const EntityFields = {
 };
 export const Explosion = S.TaggedStruct("Explosion", {
   ...EntityFields,
-  currentTimer: S.Int,
-  fullTimer: S.Int,
+  currentTimer: S.Number,
+  fullTimer: S.Number,
   orientation: ExplosionOrientation,
   terminalDirection: S.Option(Direction),
 });
 export const Player = S.TaggedStruct("Player", {
   ...EntityFields,
   player_id: S.Int,
-  x: S.Int,
-  y: S.Int,
+  x: S.Number,
+  y: S.Number,
   width: S.Int,
   height: S.Int,
 
@@ -221,13 +221,13 @@ export const Player = S.TaggedStruct("Player", {
   isAlive: S.Boolean,
   activeBombs: S.Array(S.Int),
 
-  vx: S.Int,
-  vy: S.Int,
+  vx: S.Number,
+  vy: S.Number,
 });
 export const Bomb = S.TaggedStruct("Bomb", {
   ...EntityFields,
   moveAwayIds: S.Array(S.Int),
-  currentTimer: S.Int,
+  currentTimer: S.Number,
   fuse: S.Int,
   explosionRange: S.Int,
   owner: S.Int,

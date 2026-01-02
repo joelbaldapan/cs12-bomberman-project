@@ -98,7 +98,7 @@ export const makePlayer = (
     row,
     col,
     x: col * tileSize,
-    y: row * tileSize - 8,
+    y: row * tileSize - 4,
     width: tileSize,
     height: tileSize,
     directionFacing: SouthDirection.make({ dr: 1, dc: 0 }),

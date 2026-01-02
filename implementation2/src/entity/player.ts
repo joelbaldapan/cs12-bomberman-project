@@ -187,7 +187,7 @@ export const updatePlayer = (
   }
 
   // Handle Movement
-  const [nextX, nextY] = calculateMovement(ent, world, dt);
+  const [nextX, nextY] = calculateMovement(ent, world, 1);
 
   return [
       Player.make({ 
@@ -220,7 +220,7 @@ export const removeBomb = (player: Player, bomb: Bomb): Player => Player.make({.
 
 export const hitboxX = (player: Player): number => player.x
 
-export const hitboxY = (player: Player): number => player.y + 8
+export const hitboxY = (player: Player): number => player.y + 4
 
 export const getPlayerById = (players: HashSet.HashSet<Player>, id: number): Player | null =>Option.getOrNull(Array.findFirst(players, p => p.id === id));
 // need this for pathfinding

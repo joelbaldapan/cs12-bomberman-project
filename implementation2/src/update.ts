@@ -174,8 +174,10 @@ function _update_entities(model: Model): Model {
       Match.tag("Powerup", (e) => updatePowerup(e, dt)),
       Match.exhaustive
     );
+    if (updatedEntity !== ent) {
+      newWorld = addEntity(newWorld, updatedEntity);
+    }
 
-    newWorld = addEntity(newWorld, updatedEntity);
     newEvents = [...newEvents, ...updateResult.events];
     newSfx = [...newSfx, ...updateResult.sounds];
     newVfx = [...newVfx, ...updateResult.animations];
@@ -443,7 +445,7 @@ if (Option.isNone(playerOption)) return model;
   if (existingEntity !== null) {
     return model;
   }
-  const fuseDuration = 3 * model.fps;
+  const fuseDuration = 3;
 
   let newBomb = makeBomb(r, c, fuseDuration, playerRange(player), player.id)
   
