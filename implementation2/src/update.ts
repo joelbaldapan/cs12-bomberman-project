@@ -320,6 +320,36 @@ function _check_explosion_powerup_collision(model: Model): Model {
 };
 }
 
+function _resolve_bomb_passthrough(model: Model): Model {
+  let newWorld = model.world;
+  
+  const bombs = getAllType(model.world, Bomb);
+
+  for (const bomb of bombs) {
+
+    if (bomb.moveAwayIds.length === 0) continue;
+
+    const nextMoveAwayIds = bomb.moveAwayIds.filter((pid) => {
+      const player = getPlayerById(model.players, pid);
+      if (!player || !player.isAlive) return false;
+      return _checkPlayerOverlap(player, bomb.row, bomb.col);
+    });
+
+    if (nextMoveAwayIds.length !== bomb.moveAwayIds.length) {
+      const updatedBomb = Bomb.make({ 
+        ...bomb, 
+        moveAwayIds: nextMoveAwayIds 
+      });
+
+      newWorld = addEntity(newWorld, updatedBomb);
+    }
+  }
+  return {
+    ...model,
+    world: newWorld,
+  };
+}
+
 function _check_round_end_conditions(model: Model): Model {
   // 1. If already transitioning, return early (no change)
   if (model.state._tag === "Transition Model") {
@@ -348,17 +378,7 @@ function _check_round_end_conditions(model: Model): Model {
     };
   }
 
-  // TODO: IMPLEMENT _alive_players
-  const getAlive = (model: Model): Player[] => {
-    let alive_players: Player[] = []
-    for (const player of model.players) {
-      if (player.isAlive) {
-        alive_players = Array.append(alive_players, player)
-      }
-    }
-    return alive_players
-  };
-  const alive = getAlive(model)
+  const alive = Array.filter(getAllType(model.world, Player), (player) => player.isAlive)
 
   // 3. All dead -> Draw (Death)
   if (alive.length === 0) {
@@ -426,7 +446,17 @@ if (Option.isNone(playerOption)) return model;
   }
   const fuseDuration = 3 * model.fps;
 
-  const newBomb = makeBomb(r, c, fuseDuration, playerRange(player), player.id)
+  let newBomb = makeBomb(r, c, fuseDuration, playerRange(player), player.id)
+  
+  const activePlayers = Array.filter(getAllType(model.world, Player), (player) => player.isAlive)
+  let overlappingIds: number[] = [];
+
+  for (const p of activePlayers) {
+    if (_checkPlayerOverlap(p, r, c)) {
+      overlappingIds = Array.append(overlappingIds,p.player_id);
+    }
+  }
+  newBomb = {...newBomb, moveAwayIds: [...overlappingIds]}
 
   let newWorld = addEntity(model.world, newBomb);
 
@@ -459,6 +489,7 @@ export const update = (msg: Msg, model: Model) =>
         _detonate_bombs,
         _process_events,
         _check_explosion_powerup_collision,
+        _resolve_bomb_passthrough,
         _process_events,
         _check_round_end_conditions
       );
