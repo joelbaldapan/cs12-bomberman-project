@@ -415,6 +415,7 @@ export const Model = S.Struct({
 
   timer: S.Number,
   winCountdown: S.Number,
+  roundStartTimer: S.Number,
   fps: S.Number,
 
   draw: S.Boolean,
@@ -516,6 +517,7 @@ export const initModel = (
     tileSize: 16,
     timer: config.timerSeconds * fps,
     winCountdown: fps,
+    roundStartTimer: 3 * fps,
     roundsToWin: config.roundsToWin,
     draw: false,
     inputState: HashMap.empty(),

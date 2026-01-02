@@ -36,7 +36,9 @@ import {
   WestDirection,
   SoftBreakAnimation,
   CellMode,
-  GridCoords
+  GridCoords,
+  CountdownModel,
+  PlayingModel
   // add others if needed
 } from "./model";
 import { Msg } from "./msg";
@@ -44,6 +46,23 @@ import { Array, HashMap, pipe, Match, HashSet, Option } from "effect";
 
 const _refresh_players_cache = (world: World): HashSet.HashSet<Player> => 
   getAllType(world, Player);
+
+function _update_timers(model: Model, dt: number): Model {
+  return Match.value(model.state).pipe(
+    Match.tag("Transition Model", () => { return {...model}}),
+    Match.tag("Countdown Model", () => {
+      if (model.roundStartTimer <= 0) {
+        return {...model, state: PlayingModel.make()}
+      }
+      return {...model, roundStartTimer: model.roundStartTimer - dt}
+    }),
+    Match.tag("Playing Model", () => {return {...model, roundStartTimer: model.timer - dt}
+  }),
+    Match.tag("EndDelay Model", () => {return {...model, roundStartTimer: model.winCountdown - dt}
+  }),
+    Match.exhaustive
+  )
+}
 
 function _clear_sfx_buffer(model: Model): Model {
   return Model.make({
@@ -402,7 +421,7 @@ if (Option.isNone(playerOption)) return model;
 
   const existingEntity = getEntityAt(model.world, r, c)
  
-  if (!existingEntity === null) {
+  if (existingEntity !== null) {
     return model;
   }
   const fuseDuration = 3 * model.fps;
