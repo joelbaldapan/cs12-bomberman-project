@@ -4,8 +4,9 @@ import { updateExplosion } from "./entity/explosion";
 import { addBomb, getPlayerById, getPlayerCol, getPlayerRow, hitboxX, hitboxY, onExplosionHitPlayer, playerMaxBombs, playerRange, removeBomb, updatePlayer } from "./entity/player";
 import { onPickup, updatePowerup } from "./entity/powerup";
 import { CONTROLS, isHeld, KEY_TIME_LIMIT } from "./helpers/controls";
-import { choicePowerups, makeBomb } from "./helpers/factories";
+import { choicePowerups, makeBomb, makeHardBlock, makePlayer, makeSoftBlock } from "./helpers/factories";
 import { generateId } from "./helpers/id_gen";
+import { generateSoftBlockCoords, PLAYER_START_COORDS } from "./helpers/init_world_gen";
 import { addEntity, getAllType, getEntityAt, removeEntity } from "./helpers/world";
 import {
   Model,
@@ -518,6 +519,86 @@ function _finalize_round(
   };
 }
 
+function _start_new_round(model: Model): Model {
+
+  let newEntities = HashMap.empty<number, Entity>();
+
+  const hardBlocks = [...model.spacedBlockCoords, ...model.borderBlockCoords];
+  hardBlocks.forEach(([r, c]) => {
+    const block = makeHardBlock(r, c);
+    newEntities = HashMap.set(newEntities, block.id, block);
+  });
+
+  const softBlockCoords = generateSoftBlockCoords(
+    model.world.rows,
+    model.world.cols,
+    hardBlocks,
+    [...model.protectedCoords],
+    model.config
+  );
+  softBlockCoords.forEach(([r, c]) => {
+    const block = makeSoftBlock(r, c);
+    newEntities = HashMap.set(newEntities, block.id, block);
+  });
+
+  let newPlayers = HashSet.empty<Player>();
+
+  for (const p of model.players) {
+    const start = PLAYER_START_COORDS[p.player_id];
+    if (!start) continue;
+    const newP = makePlayer(p.player_id, start[0], start[1], 16, model.fps);
+    
+    newPlayers = HashSet.add(newPlayers, newP);
+    newEntities = HashMap.set(newEntities, newP.id, newP);
+  }
+
+  const entityList = Array.fromIterable(HashMap.values(newEntities));
+  const boardEntities = Array.filter(entityList, (e) => e._tag !== "Player");
+  
+  const newBoard = Array.makeBy(model.world.rows, (r) =>
+    Array.makeBy(model.world.cols, (c) =>
+      Array.findFirst(boardEntities, (e) => e.row === r && e.col === c)
+    )
+  );
+
+  return {
+    ...model,
+    world: World.make({
+      rows: model.world.rows,
+      cols: model.world.cols,
+      entities: newEntities,
+      board: newBoard,
+    }),
+    players: newPlayers,
+    state: CountdownModel.make({}), 
+    roundStartTimer: 3 * model.fps, 
+    timer: model.config.timerSeconds * model.fps, 
+    winCountdown: model.fps,
+    eventBuffer: [],
+    sfxBuffer: [],
+    vfxBuffer: [],
+    tempWinner: -1,
+    roundResult: Option.none(),
+  };
+}
+function _tick_game(model: Model): Model {
+  if (
+        model.state._tag === "Transition Model" || 
+        model.state._tag === "Countdown Model"
+      ) {
+        return {...model};
+      }
+  return pipe(
+    model,
+    _update_entities,
+    _detonate_bombs,
+    _process_events,
+    _check_explosion_powerup_collision,
+    _resolve_bomb_passthrough,
+    _process_events,
+    _check_round_end_conditions)
+}
+
 export const update = (msg: Msg, model: Model) =>
   Match.value(msg).pipe(
     Match.tag("Canvas.MsgTick", () => {
@@ -527,35 +608,33 @@ export const update = (msg: Msg, model: Model) =>
         _decay_inputs,
         _handle_input_for_players,
         _update_timers, // to implement: for updating player positions sana
-        _update_entities,
-        _detonate_bombs,
-        _process_events,
-        _check_explosion_powerup_collision,
-        _resolve_bomb_passthrough,
-        _process_events,
-        _check_round_end_conditions
+        _tick_game,
       );
     }),
     Match.tag("Canvas.MsgKeyDown", ({ key }) => {
-      // Pressing Key
       const nextInputState = HashMap.set(model.inputState, key, KEY_TIME_LIMIT);
       let nextModel = { ...model, inputState: nextInputState };
 
-      // Handle BOMB PLACEMENT
-      // TO IMPLEMENT. add logic for spawning bombs here
-      // TO IMPLEMENT. add logic for spawning bombs here
-      // TO IMPLEMENT. add logic for spawning bombs here
-      if (CONTROLS[0].bomb.includes(key)) {
-        nextModel = _trySpawnBomb(nextModel, 0); // player 1
-      }
-      // Check P2 Controls
-      if (CONTROLS[1].bomb.includes(key)) {
-        nextModel = _trySpawnBomb(nextModel, 1); // player 2
+      if (key === "Escape") {
+        if (nextModel.state._tag === "Transition Model") {
+             return _start_new_round(nextModel);
+        }
+        return { ...nextModel, debugMode: !nextModel.debugMode };
       }
 
-      // Toggle DEBUG Mode
-      if (key === "Escape") {
-        return { ...nextModel, debugMode: !nextModel.debugMode };
+      if (
+        nextModel.state._tag === "Transition Model" || 
+        nextModel.state._tag === "Countdown Model"
+      ) {
+        return nextModel;
+      }
+
+
+      if (CONTROLS[0].bomb.includes(key)) {
+        nextModel = _trySpawnBomb(nextModel, 0); 
+      }
+      if (CONTROLS[1].bomb.includes(key)) {
+        nextModel = _trySpawnBomb(nextModel, 1); 
       }
 
       return nextModel;

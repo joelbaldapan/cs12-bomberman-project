@@ -110,3 +110,9 @@ export const generateSoftBlockCoords = (
 
   return finalSelection;
 };
+export const PLAYER_START_COORDS: GridCoords[] = [
+  [1, 1], 
+  [11, 13], 
+  [11, 1], 
+  [1, 13], 
+];
