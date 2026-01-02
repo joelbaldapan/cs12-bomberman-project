@@ -42,6 +42,9 @@ import {
 import { Msg } from "./msg";
 import { Array, HashMap, pipe, Match, HashSet, Option } from "effect";
 
+const _refresh_players_cache = (world: World): HashSet.HashSet<Player> => 
+  getAllType(world, Player);
+
 function _clear_sfx_buffer(model: Model): Model {
   return Model.make({
     ...model,
@@ -121,7 +124,6 @@ function _update_entities(model: Model): Model {
   let newEvents = model.eventBuffer;
   let newSfx = model.sfxBuffer;
   let newVfx = model.vfxBuffer;
-  let newPlayers = model.players;
 
   for (const [id, ent] of model.world.entities) {
     const [updatedEntity, updateResult] = Match.value(ent).pipe(
@@ -138,21 +140,13 @@ function _update_entities(model: Model): Model {
     newSfx = [...newSfx, ...updateResult.sounds];
     newVfx = [...newVfx, ...updateResult.animations];
   }
-  let nextPlayers = model.players;
-  for (const player of model.players) {
-    const [updatedPlayer, updateResult] = updatePlayer(player, dt);
-    nextPlayers = HashSet.remove(nextPlayers, player);
-    nextPlayers = HashSet.add(nextPlayers, updatedPlayer);
 
-    newEvents = [...newEvents, ...updateResult.events];
-    newSfx = [...newSfx, ...updateResult.sounds];
-    newVfx = [...newVfx, ...updateResult.animations];
-  }
+  const nextPlayers = _refresh_players_cache(newWorld);
   // Return a new model with updated entities and buffers
   return Model.make({
     ...model,
     world: newWorld,
-    players: newPlayers,
+    players: nextPlayers,
     eventBuffer: newEvents,
     sfxBuffer: newSfx,
     vfxBuffer: newVfx,
@@ -160,36 +154,32 @@ function _update_entities(model: Model): Model {
 }
 
 function _detonate_bombs(model: Model): Model {
-  let newWorld = World.make({ ...model.world });
-  let result = UpdateResult.make({
-    events: Array.empty(),
-    sounds: Array.empty(),
-    animations: Array.empty(),
-  });
-  let newPlayers = model.players;
+let newWorld = World.make({ ...model.world });
+  let result = UpdateResult.make({ events: [], sounds: [], animations: [] });
+
   const explodingBombs: Bomb[] = Array.filter(
     getAllType(model.world, Bomb),
     (entity) => entity._tag === "Bomb" && shouldDetonate(entity)
   );
-  let explosionResult = UpdateResult.make({
-    events: Array.empty(),
-    sounds: Array.empty(),
-    animations: Array.empty(),
-  });
+
   for (const bomb of explodingBombs) {
+      let explosionResult: UpdateResult;
       [newWorld, explosionResult] = createExplosions(bomb, newWorld);
       
-      // Update buffers
       result = {
         ...result,
         events: Array.appendAll(result.events, explosionResult.events),
         sounds: Array.appendAll(result.sounds, explosionResult.sounds),
         animations: Array.appendAll(result.animations, explosionResult.animations),
       };
-      let owner: Player = getPlayerById(newPlayers, bomb.owner)!;
-      newPlayers = HashSet.remove(newPlayers, owner);
-      const updatedOwner = removeBomb(owner, bomb);
-      newPlayers = HashSet.add(newPlayers, updatedOwner);
+
+      const ownerOption = HashMap.get(newWorld.entities, bomb.owner);
+      
+      if (Option.isSome(ownerOption) && ownerOption.value._tag === "Player") {
+        const owner = ownerOption.value;
+        const updatedOwner = removeBomb(owner, bomb);
+        newWorld = addEntity(newWorld, updatedOwner);
+      }
     }
   const expiredBlocks: Entity[] = Array.filter(
     getAllType(newWorld, Block),
@@ -204,7 +194,7 @@ function _detonate_bombs(model: Model): Model {
                         mode: CellMode.make({}),
                         a: entity.row,
                         b: entity.col,
-                        durationFrames: 60, //not sure about this yet,
+                        durationFrames: model.fps*1,
                         id: Option.some(entity.id),
                         powerupType: Option.none(),
                       })
@@ -220,13 +210,15 @@ function _detonate_bombs(model: Model): Model {
   const newSfx = [...model.sfxBuffer, ...result.sounds];
   const newVfx = [...model.vfxBuffer, ...result.animations];
 
+  const newPlayers = _refresh_players_cache(newWorld);
+
   return {...model,
     world: newWorld,
     players: newPlayers,
     eventBuffer: newEvents,
     sfxBuffer: newSfx,
     vfxBuffer: newVfx,
-  }; /* implement */
+  };
 }
 
 function _process_events(model: Model): Model {
@@ -266,39 +258,35 @@ function _checkPlayerOverlap(player: Player, row: number, col: number): boolean 
 }
 
 function _check_explosion_powerup_collision(model: Model): Model {
-  const explosions = Array.filter([...model.world.entities], (ent) => ent[1]._tag === "Explosion")
-  const powerups = Array.filter([...model.world.entities], (ent) => ent[1]._tag === "Powerup")
+  const explosions = getAllType(model.world, Explosion)
+  const powerups = getAllType(model.world, Powerup)
   let picked: GridCoords[] = []
-  let newPlayers = model.players
   let newWorld = model.world
   let results = UpdateResult.make({
     events: Array.empty(),
     sounds: Array.empty(),
     animations: Array.empty(),
   });
-  for (const player of model.players) {
+  const currentPlayers = Array.fromIterable(getAllType(newWorld, Player));
+  for (const player of currentPlayers) {
     if (player.isExpired) continue;
     for (const explosion of explosions) {
-      if (_checkPlayerOverlap(player, explosion[1].row, explosion[1].col)) {
-      newPlayers = HashSet.remove(newPlayers, player);
-      const updatedPlayer = onExplosionHitPlayer(player)
-      newPlayers = HashSet.add(newPlayers, updatedPlayer);
-      break
+      if (_checkPlayerOverlap(player, explosion.row, explosion.col)) {
+      newWorld = addEntity(newWorld, onExplosionHitPlayer(player))
       }
     }
     for (const powerup of powerups) {
-      if (powerup[1].isExpired) {
+      if (powerup.isExpired) {
         continue
       }
-      let position: GridCoords = [powerup[1].row, powerup[1].col]
+      let position: GridCoords = [powerup.row, powerup.col]
       if (Array.contains(picked, position)) {
         continue
       }
-      if (_checkPlayerOverlap(player, powerup[1].row, powerup[1].col)) {
-        const p = powerup[1] as Powerup
+      if (_checkPlayerOverlap(player, powerup.row, powerup.col)) {
+        const p = powerup as Powerup
         const [newPlayer, result] = onPickup(p, player)
-        newPlayers = HashSet.remove(newPlayers, player);
-        newPlayers = HashSet.add(newPlayers, newPlayer);
+        newWorld = addEntity(newWorld, newPlayer)
         results = {...results, events: Array.appendAll(results.events, result.events), 
           sounds: Array.appendAll(results.sounds, result.sounds),
           animations: Array.appendAll(results.animations, result.animations)}
@@ -307,12 +295,13 @@ function _check_explosion_powerup_collision(model: Model): Model {
       }
     }
   }
+  const newPlayers = _refresh_players_cache(newWorld)
 
   return {...model, world: newWorld, players: newPlayers, 
     eventBuffer: Array.appendAll(model.eventBuffer,results.events),
   sfxBuffer: Array.appendAll(model.sfxBuffer, results.sounds),
   vfxBuffer: Array.appendAll(model.vfxBuffer, results.animations)
-}; /* implement */
+};
 }
 
 function _check_round_end_conditions(model: Model): Model {
@@ -392,10 +381,14 @@ function _check_round_end_conditions(model: Model): Model {
 }
 
 function _trySpawnBomb(model: Model, player_id_to_place: number): Model {
-  const player = getPlayerById(model.players, player_id_to_place);
-  if (!player || !player.isAlive) {
-    return model;
-  }
+  const playerOption = Array.findFirst(
+      Array.fromIterable(HashMap.values(model.world.entities)), 
+      (e): e is Player => e._tag === "Player" && e.player_id === player_id_to_place
+  );
+if (Option.isNone(playerOption)) return model;
+  const player = playerOption.value;
+
+  if (!player.isAlive) return model; 
 
   const currentBombs = player.activeBombs.length;
   const maxBombs = playerMaxBombs(player);
@@ -419,12 +412,11 @@ function _trySpawnBomb(model: Model, player_id_to_place: number): Model {
 
   const newBomb = makeBomb(r, c, fuseDuration, playerRange(player), player.id)
 
-  const nextWorld = addEntity(model.world, newBomb);
+  let newWorld = addEntity(model.world, newBomb);
 
+  const updatedPlayer = addBomb(player, newBomb); 
 
-  let nextPlayers = HashSet.remove(model.players, player);
-  const updatedPlayer = addBomb(player, newBomb);
-  nextPlayers = HashSet.add(nextPlayers, updatedPlayer);
+  newWorld = addEntity(newWorld, updatedPlayer);
 
   const nextEvents = Array.append(
     model.eventBuffer, 
@@ -433,8 +425,8 @@ function _trySpawnBomb(model: Model, player_id_to_place: number): Model {
 
   return {
     ...model,
-    world: nextWorld,
-    players: nextPlayers,
+    world: newWorld,
+    players: _refresh_players_cache(newWorld),
     eventBuffer: nextEvents,
   };
 }

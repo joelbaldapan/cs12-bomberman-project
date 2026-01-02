@@ -496,9 +496,10 @@ export const initModel = (
 
   // SYNC TO WORLD
   const entityList = Array.fromIterable(HashMap.values(entities));
+  const boardEntities = Array.filter(entityList, (e) => e._tag !== "Player");
   const board = Array.makeBy(rows, (r) =>
     Array.makeBy(cols, (c) =>
-      Array.findFirst(entityList, (e) => e.row === r && e.col === c)
+      Array.findFirst(boardEntities, (e) => e.row === r && e.col === c)
     )
   );
 

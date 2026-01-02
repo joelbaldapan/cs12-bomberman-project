@@ -8,7 +8,12 @@ export const addEntity = (
   const { row, col, id } = entity
 
   if (!inBounds(world, row, col)) return world
-  if (Option.isSome(world.board[row][col])) return world
+  if (entity._tag === "Player") {
+    return {
+      ...world,
+      entities: HashMap.set(world.entities, id, entity)
+    }
+  }
 
   const newBoard = world.board.map((r, i) =>
     i === row
@@ -46,9 +51,9 @@ export const removeEntity = (
   }
 }
 
-export const getAllType = <A extends Entity>(
+export const getAllType = <A>(
   world: World, 
-  schema: S.Schema<A>
+  schema: S.Schema<A, any>
 ): HashSet.HashSet<A> => {
   
   const isType = S.is(schema)

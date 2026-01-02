@@ -161,7 +161,6 @@ export const createExplosions = (bomb: Bomb, world: World): [World, UpdateResult
             newWorld = addEntity(newWorld,onExplosionHitExplosion(e))
           }),
           Match.tag("Player", (e) => {
-            newWorld = addEntity(newWorld,onExplosionHitPlayer(e))
           }),
           Match.exhaustive
         )
