@@ -38,20 +38,28 @@ export const getProtectedCoords = (rows: number, cols: number): GridCoords[] => 
   const coords: GridCoords[] = [
     // Top-Left (P1)
     [1, 1], [2, 1], [1, 2],
-    
-    // Bottom-Right (P2)
-    [rows - 2, cols - 2], [rows - 3, cols - 2], [rows - 2, cols - 3],
-    
+
+    // Top-Right (P2)
+    [1, cols - 2], [2, cols - 2], [1, cols - 3],
+
     // Bottom-Left (P3)
     [rows - 2, 1], [rows - 3, 1], [rows - 2, 2],
-    
-    // Top-Right (P4)
-    [1, cols - 2], [2, cols - 2], [1, cols - 3],
+
+    // Bottom-Right (P4)
+    [rows - 2, cols - 2], [rows - 3, cols - 2], [rows - 2, cols - 3],
+
   ];
   return coords;
 };
 
-
+export const getPlayerStartCoords = (rows: number, cols: number): GridCoords[] => {
+  return [
+    [1, 1],                 // P1: Top-Left
+    [1, cols - 2],          // P2: Top-Right
+    [rows - 2, 1],          // P3: Bottom-Left
+    [rows - 2, cols - 2],   // P4: Bottom-Right
+  ];
+};
 export const generateSoftBlockCoords = (
   rows: number,
   cols: number,
@@ -110,9 +118,3 @@ export const generateSoftBlockCoords = (
 
   return finalSelection;
 };
-export const PLAYER_START_COORDS: GridCoords[] = [
-  [1, 1], 
-  [11, 13], 
-  [11, 1], 
-  [1, 13], 
-];

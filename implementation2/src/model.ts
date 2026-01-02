@@ -6,6 +6,7 @@ import {
   getBorderBlockCoords,
   getProtectedCoords,
   generateSoftBlockCoords,
+  getPlayerStartCoords,
 } from "./helpers/init_world_gen";
 
 // FOR CONSISTENCY:
@@ -474,13 +475,7 @@ export const initModel = (
   });
 
   // Players
-  const playerStartCoords: GridCoords[] = [
-    [1, 1], // P1: Top-Left
-    [rows - 2, cols - 2], // P2: Bottom-Right
-    [rows - 2, 1], // P3: Bottom-Left
-    [1, cols - 2], // P4: Top-Right
-  ];
-
+  const playerStartCoords = getPlayerStartCoords(rows, cols);
   let players = HashSet.empty<Player>();
 
   for (let i = 0; i < config.numHumanPlayers; i++) {

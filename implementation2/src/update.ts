@@ -26,7 +26,7 @@ import {
 import { generateId } from "./helpers/id_gen";
 import {
   generateSoftBlockCoords,
-  PLAYER_START_COORDS,
+  getPlayerStartCoords,
 } from "./helpers/init_world_gen";
 import {
   addEntity,
@@ -604,10 +604,13 @@ function _start_new_round(model: Model): Model {
     newEntities = HashMap.set(newEntities, block.id, block);
   });
 
+  
+  const { rows, cols } = model.world;
+  const startCoords = getPlayerStartCoords(rows, cols);
   let newPlayers = HashSet.empty<Player>();
 
   for (const p of model.players) {
-    const start = PLAYER_START_COORDS[p.player_id];
+    const start = startCoords[p.player_id];
     if (!start) continue;
     const newP = makePlayer(p.player_id, start[0], start[1], 16, model.fps);
 
