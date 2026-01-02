@@ -109,7 +109,7 @@ export const makePlayer = (
     isExpired: false,
     activeBombs: [],
     effects: [],
-    speed: 2.0,
+    speed: 1.0,
 
     vx: 0,
     vy: 0,

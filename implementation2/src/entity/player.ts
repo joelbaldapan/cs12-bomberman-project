@@ -187,7 +187,7 @@ export const updatePlayer = (
   }
 
   // Handle Movement
-  const [nextX, nextY] = calculateMovement(ent, world, 1);
+  const [nextX, nextY] = calculateMovement(ent, world, dt);
   const centerX = nextX + HITBOX_WIDTH / 2;
   const centerY = nextY + HITBOX_OFFSET_Y + HITBOX_HEIGHT / 2;
 
