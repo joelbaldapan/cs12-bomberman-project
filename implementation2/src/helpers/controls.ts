@@ -1,7 +1,15 @@
 import { HashMap } from "effect";
 import { InputState } from "../model";
 
-export const CONTROLS = {
+type PlayerControlScheme = {
+  up: string[];
+  down: string[];
+  left: string[];
+  right: string[];
+  bomb: string[];
+};
+
+export const CONTROLS: Record<number, PlayerControlScheme> = {
   // Player 1
   0: {
     up: ["ArrowUp"],
