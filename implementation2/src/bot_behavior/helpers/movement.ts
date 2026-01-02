@@ -53,9 +53,9 @@ export const followPathAction = (
   let nextCell = memory.path[0];
   let currentPath = [...memory.path];
 
-    console.log(`Bot 1: At [${currCell}] -> Aiming for [${nextCell}]`);
-    console.log(`       Px: ${entity.x.toFixed(1)}, ${entity.y.toFixed(1)}`);
-    console.log(`       Path ${memory.path} `);
+    // console.log(`Bot 1: At [${currCell}] -> Aiming for [${nextCell}]`);
+    // console.log(`       Px: ${entity.x.toFixed(1)}, ${entity.y.toFixed(1)}`);
+    // console.log(`       Path ${memory.path} `);
 
   // 1 - PLANT BOMB CHECK
   if (currCell[0] === nextCell[0] && currCell[1] === nextCell[1]) {

@@ -227,7 +227,7 @@ function _update_bots(model: Model): Model {
       player,
       1 / model.fps       
     );
-    console.log(action._tag)
+    // console.log(action._tag)
 
     // update INTERNALS
     nextBotInternals = HashMap.set(nextBotInternals, botId, nextState);
@@ -262,44 +262,90 @@ function _update_bots(model: Model): Model {
   };
 }
 
+// function _update_entities(model: Model): Model {
+//   const dt = 1 / model.fps;
+
+//   let newWorld = model.world;
+//   let newEvents = model.eventBuffer;
+//   let newSfx = model.sfxBuffer;
+//   let newVfx = model.vfxBuffer;
+
+//   for (const [id, ent] of model.world.entities) {
+//     const [updatedEntity, updateResult] = Match.value(ent).pipe(
+//       Match.tag("Explosion", (e) => updateExplosion(e, dt)),
+//       Match.tag("Bomb", (e) => updateBomb(e, dt)),
+//       Match.tag("Block", (e) => updateBlock(e, dt)),
+//       Match.tag("Player", (e) => updatePlayer(e, newWorld, dt)),
+//       Match.tag("Powerup", (e) => updatePowerup(e, dt)),
+//       Match.exhaustive
+//     );
+//     if (updatedEntity !== ent) {
+//       newWorld = addEntity(newWorld, updatedEntity);
+//     }
+
+//     newEvents = [...newEvents, ...updateResult.events];
+//     newSfx = [...newSfx, ...updateResult.sounds];
+//     newVfx = [...newVfx, ...updateResult.animations];
+//   }
+
+//   const nextPlayers = _refresh_players_cache(newWorld);
+//   // Return a new model with updated entities and buffers
+//   return Model.make({
+//     ...model,
+//     world: newWorld,
+//     players: nextPlayers,
+//     eventBuffer: newEvents,
+//     sfxBuffer: newSfx,
+//     vfxBuffer: newVfx,
+//   });
+// }
+
 function _update_entities(model: Model): Model {
   const dt = 1 / model.fps;
 
-  let newWorld = model.world;
-  let newEvents = model.eventBuffer;
-  let newSfx = model.sfxBuffer;
-  let newVfx = model.vfxBuffer;
+  let newEntities = model.world.entities;
+  
+  // since the game is in a very unoptimized state,
+  // our group decide to opt out of using Effect Array for this part:
+  //  since pushing to a JS array is O(1), while spreading [...] is O(N)
+  const newEvents: EventType[] = [...model.eventBuffer];
+  const newSfx: SoundType[] = [...model.sfxBuffer];
+  const newVfx: AnimationCmd[] = [...model.vfxBuffer];
+
+  let newPlayers = HashSet.empty<Player>();
 
   for (const [id, ent] of model.world.entities) {
     const [updatedEntity, updateResult] = Match.value(ent).pipe(
       Match.tag("Explosion", (e) => updateExplosion(e, dt)),
       Match.tag("Bomb", (e) => updateBomb(e, dt)),
       Match.tag("Block", (e) => updateBlock(e, dt)),
-      Match.tag("Player", (e) => updatePlayer(e, newWorld, dt)),
+      Match.tag("Player", (e) => updatePlayer(e, model.world, dt)),
       Match.tag("Powerup", (e) => updatePowerup(e, dt)),
       Match.exhaustive
     );
+
     if (updatedEntity !== ent) {
-      newWorld = addEntity(newWorld, updatedEntity);
+      newEntities = HashMap.set(newEntities, id, updatedEntity);
     }
 
-    newEvents = [...newEvents, ...updateResult.events];
-    newSfx = [...newSfx, ...updateResult.sounds];
-    newVfx = [...newVfx, ...updateResult.animations];
+    if (updateResult.events.length > 0) newEvents.push(...updateResult.events);
+    if (updateResult.sounds.length > 0) newSfx.push(...updateResult.sounds);
+    if (updateResult.animations.length > 0) newVfx.push(...updateResult.animations);
+
+    if (updatedEntity._tag === "Player") {
+      newPlayers = HashSet.add(newPlayers, updatedEntity);
+    }
   }
 
-  const nextPlayers = _refresh_players_cache(newWorld);
-  // Return a new model with updated entities and buffers
   return Model.make({
     ...model,
-    world: newWorld,
-    players: nextPlayers,
+    world: World.make({ ...model.world, entities: newEntities }),
+    players: newPlayers,
     eventBuffer: newEvents,
     sfxBuffer: newSfx,
     vfxBuffer: newVfx,
   });
 }
-
 function _detonate_bombs(model: Model): Model {
   let newWorld = World.make({ ...model.world });
   let result = UpdateResult.make({ events: [], sounds: [], animations: [] });

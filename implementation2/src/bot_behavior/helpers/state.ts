@@ -124,7 +124,7 @@ export const runOnTick = (
     const [gr, gc] = goalOpt.value;
     return bot.row === gr && bot.col === gc;
   };
-  console.log(`Goal? ${atGoal(memory.goal)}`)
+  // console.log(`Goal? ${atGoal(memory.goal)}`)
 
   return Match.value(state).pipe(
 
@@ -211,7 +211,7 @@ export const decideAction = (
   world: World,
   bot: Player
 ): { action: BotAction; memory: BotMemory } => {
-  console.log(`State: ${state._tag}`)
+  // console.log(`State: ${state._tag}`)
   return Match.value(state).pipe(
     Match.tag("Wander State", () =>
       followPathAction(memory, world, bot, true)
