@@ -188,12 +188,18 @@ export const updatePlayer = (
 
   // Handle Movement
   const [nextX, nextY] = calculateMovement(ent, world, 1);
+  const centerX = nextX + HITBOX_WIDTH / 2;
+  const centerY = nextY + HITBOX_OFFSET_Y + HITBOX_HEIGHT / 2;
 
+  const newRow = Math.floor(centerY / TILE_SIZE);
+  const newCol = Math.floor(centerX / TILE_SIZE);
   return [
       Player.make({ 
           ...ent, 
           x: nextX, 
           y: nextY, 
+          row: newRow,
+          col: newCol,
           effects: remainingEffects 
       }), 
       result

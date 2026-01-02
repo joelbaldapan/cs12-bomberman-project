@@ -7,6 +7,7 @@ import {
   getProtectedCoords,
   generateSoftBlockCoords,
   getPlayerStartCoords,
+  initBotState,
 } from "./helpers/init_world_gen";
 
 // FOR CONSISTENCY:
@@ -385,6 +386,26 @@ export const BotAction = S.Union(
   S.TaggedStruct("Move Action", { direction: Direction })
 );
 
+export const BotConfig = S.Struct({
+  botType: BotType,
+  
+  reevalInterval: S.Number,
+  reevalChance: S.Number,
+  
+  dangerRadius: S.Number,
+  dangerPolicy: DangerPolicyType,
+  
+  attackPolicy: AttackPolicyType,
+  attackRangeTrigger: S.Number,
+  attackSearchRadius: S.Number,
+  
+  powerupPolicy: PowerupPolicyType,
+  powerupChance: S.Number,
+});
+
+export type BotConfig = typeof BotConfig.Type;
+
+
 export const [IdleAction, PlaceBombAction, MoveAction] = BotAction.members;
 
 export type BotAction = typeof BotAction.Type;
@@ -441,6 +462,7 @@ export const Model = S.Struct({
   botInternals: S.HashMap({ key: S.Int, value: BotInternalState }),
 });
 
+
 export const initModel = (
   rows: number,
   cols: number,
@@ -451,7 +473,7 @@ export const initModel = (
   const borderCoords = getBorderBlockCoords(rows, cols);
   const protectedCoords = getProtectedCoords(rows, cols);
 
-  // Hard blocks
+  // 1. SETUP HARD BLOCKS
   let entities = HashMap.empty<number, Entity>();
   const hardBlocks = [...spacedCoords, ...borderCoords];
 
@@ -460,7 +482,7 @@ export const initModel = (
     entities = HashMap.set(entities, block.id, block);
   });
 
-  // Soft blocks
+  // 2. SETUP SOFT BLOCKS
   const softBlockCoords = generateSoftBlockCoords(
     rows,
     cols,
@@ -468,31 +490,64 @@ export const initModel = (
     protectedCoords,
     config
   );
-
   softBlockCoords.forEach(([r, c]) => {
     const block = makeSoftBlock(r, c);
     entities = HashMap.set(entities, block.id, block);
   });
 
-  // Players
+  // 3. SETUP PLAYERS & BOTS
+  // We need to sync IDs (0, 1, 2, 3) to start positions
   const playerStartCoords = getPlayerStartCoords(rows, cols);
   let players = HashSet.empty<Player>();
+  let botInternals = HashMap.empty<number, BotInternalState>();
+  
+  // We use a simple counter to assign IDs sequentially
+  let currentId = 0; 
 
+  // A. Human Players
   for (let i = 0; i < config.numHumanPlayers; i++) {
-    const startCoord = playerStartCoords[i];
+    // Safety check: ensure we don't exceed map spawn points
+    if (currentId >= playerStartCoords.length) break;
 
-    if (!startCoord) continue;
-
-    const [r, c] = startCoord;
-    const p = makePlayer(i, r, c, 16, fps);
-
-    players = HashSet.add(players, p);
-    entities = HashMap.set(entities, p.id, p);
+    const startCoord = playerStartCoords[currentId];
+    if (startCoord) {
+      const [r, c] = startCoord;
+      const p = makePlayer(currentId, r, c, 16, fps);
+      
+      players = HashSet.add(players, p);
+      entities = HashMap.set(entities, p.id, p);
+    }
+    currentId++;
   }
 
-  // SYNC TO WORLD
+  // B. Bot Players
+  // We iterate through the specific Types defined in settings.json
+  for (const botType of config.botTypes) {
+    if (currentId >= playerStartCoords.length) break;
+
+    const startCoord = playerStartCoords[currentId];
+    if (startCoord) {
+      const [r, c] = startCoord;
+      const p = makePlayer(currentId, r, c, 16, fps);
+
+      // --- CRITICAL STEP: Initialize Bot Logic ---
+      // We pass the specific 'botType' (Hostile/Careful/Greedy) to the factory
+      const internalState = initBotState(botType); 
+      
+      // Store the logic in the map, keyed by the player's ID
+      botInternals = HashMap.set(botInternals, p.id, internalState);
+
+      players = HashSet.add(players, p);
+      entities = HashMap.set(entities, p.id, p);
+    }
+    currentId++;
+  }
+
+  // 4. SYNC TO BOARD GRID
   const entityList = Array.fromIterable(HashMap.values(entities));
+  // Filter out players so they don't block the grid cells logically (optional depending on your design)
   const boardEntities = Array.filter(entityList, (e) => e._tag !== "Player");
+  
   const board = Array.makeBy(rows, (r) =>
     Array.makeBy(cols, (c) =>
       Array.findFirst(boardEntities, (e) => e.row === r && e.col === c)
@@ -501,18 +556,18 @@ export const initModel = (
 
   return Model.make({
     world: World.make({ rows, cols, entities, board }),
-    config,
+    config, // The config is stored here for reference during the game
     state: CountdownModel.make({}),
     eventBuffer: [],
     sfxBuffer: [],
     vfxBuffer: [],
     players,
-    botInternals: HashMap.empty(),
+    botInternals, // <--- The map of AI brains is populated
     fps,
     tileSize: 16,
     timer: config.timerSeconds * fps,
     winCountdown: fps,
-    roundStartTimer: 3 * fps,
+    roundStartTimer: 0 * fps,
     roundsToWin: config.roundsToWin,
     draw: false,
     inputState: HashSet.empty(),

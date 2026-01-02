@@ -1,4 +1,4 @@
-import { Option } from "effect";
+import { HashSet, Option } from "effect";
 import {
   Block,
   Bomb,
@@ -12,6 +12,9 @@ import {
   FirePowerup,
   SpeedPowerup,
   PowerUpType,
+  BotType,
+  BotInternalState,
+  WanderState,
 } from "../model";
 import { generateId } from "./id_gen";
 

@@ -1,6 +1,7 @@
 import { Array, HashMap, HashSet, pipe, Option } from "effect";
-import { Entity, GameConfig, GridCoords } from "../model"; 
+import { BotInternalState, BotType, Entity, GameConfig, GridCoords, WanderState } from "../model"; 
 import { makeSoftBlock } from "./factories";
+import { createBotConfig } from "../bot_behavior/bot";
 
 export const getSpacedBlockCoords = (): GridCoords[] => {
   const rows = [2, 4, 6, 8, 10];
@@ -56,7 +57,7 @@ export const getPlayerStartCoords = (rows: number, cols: number): GridCoords[] =
   return [
     [1, 1],                 // P1: Top-Left
     [1, cols - 2],          // P2: Top-Right
-    [rows - 2, 1],          // P3: Bottom-Left
+    [rows - 3, 1],          // P3: Bottom-Left
     [rows - 2, cols - 2],   // P4: Bottom-Right
   ];
 };
@@ -118,3 +119,22 @@ export const generateSoftBlockCoords = (
 
   return finalSelection;
 };
+
+
+
+
+// BOTS
+
+export const initBotState = (botType: BotType): BotInternalState => ({
+  initialized: false,
+  config: createBotConfig(botType),
+  currentState: WanderState.make({}),
+  memory: {
+    reevalTimer: 0,
+    path: [],
+    goal: Option.none(),
+    isStrictMovement: false,
+    lastBombCoords: HashSet.empty(),
+    lastExplosionCoords: HashSet.empty(),
+  },
+});
