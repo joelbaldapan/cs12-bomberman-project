@@ -1,3 +1,4 @@
+import { updateBot } from "./bot_behavior/bot";
 import { updateBlock } from "./entity/block";
 import { createExplosions, shouldDetonate, updateBomb } from "./entity/bomb";
 import { updateExplosion } from "./entity/explosion";
@@ -70,6 +71,7 @@ import {
   PlayingModel,
   DrawType,
   WinResult,
+  BotAction,
   // add others if needed
 } from "./model";
 import { Msg } from "./msg";
@@ -182,6 +184,81 @@ function _handle_input_for_players(model: Model): Model {
       ...model.world,
       entities: nextEntities,
     }),
+  };
+}
+
+function _apply_bot_movement(player: Player, action: BotAction): Player {
+  return Match.value(action).pipe(
+    Match.tag("Move Action", ({ direction }) => {
+      return Match.value(direction).pipe(
+        Match.tag("North Direction", () => Player.make({ ...player, vx: 0, vy: -player.speed, directionFacing: direction })),
+        Match.tag("South Direction", () => Player.make({ ...player, vx: 0, vy: player.speed, directionFacing: direction })),
+        Match.tag("East Direction", () => Player.make({ ...player, vx: player.speed, vy: 0, directionFacing: direction })),
+        Match.tag("West Direction", () => Player.make({ ...player, vx: -player.speed, vy: 0, directionFacing: direction })),
+        Match.exhaustive
+      );
+    }),
+    Match.tag("Idle Action", () => Player.make({ ...player, vx: 0, vy: 0 })),
+    Match.tag("Place Bomb Action", () => Player.make({ ...player, vx: 0, vy: 0 })), 
+    Match.exhaustive
+  );
+}
+
+function _update_bots(model: Model): Model {
+  if (model.state._tag !== "Playing Model" && model.state._tag !== "EndDelay Model") {
+    return model;
+  }
+
+  let currentModel = model;
+  let nextBotInternals = currentModel.botInternals;
+  let nextEntities = currentModel.world.entities;
+
+  for (const [botId, internalState] of model.botInternals) {
+    const playerOption = HashMap.get(nextEntities, botId);
+    
+    if (Option.isNone(playerOption) || playerOption.value._tag !== "Player") continue;
+    const player = playerOption.value;
+    if (player.isExpired || !player.isAlive) continue;
+
+    // run LOGIC
+    const { nextState, action } = updateBot(
+      internalState,
+      currentModel.world, 
+      player,
+      1 / model.fps       
+    );
+    console.log(action._tag)
+
+    // update INTERNALS
+    nextBotInternals = HashMap.set(nextBotInternals, botId, nextState);
+
+    // update BOT
+    const movedPlayer = _apply_bot_movement(player, action);
+    nextEntities = HashMap.set(nextEntities, botId, movedPlayer);
+
+    // if we place bomb:
+    if (action._tag === "Place Bomb Action") {
+      const tempModel = {
+        ...currentModel,
+        world: { ...currentModel.world, entities: nextEntities },
+        botInternals: nextBotInternals
+      };
+
+      const modelAfterBomb = _trySpawnBomb(tempModel, botId);
+
+      currentModel = modelAfterBomb;
+      nextBotInternals = currentModel.botInternals;
+      nextEntities = currentModel.world.entities;
+    }
+  }
+
+  return {
+    ...currentModel,
+    world: {
+      ...currentModel.world,
+      entities: nextEntities
+    },
+    botInternals: nextBotInternals
   };
 }
 
@@ -658,6 +735,7 @@ function _tick_game(model: Model): Model {
   }
   return pipe(
     model,
+    _update_bots,
     _update_entities,
     _detonate_bombs,
     _process_events,
@@ -675,7 +753,7 @@ export const update = (msg: Msg, model: Model) =>
         model,
         _clear_sfx_buffer,
         _handle_input_for_players,
-        _update_timers, // to implement: for updating player positions sana
+        _update_timers,
         _tick_game
       );
     }),
@@ -720,7 +798,6 @@ export const update = (msg: Msg, model: Model) =>
       return model;
     }),
     Match.tag("Canvas.MsgMouseUp", () => {
-      console.log(model.inputState);
       return model;
     }),
     Match.exhaustive

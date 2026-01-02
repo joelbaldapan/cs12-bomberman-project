@@ -1,7 +1,6 @@
 import {
   BotInternalState,
   BotMemory,
-  BotConfig,
   BotBehavior,
   WanderState,
   EscapeState,
@@ -25,8 +24,9 @@ import {
   AttackPolicy1,
   PowerupPolicy1,
   BotUpdateResult,
+  BotConfig,
 } from "../model";
-import { HashSet, Match } from "effect";
+import { HashSet, Match, Option } from "effect";
 
 import * as Policies from "./helpers/policies";
 import * as StateLogic from "./helpers/state";
@@ -77,20 +77,6 @@ export const createBotConfig = (botType: BotType): BotConfig => {
     Match.exhaustive
   );
 };
-
-export const initBotState = (botType: BotType): BotInternalState => ({
-  initialized: false,
-  config: createBotConfig(botType),
-  currentState: WanderState.make({}),
-  memory: {
-    reevalTimer: 0,
-    path: [],
-    goal: null,
-    isStrictMovement: false,
-    lastBombCoords: HashSet.empty(),
-    lastExplosionCoords: HashSet.empty(),
-  },
-});
 
 export const updateBot = (
   botState: BotInternalState,
@@ -267,12 +253,12 @@ const transitionTo = (
   bot: Player
 ) => {
   // Clean memory
-  const freshMem = {
+  const freshMem = BotMemory.make({
     ...memory,
     path: [],
-    goal: null,
+    goal: Option.none(),
     isStrictMovement: false,
-  };
+  });
 
   return StateLogic.runOnEnter(newState, config, freshMem, world, bot);
 };

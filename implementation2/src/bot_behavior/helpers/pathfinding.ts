@@ -1,7 +1,6 @@
 import { isCellBlocking } from "../../helpers/world";
 import { World, GridCoords, Entity, Block, Bomb, Player } from "../../model";
-import { HashSet } from "effect";
-
+import { HashSet, Option } from "effect";
 
 export const getManhattan = (a: GridCoords, b: GridCoords): number => {
   return Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]);
@@ -13,22 +12,22 @@ export const isWalkable = (
   c: number,
   ignoreSoftBlocks: boolean
 ): boolean => {
-  // Bounds
   if (r < 0 || c < 0 || r >= world.rows || c >= world.cols) return false;
 
-  const cell = world.board[r][c];
+  const cellOpt = world.board[r][c];
+  const cell = Option.getOrNull(cellOpt);
 
+  // 3. Collision Logic
   if (cell) {
     if (cell._tag === "Block") {
-      if (cell.isHard) return false; // Hard block always blocks
-      if (!ignoreSoftBlocks) return false; // Soft block blocks if we don't ignore
+      if (cell.isHard) return false;
+      if (!ignoreSoftBlocks) return false;
     }
-    // Bombs are usually solid
     if (cell._tag === "Bomb") return false;
   }
+
   return true;
 };
-
 
 export const getShortestPath = (
   world: World,
@@ -36,38 +35,8 @@ export const getShortestPath = (
   target: GridCoords,
   ignoreSoftBlocks: boolean
 ): GridCoords[] => {
-  const board = world.board;
   const rows = world.rows;
   const cols = world.cols;
-
-  const isWalkable = (r: number, c: number): boolean => {
-    if (
-      (r === start[0] && c === start[1]) ||
-      (r === target[0] && c === target[1])
-    ) {
-      return true;
-    }
-
-    const cell = board[r][c];
-    if (cell === null) {
-      return true;
-    }
-
-    if (cell._tag === "Block" && cell.isHard) {
-      return false;
-    }
-    if (cell._tag === "Bomb") {
-      return false;
-    }
-
-    if (!ignoreSoftBlocks) {
-      if (cell._tag === "Block") {
-        return false;
-      }
-    }
-
-    return true;
-  };
 
   const inBounds = (r: number, c: number): boolean => {
     return 0 <= r && r < rows && 0 <= c && c < cols;
@@ -141,7 +110,7 @@ export const getShortestPath = (
       if (!inBounds(nr, nc)) {
         continue;
       }
-      if (!isWalkable(nr, nc)) {
+      if (!isWalkable(world, nr, nc, ignoreSoftBlocks)) {
         continue;
       }
       if (!dist.has(toKey(nr, nc))) {
@@ -241,9 +210,9 @@ export const getReachableSafeCell = (
       }
 
       // Check if entity is technically a danger zone itself
-      if (HashSet.has(dangerZones, nKey)) {
-        continue;
-      }
+      // if (HashSet.has(dangerZones, nKey)) {
+      //   continue;
+      // }
 
       visited.add(nKey);
       queue.push([nr, nc]);

@@ -5,7 +5,6 @@ import {
   SolidRectangle,
   Text,
   CanvasImage,
-  Circle,
 } from "cs12251-mvu/src/canvas";
 import { Array, HashMap, Match, pipe, Option } from "effect";
 import { Assets, createSpriteForEntity, updateAnimationFrame } from "./spritemap";
