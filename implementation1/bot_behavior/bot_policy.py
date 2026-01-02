@@ -17,8 +17,6 @@ class AttackPolicy1:
 
     def get_goal(self, world: WorldInfo, bot: BotPlayerInfo) -> GridCoords | None:
         players = world.players
-        print("a1")
-        input(players)
         opponents = [p for p in players if p.id != bot.id]
         candidates: list[tuple[GridCoords, int]] = []
 
@@ -70,8 +68,6 @@ class AttackPolicy2:
 
     def get_goal(self, world: WorldInfo, bot: BotPlayerInfo) -> GridCoords | None:
         players = world.players
-        print("a2")
-        input(players)
         opponents = [p for p in players if p.id != bot.id]
 
         if not opponents:
