@@ -617,6 +617,10 @@ export const update = (msg: Msg, model: Model) =>
       const nextInputState = HashMap.set(model.inputState, key, KEY_TIME_LIMIT);
       let nextModel = { ...model, inputState: nextInputState };
 
+      if (key === "L" || key === "l") {
+        for (const player of model.players ) {
+          console.log(player.x, player.y)}
+      }
       if (key === "Escape") {
         if (nextModel.state._tag === "Transition Model") {
              return _start_new_round(nextModel);

@@ -390,7 +390,7 @@ export function renderGame(
       elements.push(
         CanvasImage.make({
           x: player.x,
-          y: player.y - HEAD_OFFSET,
+          y: player.y,
           src: spritePath,
         })
       );
