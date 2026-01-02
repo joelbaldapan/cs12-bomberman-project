@@ -242,7 +242,7 @@ export const createSpriteForEntity = (entity: Entity): SpriteParts | null => {
       return Assets.factory.bomb(frame);
     }),
     Match.tag("Explosion", (explosion: Explosion) => {
-      const frame = Math.floor(explosion.currentTimer / 7) % 4;
+      const frame = Math.floor(animationFrame / 7) % 4;
 
       return pipe(
         explosion.orientation,
