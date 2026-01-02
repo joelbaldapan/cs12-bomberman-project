@@ -1,3 +1,4 @@
+import { getAffectedCells } from "../../entity/bomb";
 import { getOverlappingCells } from "../../entity/player";
 import { getAllType } from "../../helpers/world";
 import {
@@ -23,42 +24,6 @@ import { HashSet, HashMap, Option } from "effect";
 
 export const getManhattan = (a: GridCoords, b: GridCoords): number => {
   return Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]);
-};
-
-// Logic to calculate blast radius (replaces b.get_affected_cells)
-const getBombAffectedCells = (world: World, bomb: Bomb): GridCoords[] => {
-  const cells: GridCoords[] = [];
-  const range = bomb.explosionRange;
-  const dirs = [
-    [0, 1],
-    [0, -1],
-    [1, 0],
-    [-1, 0],
-  ];
-
-  for (const [dr, dc] of dirs) {
-    for (let i = 1; i <= range; i++) {
-      const r = bomb.row + dr * i;
-      const c = bomb.col + dc * i;
-
-      if (r < 0 || r >= world.rows || c < 0 || c >= world.cols) break;
-
-      const cell = world.board[r][c];
-
-      // Stop at Hard Blocks immediately
-      if (cell && cell._tag === "Block" && cell.isHard) {
-        break;
-      }
-
-      cells.push([r, c]);
-
-      // Stop at Soft Blocks (after including them in blast)
-      if (cell && cell._tag === "Block" && !cell.isHard) {
-        break;
-      }
-    }
-  }
-  return cells;
 };
 
 // DANGER POLICIES
@@ -89,7 +54,7 @@ export const getAllDangerZones = (
     const bombs = getAllType(world, Bomb);
     for (const b of bombs) {
       add(b.row, b.col);
-      const affected = getBombAffectedCells(world, b);
+      const affected = getAffectedCells(b, world);
       for (const [r, c] of affected) add(r, c);
     }
   }
@@ -131,9 +96,7 @@ export const isInDanger = (
   return false;
 };
 
-// =========================================================
-// 3. ATTACK POLICIES
-// =========================================================
+// ATTACK POLICIES
 
 export const getAttackGoal = (
   policy: BotConfig["attackPolicy"],
@@ -184,9 +147,7 @@ export const getAttackGoal = (
   return null;
 };
 
-// =========================================================
-// 4. POWERUP POLICIES
-// =========================================================
+// POWERUP POLICIES
 
 export const getPowerupGoal = (
   policy: BotConfig["powerupPolicy"],

@@ -9,6 +9,7 @@ import {
   BotAction,
   PlaceBombAction,
   WanderState,
+  EscapeState,
 } from "../../model";
 import {
   getRandomFloorCell,
@@ -17,7 +18,7 @@ import {
 } from "./pathfinding";
 import { followPathAction } from "./movement";
 import { getManhattan, getAllDangerZones } from "./policies";
-import { HashSet, Match } from "effect";
+import { HashSet, Match, Option } from "effect";
 import { isCellBlocking } from "../../helpers/world";
 
 // ON ENTER
@@ -30,20 +31,22 @@ export const runOnEnter = (
   bot: Player
 ): { state: BotBehavior; memory: BotMemory } => {
   
-  const resetMem = (m: BotMemory) => ({ ...m, path: [], goal: null });
+  const resetMem = (m: BotMemory) => BotMemory.make({ ...m, path: [], goal: Option.none() });
 
   return Match.value(state).pipe(
-
     Match.tag("Wander State", (currentState) => {
       const goal = getRandomFloorCell(world);
       const path = getShortestPath(world, [bot.row, bot.col], goal, true); // ignoreSoft=True
       
       return { 
         state: currentState, 
-        memory: { ...memory, goal, path } 
+        memory: BotMemory.make({
+          ...memory,
+          goal: Option.some(goal),
+          path: path
+        }) 
       };
     }),
-
     Match.tag("Escape State", (currentState) => {
       const newState = { ...currentState, leftDanger: false };
       const dangerousCells = getAllDangerZones(config.dangerPolicy, world);
@@ -53,10 +56,14 @@ export const runOnEnter = (
         const path = getShortestPath(world, [bot.row, bot.col], goal, false); // ignoreSoft=False
         return { 
           state: newState, 
-          memory: { ...memory, goal, path } 
+          memory: BotMemory.make({
+            ...memory,
+            goal: Option.some(goal),
+            path: path
+          }) 
         };
       }
-      
+
       return { 
         state: newState, 
         memory: resetMem(memory) 
@@ -75,7 +82,9 @@ export const runOnEnter = (
       
       return { 
         state: currentState, 
-        memory: { ...memory, goal: currentState.target, path } 
+        memory: BotMemory.make({
+          ...memory, goal: Option.some(currentState.target), path 
+        }) 
       };
     }),
 
@@ -91,7 +100,9 @@ export const runOnEnter = (
       
       return { 
         state: currentState, 
-        memory: { ...memory, goal: currentState.target, path } 
+        memory: BotMemory.make({
+          ...memory, goal: Option.some(currentState.target), path 
+        })  
       };
     }),
 
@@ -100,7 +111,6 @@ export const runOnEnter = (
 };
 
 // ON TICK
-
 export const runOnTick = (
   state: BotBehavior,
   config: BotConfig,
@@ -109,8 +119,12 @@ export const runOnTick = (
   bot: Player
 ): { nextState: BotBehavior | null; memory: BotMemory } => {
   
-  const atGoal = (goal: GridCoords | null) =>
-    !!(goal && bot.row === goal[0] && bot.col === goal[1]);
+  const atGoal = (goalOpt: Option.Option<GridCoords>) => {
+    if (Option.isNone(goalOpt)) return false;
+    const [gr, gc] = goalOpt.value;
+    return bot.row === gr && bot.col === gc;
+  };
+  console.log(`Goal? ${atGoal(memory.goal)}`)
 
   return Match.value(state).pipe(
 
@@ -133,17 +147,17 @@ export const runOnTick = (
       const dangerZones = getAllDangerZones(config.dangerPolicy, world);
       const inDanger = HashSet.has(dangerZones, `${bot.row},${bot.col}`);
       
-      const newState = {
+      // Update the state flag using the Constructor
+      const newState = EscapeState.make({
         ...currentState,
         leftDanger: !inDanger ? true : currentState.leftDanger,
-      };
+      });
 
       if (inDanger) {
-        return { nextState: null, memory }; // Still in danger, keep running
+        return { nextState: null, memory };
       }
 
       if (newState.leftDanger) {
-        // If we left danger, ensure path doesn't lead back into it
         const pathDanger = memory.path.some((p) =>
           HashSet.has(dangerZones, `${p[0]},${p[1]}`)
         );
@@ -159,11 +173,10 @@ export const runOnTick = (
         }
       }
 
-      if (!memory.goal) {
+      if (Option.isNone(memory.goal)) {
         return { nextState: WanderState.make({}), memory };
       }
 
-      // Update state if flag changed
       if (newState.leftDanger !== currentState.leftDanger) {
         return { nextState: newState, memory };
       }
@@ -197,15 +210,14 @@ export const decideAction = (
   memory: BotMemory,
   world: World,
   bot: Player
-): { action: BotAction, memory: BotMemory } => {
-
+): { action: BotAction; memory: BotMemory } => {
+  console.log(`State: ${state._tag}`)
   return Match.value(state).pipe(
-    
-    Match.tag("Wander State", () => 
+    Match.tag("Wander State", () =>
       followPathAction(memory, world, bot, true)
     ),
 
-    Match.tag("Escape State", () => 
+    Match.tag("Escape State", () =>
       followPathAction(memory, world, bot, false)
     ),
 
@@ -215,18 +227,26 @@ export const decideAction = (
     }),
 
     Match.tag("Attack State", () => {
-      if (memory.goal) {
-        const dist = getManhattan([bot.row, bot.col], memory.goal);
-        
-        if (dist <= config.attackRangeTrigger) {
-          const cellAtFeet = world.board[bot.row][bot.col];
-          const hasBomb = isCellBlocking(world, bot.row, bot.col, -1) && 
-                          cellAtFeet?._tag === "Bomb";
+      if (Option.isSome(memory.goal)) {
+        const target = memory.goal.value;
+        const dist = getManhattan([bot.row, bot.col], target);
 
-          if (!hasBomb) {
-            return { 
-              action: PlaceBombAction.make({}), 
-              memory 
+        if (dist <= config.attackRangeTrigger) {
+          const cellAtFeetOpt = world.board[bot.row][bot.col];
+          
+          let standingOnBomb = false;
+          
+          if (Option.isSome(cellAtFeetOpt)) {
+             const entity = cellAtFeetOpt.value;
+             if (entity._tag === "Bomb") {
+                 standingOnBomb = true;
+             }
+          }
+
+          if (!standingOnBomb) {
+            return {
+              action: PlaceBombAction.make({}),
+              memory,
             };
           }
         }
