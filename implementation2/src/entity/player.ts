@@ -18,6 +18,7 @@ import {
 } from "../model";
 import { tickEffect } from "./powerup";
 import { Array , Option} from "effect";
+import { pixelToCell } from "../helpers/grid_adapter";
 
 export const updatePlayer = (
   ent: Player,
@@ -95,4 +96,29 @@ export const isOverlapping = (player: Player, cell: GridCoords): boolean => {
     
     return (pCX >= cLeft && pCX < cLeft + TILE_SIZE && 
             pCY >= cTop && pCY < cTop + TILE_SIZE);
+};
+export const getPlayerRow = (player: Player): number => {
+  const cx = hitboxX(player) + 16 / 2;
+  const cy = hitboxY(player) + 16 / 2;
+
+  const res = pixelToCell(Math.floor(cx), Math.floor(cy));
+
+  if (res) {
+    return res[0];
+  } else {
+    return -1;
+  }
+};
+
+export const getPlayerCol = (player: Player): number => {
+  const cx = hitboxX(player) + 16 / 2;
+  const cy = hitboxY(player) + 16 / 2;
+
+  const res = pixelToCell(Math.floor(cx), Math.floor(cy));
+
+  if (res) {
+    return res[1];
+  } else {
+    return -1;
+  }
 };

@@ -1,11 +1,12 @@
 import { updateBlock } from "./entity/block";
 import { createExplosions, shouldDetonate, updateBomb } from "./entity/bomb";
 import { updateExplosion } from "./entity/explosion";
-import { getPlayerById, hitboxX, hitboxY, onExplosionHitPlayer, removeBomb, updatePlayer } from "./entity/player";
+import { addBomb, getPlayerById, getPlayerCol, getPlayerRow, hitboxX, hitboxY, onExplosionHitPlayer, playerMaxBombs, playerRange, removeBomb, updatePlayer } from "./entity/player";
 import { onPickup, updatePowerup } from "./entity/powerup";
 import { CONTROLS, isHeld, KEY_TIME_LIMIT } from "./helpers/controls";
-import { choicePowerups } from "./helpers/factories";
-import { addEntity, getAllType, removeEntity } from "./helpers/world";
+import { choicePowerups, makeBomb } from "./helpers/factories";
+import { generateId } from "./helpers/id_gen";
+import { addEntity, getAllType, getEntityAt, removeEntity } from "./helpers/world";
 import {
   Model,
   Explosion,
@@ -391,7 +392,51 @@ function _check_round_end_conditions(model: Model): Model {
 }
 
 function _trySpawnBomb(model: Model, player_id_to_place: number): Model {
-  return model; // TO IMPLEMENT. add logic for spawning bombs here
+  const player = getPlayerById(model.players, player_id_to_place);
+  if (!player || !player.isAlive) {
+    return model;
+  }
+
+  const currentBombs = player.activeBombs.length;
+  const maxBombs = playerMaxBombs(player);
+
+  if (currentBombs >= maxBombs) {
+    return model;
+  }
+
+  const r = getPlayerRow(player);
+  const c = getPlayerCol(player);
+
+
+  if (r === -1 || c === -1) return model;
+
+  const existingEntity = getEntityAt(model.world, r, c)
+ 
+  if (!existingEntity === null) {
+    return model;
+  }
+  const fuseDuration = 3 * model.fps;
+
+  const newBomb = makeBomb(r, c, fuseDuration, playerRange(player), player.id)
+
+  const nextWorld = addEntity(model.world, newBomb);
+
+
+  let nextPlayers = HashSet.remove(model.players, player);
+  const updatedPlayer = addBomb(player, newBomb);
+  nextPlayers = HashSet.add(nextPlayers, updatedPlayer);
+
+  const nextEvents = Array.append(
+    model.eventBuffer, 
+    SpawnEvent.make({ entity: newBomb })
+  );
+
+  return {
+    ...model,
+    world: nextWorld,
+    players: nextPlayers,
+    eventBuffer: nextEvents,
+  };
 }
 
 export const update = (msg: Msg, model: Model) =>
