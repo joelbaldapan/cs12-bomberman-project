@@ -623,8 +623,9 @@ export const update = (msg: Msg, model: Model) =>
       let nextModel = { ...model, inputState: nextInputState };
 
       if (key === "L" || key === "l") {
-        for (const player of model.players ) {
-          console.log(player.x, player.y)}
+        let explosions = getAllType(model.world, Explosion) 
+        for (const explosion of explosions ) {
+          console.log(explosion.row, explosion.col)}
       }
       if (key === "Escape") {
         if (nextModel.state._tag === "Transition Model") {

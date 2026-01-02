@@ -32,7 +32,7 @@ export const updateExplosion = (
     Explosion.make({
       ...ent,
       isExpired: ent.currentTimer >= ent.fullTimer,
-      currentTimer: ent.currentTimer + 1,
+      currentTimer: ent.currentTimer + dt,
     }),
     result,
   ];
