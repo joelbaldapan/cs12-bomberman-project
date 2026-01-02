@@ -121,7 +121,13 @@ const renderDeathAnimation = (
   if (Option.isNone(cmd.id)) return null;
 
   const playerId = Option.getOrThrow(cmd.id);
-  const spriteFrame = Math.min(Math.floor(frameCounter / 8), 5);
+
+  const totalSpriteFrames = 6; // death_1.png to death_6.png (but we use 0-5 index)
+  const framesPerSpriteFrame = cmd.durationFrames / totalSpriteFrames;
+  
+  // Calculate which sprite frame to show
+  let spriteFrame = Math.floor(frameCounter / framesPerSpriteFrame);
+  spriteFrame = Math.min(spriteFrame, totalSpriteFrames - 1);
 
   const [x, y] = Match.value(cmd.mode).pipe(
     Match.tag("Pixel Mode", () => [cmd.a, cmd.b]),
@@ -494,10 +500,7 @@ export function renderGame(
 
   // render players (16x24 sprites, hitbox is bottom 16x16)
   for (const player of model.players) {
-    // skip if death animation is playing
-    if (hasPlayerDeathAnimation(player.player_id)) {
-      continue;
-    }
+    if (player.isAlive) {
 
     const spriteParts = createSpriteForEntity(player);
 
@@ -524,7 +527,7 @@ export function renderGame(
       );
     }
   }
-
+}
   // render animations (on top of entities)
   elements.push(...renderAnimations(model));
 

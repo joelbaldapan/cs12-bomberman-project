@@ -63,6 +63,7 @@ import {
   SouthDirection,
   WestDirection,
   SoftBreakAnimation,
+  DeathAnimation,
   CellMode,
   GridCoords,
   CountdownModel,
@@ -362,6 +363,7 @@ function _check_explosion_powerup_collision(model: Model): Model {
     for (const explosion of explosions) {
       if (_checkPlayerOverlap(player, explosion.row, explosion.col)) {
         newWorld = addEntity(newWorld, onExplosionHitPlayer(player));
+        // code for death animation most likely goes here
       }
     }
     for (const powerup of powerups) {
