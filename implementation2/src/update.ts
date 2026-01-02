@@ -38,7 +38,9 @@ import {
   CellMode,
   GridCoords,
   CountdownModel,
-  PlayingModel
+  PlayingModel,
+  DrawType,
+  WinResult
   // add others if needed
 } from "./model";
 import { Msg } from "./msg";
@@ -47,7 +49,8 @@ import { Array, HashMap, pipe, Match, HashSet, Option } from "effect";
 const _refresh_players_cache = (world: World): HashSet.HashSet<Player> => 
   getAllType(world, Player);
 
-function _update_timers(model: Model, dt: number): Model {
+function _update_timers(model: Model): Model {
+  const dt = 1
   return Match.value(model.state).pipe(
     Match.tag("Transition Model", () => { return {...model}}),
     Match.tag("Countdown Model", () => {
@@ -56,10 +59,29 @@ function _update_timers(model: Model, dt: number): Model {
       }
       return {...model, roundStartTimer: model.roundStartTimer - dt}
     }),
-    Match.tag("Playing Model", () => {return {...model, roundStartTimer: model.timer - dt}
+    Match.tag("Playing Model", () => {return {...model, timer: model.timer - dt}
   }),
-    Match.tag("EndDelay Model", () => {return {...model, roundStartTimer: model.winCountdown - dt}
-  }),
+    Match.tag("EndDelay Model", () => {
+      const nextTimer = model.winCountdown - 1;
+      
+      if (model.winCountdown <= 0) {
+        if (model.tempWinner !== -1) {
+            return _finalize_round(
+                model, 
+                Option.some(model.tempWinner), 
+                Option.none()
+            );
+        } 
+        else {
+            if (model.timer <= 0) {
+                return _finalize_round(model, Option.none(), Option.some(TimeResult.make({})));
+            } else {
+                return _finalize_round(model, Option.none(), Option.some(DeathResult.make({})));
+            }
+        }
+      }
+      return { ...model, winCountdown: nextTimer };
+    }),
     Match.exhaustive
   )
 }
@@ -351,58 +373,34 @@ function _resolve_bomb_passthrough(model: Model): Model {
 }
 
 function _check_round_end_conditions(model: Model): Model {
-  // 1. If already transitioning, return early (no change)
-  if (model.state._tag === "Transition Model") {
+if (model.state._tag === "Transition Model") return model;
+
+  const alive = Array.filter(getAllType(model.world, Player), (player) => player.isAlive);
+
+  if (model.timer <= 0) {
+    if (model.state._tag !== "EndDelay Model" || model.tempWinner !== -1) {
+       return {
+         ...model,
+         state: EndDelayModel.make({}),
+         tempWinner: -1, 
+         winCountdown: 0, 
+       };
+    }
     return model;
   }
 
-  // 2. Timer ran out -> Draw (Time)
-  if (model.timer <= 0) {
-    const timeDrawResult: RoundResult = {
-      outcome: DrawResult.make({}),
-      winnerId: Option.none(),
-      drawType: Option.some(TimeResult.make({})),
-      matchOver: false,
-      overallWinnerId: Option.none(),
-    };
-
-    /*
-    TODO: IMPLEMENT _enter_transition()
-    TODO: IMPLEMENT _enter_transition()
-    TODO: IMPLEMENT _enter_transition()
-    */
-    return {
-      ...model,
-      roundResult: Option.some(timeDrawResult),
-      state: TransitionModel.make({}),
-    };
-  }
-
-  const alive = Array.filter(getAllType(model.world, Player), (player) => player.isAlive)
-
-  // 3. All dead -> Draw (Death)
   if (alive.length === 0) {
-    const deathDrawResult: RoundResult = {
-      outcome: DrawResult.make({}),
-      winnerId: Option.none(),
-      drawType: Option.some(DeathResult.make({})),
-      matchOver: false,
-      overallWinnerId: Option.none(),
-    };
-
-    /*
-    TODO: IMPLEMENT _enter_transition()
-    TODO: IMPLEMENT _enter_transition()
-    TODO: IMPLEMENT _enter_transition()
-    */
-    return {
-      ...model,
-      roundResult: Option.some(deathDrawResult),
-      state: TransitionModel.make({}),
-    };
+    if (model.state._tag !== "EndDelay Model" || model.tempWinner !== -1) {
+       return {
+         ...model,
+         state: EndDelayModel.make({}),
+         tempWinner: -1,
+         winCountdown: model.state._tag === "EndDelay Model" ? model.winCountdown : model.fps,
+       };
+    }
+    return model;
   }
 
-  // 4. One survivor -> Enter End Delay
   if (alive.length === 1 && model.state._tag !== "EndDelay Model") {
     return {
       ...model,
@@ -412,9 +410,9 @@ function _check_round_end_conditions(model: Model): Model {
     };
   }
 
-  // No conditions met, return model as is
   return model;
 }
+
 
 function _trySpawnBomb(model: Model, player_id_to_place: number): Model {
   const playerOption = Array.findFirst(
@@ -477,6 +475,49 @@ if (Option.isNone(playerOption)) return model;
   };
 }
 
+function _finalize_round(
+  model: Model,
+  winnerId: Option.Option<number>,
+  drawType: Option.Option<DrawType>
+): Model {
+
+  let nextScores = model.scores;
+  if (Option.isSome(winnerId)) {
+    const wId = winnerId.value;
+    const currentScore = Option.getOrElse(HashMap.get(model.scores, wId), () => 0);
+    nextScores = HashMap.set(model.scores, wId, currentScore + 1);
+  }
+
+  let matchOver = false;
+  let overallWinner = Option.none<number>();
+  
+  if (Option.isSome(winnerId)) {
+      const wId = winnerId.value;
+      const newScore = Option.getOrElse(HashMap.get(nextScores, wId), () => 0);
+      if (newScore >= model.roundsToWin) {
+          matchOver = true;
+          overallWinner = winnerId;
+      }
+  }
+
+
+  const roundResult = RoundResult.make({
+    outcome: Option.isSome(winnerId) ? WinResult.make({}) : DrawResult.make({}),
+    winnerId: winnerId,
+    drawType: drawType,
+    matchOver: matchOver,
+    overallWinnerId: overallWinner,
+  });
+
+  return {
+    ...model,
+    scores: nextScores,
+    roundResult: Option.some(roundResult),
+    state: TransitionModel.make({}),
+    eventBuffer: Array.empty(), // Clear buffers
+  };
+}
+
 export const update = (msg: Msg, model: Model) =>
   Match.value(msg).pipe(
     Match.tag("Canvas.MsgTick", () => {
@@ -484,7 +525,8 @@ export const update = (msg: Msg, model: Model) =>
         model,
         _clear_sfx_buffer,
         _decay_inputs,
-        _handle_input_for_players, // to implement: for updating player positions sana
+        _handle_input_for_players,
+        _update_timers, // to implement: for updating player positions sana
         _update_entities,
         _detonate_bombs,
         _process_events,
