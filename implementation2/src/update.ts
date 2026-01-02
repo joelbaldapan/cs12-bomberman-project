@@ -9,6 +9,7 @@ import {
   getPlayerRow,
   hitboxX,
   hitboxY,
+  isOverlapping,
   onExplosionHitPlayer,
   playerMaxBombs,
   playerRange,
@@ -261,7 +262,7 @@ function _update_bots(model: Model, dt: number): Model {
       player,
       dt
     );
-    // console.log(action._tag)
+    console.log(action._tag)
 
     // update INTERNALS
     nextBotInternals = HashMap.set(nextBotInternals, botId, nextState);
@@ -483,27 +484,6 @@ function _process_events(model: Model): Model {
   });
 }
 
-function _checkPlayerOverlap(
-  player: Player,
-  row: number,
-  col: number
-): boolean {
-  const cellX1 = col * 16;
-  const cellY1 = row * 16;
-  const cellX2 = cellX1 + 16;
-  const cellY2 = cellY1 + 16;
-
-  // Player hitbox (bottom 16x16)
-  const px1 = hitboxX(player);
-  const py1 = hitboxY(player);
-  const px2 = px1 + 16;
-  const py2 = py1 + 16;
-
-  if (px2 <= cellX1 || px1 >= cellX2) return false;
-  if (py2 <= cellY1 || py1 >= cellY2) return false;
-
-  return true;
-}
 
 function _check_explosion_powerup_collision(model: Model): Model {
   const explosions = getAllType(model.world, Explosion);
@@ -519,7 +499,7 @@ function _check_explosion_powerup_collision(model: Model): Model {
   for (const player of currentPlayers) {
     if (player.isExpired) continue;
     for (const explosion of explosions) {
-      if (_checkPlayerOverlap(player, explosion.row, explosion.col)) {
+      if (isOverlapping(player, [explosion.row, explosion.col])) {
         newWorld = addEntity(newWorld, onExplosionHitPlayer(player));
         // code for death animation most likely goes here
       }
@@ -532,7 +512,7 @@ function _check_explosion_powerup_collision(model: Model): Model {
       if (Array.contains(picked, position)) {
         continue;
       }
-      if (_checkPlayerOverlap(player, powerup.row, powerup.col)) {
+      if (isOverlapping(player, [powerup.row, powerup.col])) {
         const p = powerup as Powerup;
         const [newPlayer, result] = onPickup(p, player);
         newWorld = addEntity(newWorld, newPlayer);
@@ -572,7 +552,7 @@ function _resolve_bomb_passthrough(model: Model): Model {
 
       if (!player || !player.isAlive) return false;
 
-      return _checkPlayerOverlap(player, bomb.row, bomb.col);
+      return isOverlapping(player, [bomb.row, bomb.col]);
     });
 
     if (nextMoveAwayIds.length !== bomb.moveAwayIds.length) {
@@ -671,14 +651,14 @@ function _trySpawnBomb(model: Model, player_id_to_place: number): Model {
 
   const overlappingIds: number[] = [];
   for (const p of activePlayers) {
-    if (_checkPlayerOverlap(p, r, c)) {
+    if (isOverlapping(p, [r, c])) {
       overlappingIds.push(p.player_id);
     }
   }
 
   let newBomb = makeBomb(r, c, fuseDuration, playerRange(player), player.id);
   newBomb = { ...newBomb, moveAwayIds: overlappingIds };
-  // console.log(overlappingIds)
+  console.log(overlappingIds)
 
   let newWorld = addEntity(model.world, newBomb);
 
@@ -811,7 +791,7 @@ function _tick_game(model: Model, dt: number): Model {
     model.state._tag === "Transition Model" ||
     model.state._tag === "Countdown Model"
   ) {
-    return { ...model };
+    return model;
   }
   return pipe(
     model,
@@ -839,8 +819,7 @@ export const update = (msg: Msg, model: Model) =>
 
       // Calculate how many frames have passed IRL!
       let dt = Math.floor(elapsedMS / EXPECTED_FRAME_MS);
-      console.log(dt);
-      const MAX_DT = 10.0; 
+      const MAX_DT = 9.0; 
       dt = Math.min(dt, MAX_DT);
 
       const nextModel = pipe(
@@ -857,7 +836,6 @@ export const update = (msg: Msg, model: Model) =>
       const nextInputState = HashSet.add(model.inputState, key);
       let nextModel = { ...model, inputState: nextInputState };
 
-      // Triggers
       if (key === "L" || key === "l") {
         let explosions = getAllType(model.world, Explosion);
         for (const explosion of explosions) {

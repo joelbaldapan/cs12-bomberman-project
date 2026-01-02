@@ -265,15 +265,48 @@ export const getOverlappingCells = (bot: Player): GridCoords[] => {
 }
 
 export const isOverlapping = (player: Player, cell: GridCoords): boolean => {
-    const TILE_SIZE = 16
-
-    const pCX = player.x + (player.width / 2);
-    const pCY = player.y + (player.height / 2);
-    const cLeft = cell[1] * TILE_SIZE;
-    const cTop = cell[0] * TILE_SIZE;
+    const TILE_SIZE = 16;
+    const ALLOWANCE = 2;
     
-    return (pCX >= cLeft && pCX < cLeft + TILE_SIZE && 
-            pCY >= cTop && pCY < cTop + TILE_SIZE);
+    const cellLeft = cell[1] * TILE_SIZE;
+    const cellTop = cell[0] * TILE_SIZE;
+    const cellRight = cellLeft + TILE_SIZE;
+    const cellBottom = cellTop + TILE_SIZE;
+
+    const playerLeft = hitboxX(player);
+    const playerTop = hitboxY(player);
+
+    const playerRight = playerLeft + 16; 
+    const playerBottom = playerTop + 16;
+
+    return (
+        playerLeft < cellRight - ALLOWANCE &&
+        playerRight > cellLeft + ALLOWANCE &&
+        playerTop < cellBottom - ALLOWANCE &&
+        playerBottom > cellTop + ALLOWANCE
+    );
+};
+
+export const strictIsOverlapping = (player: Player, cell: GridCoords): boolean => {
+    const TILE_SIZE = 16;
+    
+    const cellLeft = cell[1] * TILE_SIZE;
+    const cellTop = cell[0] * TILE_SIZE;
+    const cellRight = cellLeft + TILE_SIZE;
+    const cellBottom = cellTop + TILE_SIZE;
+
+    const playerLeft = hitboxX(player);
+    const playerTop = hitboxY(player);
+
+    const playerRight = playerLeft + 16; 
+    const playerBottom = playerTop + 16;
+
+    return (
+        playerLeft < cellRight &&
+        playerRight > cellLeft &&
+        playerTop < cellBottom &&
+        playerBottom > cellTop
+    );
 };
 export const getPlayerRow = (player: Player): number => {
   const cx = hitboxX(player) + 16 / 2;

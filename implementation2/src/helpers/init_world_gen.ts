@@ -57,7 +57,7 @@ export const getPlayerStartCoords = (rows: number, cols: number): GridCoords[] =
   return [
     [1, 1],                 // P1: Top-Left
     [1, cols - 2],          // P2: Top-Right
-    [rows - 3, 1],          // P3: Bottom-Left
+    [rows - 2, 1],          // P3: Bottom-Left
     [rows - 2, cols - 2],   // P4: Bottom-Right
   ];
 };

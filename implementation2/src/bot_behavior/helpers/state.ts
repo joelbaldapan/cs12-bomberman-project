@@ -20,6 +20,7 @@ import { followPathAction } from "./movement";
 import { getManhattan, getAllDangerZones } from "./policies";
 import { HashSet, Match, Option } from "effect";
 import { isCellBlocking } from "../../helpers/world";
+import { getOverlappingCells } from "../../entity/player";
 
 // ON ENTER
 
@@ -122,9 +123,11 @@ export const runOnTick = (
   const atGoal = (goalOpt: Option.Option<GridCoords>) => {
     if (Option.isNone(goalOpt)) return false;
     const [gr, gc] = goalOpt.value;
-    return bot.row === gr && bot.col === gc;
+    const overlapping = getOverlappingCells(bot)
+    return overlapping.some(([r, c]) => r === gr && c === gc);
   };
-  // console.log(`Goal? ${atGoal(memory.goal)}`)
+  console.log(`Goal? ${atGoal(memory.goal)}`)
+  console.log(`Goal? ${memory.goal}`)
 
   return Match.value(state).pipe(
 
@@ -145,9 +148,13 @@ export const runOnTick = (
       }
 
       const dangerZones = getAllDangerZones(config.dangerPolicy, world);
-      const inDanger = HashSet.has(dangerZones, `${bot.row},${bot.col}`);
+      const overlapping = getOverlappingCells(bot); 
+
+      const inDanger = overlapping.some(([r, c]) => 
+        HashSet.has(dangerZones, `${r},${c}`)
+    );
+      console.log(inDanger)
       
-      // Update the state flag using the Constructor
       const newState = EscapeState.make({
         ...currentState,
         leftDanger: !inDanger ? true : currentState.leftDanger,
@@ -211,7 +218,7 @@ export const decideAction = (
   world: World,
   bot: Player
 ): { action: BotAction; memory: BotMemory } => {
-  // console.log(`State: ${state._tag}`)
+  console.log(`State: ${state._tag}`)
   return Match.value(state).pipe(
     Match.tag("Wander State", () =>
       followPathAction(memory, world, bot, true)

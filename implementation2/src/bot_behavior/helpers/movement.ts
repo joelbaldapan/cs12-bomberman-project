@@ -1,4 +1,4 @@
-import { isOverlapping } from "../../entity/player";
+import { isOverlapping, strictIsOverlapping } from "../../entity/player";
 import {
   World,
   Player,
@@ -53,9 +53,9 @@ export const followPathAction = (
   let nextCell = memory.path[0];
   let currentPath = [...memory.path];
 
-    // console.log(`Bot 1: At [${currCell}] -> Aiming for [${nextCell}]`);
-    // console.log(`       Px: ${entity.x.toFixed(1)}, ${entity.y.toFixed(1)}`);
-    // console.log(`       Path ${memory.path} `);
+    console.log(`Bot 1: At [${currCell}] -> Aiming for [${nextCell}]`);
+    console.log(`       Px: ${entity.x.toFixed(1)}, ${entity.y.toFixed(1)}`);
+    console.log(`       Path ${memory.path} `);
 
   // 1 - PLANT BOMB CHECK
   if (currCell[0] === nextCell[0] && currCell[1] === nextCell[1]) {
@@ -238,7 +238,6 @@ const followActionStrict = (
 
   if (cellAtGoal && cellAtGoal._tag === "Block") {
     if (allowBombing) {
-      // Unwrap Option
       const cellAtFeet = Option.getOrNull(world.board[entity.row][entity.col]);
 
       const standingOnBomb = cellAtFeet && cellAtFeet._tag === "Bomb";
@@ -251,7 +250,7 @@ const followActionStrict = (
 
   // 2 - Move
   const moveDir = getDir(prevCell, goalCell);
-  const isTouchingPrev = isOverlapping(entity, prevCell);
+  const isTouchingPrev = strictIsOverlapping(entity, prevCell);
 
   if (!isTouchingPrev) {
     const newPath = memory.path.slice(2);

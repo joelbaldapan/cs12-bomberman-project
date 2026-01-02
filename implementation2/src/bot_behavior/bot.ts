@@ -204,11 +204,6 @@ export const updateBot = (
   );
 
   if (tickRes.nextState) {
-    if (tickRes.nextState._tag === currentBehavior._tag) {
-      // Just update data
-      currentBehavior = tickRes.nextState;
-      memory = tickRes.memory;
-    } else {
       // Hard transition
       const res = transitionTo(
         tickRes.nextState,
@@ -219,7 +214,6 @@ export const updateBot = (
       );
       currentBehavior = res.state;
       memory = res.memory;
-    }
   } else {
     memory = tickRes.memory;
   }
@@ -258,6 +252,7 @@ const transitionTo = (
     path: [],
     goal: Option.none(),
     isStrictMovement: false,
+    reevalTimer: 0
   });
 
   return StateLogic.runOnEnter(newState, config, freshMem, world, bot);
