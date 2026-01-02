@@ -396,7 +396,7 @@ export type BotUpdateResult = {
   action: BotAction;
 };
 
-export const InputState = S.HashMap({ key: S.String, value: S.Int });
+export const InputState = S.HashSet(S.String);
 export type InputState = typeof InputState.Type;
 
 // MODEL
@@ -520,7 +520,7 @@ export const initModel = (
     roundStartTimer: 3 * fps,
     roundsToWin: config.roundsToWin,
     draw: false,
-    inputState: HashMap.empty(),
+    inputState: HashSet.empty(),
     debugMode: false,
     scores: HashMap.empty(),
     tempWinner: -1,

@@ -1,4 +1,4 @@
-import { HashMap } from "effect";
+import { HashMap, HashSet } from "effect";
 import { InputState } from "../model";
 
 type PlayerControlScheme = {
@@ -16,7 +16,7 @@ export const CONTROLS: Record<number, PlayerControlScheme> = {
     down: ["ArrowDown"],
     left: ["ArrowLeft"],
     right: ["ArrowRight"],
-    bomb: ["Enter"] 
+    bomb: [" "] 
   },
   // Player 2
   1: {
@@ -28,8 +28,7 @@ export const CONTROLS: Record<number, PlayerControlScheme> = {
   }
 };
 
-export const KEY_TIME_LIMIT = 15;
-
 export const isHeld = (inputState: InputState, keys: string[]): boolean => {
-  return keys.some((k) => HashMap.has(inputState, k));
+  // HashSet.has returns true if the key exists
+  return keys.some((k) => HashSet.has(inputState, k));
 };
