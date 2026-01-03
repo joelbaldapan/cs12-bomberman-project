@@ -621,7 +621,7 @@ const renderResultScreen = (model: Model): CanvasElement[] => {
 
     elements.push(
       Text.make({
-        x: centerX - (winnerText.length * charWidth) / 2,
+        x: centerX - 30,
         y: yOffset,
         text: winnerText,
         color: "#FFD700",
