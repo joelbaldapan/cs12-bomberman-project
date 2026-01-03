@@ -53,6 +53,8 @@ import {
   EventType,
   SoundType,
   AnimationCmd,
+  AnimationType,
+  ActiveAnimation,
   RoundResult,
   DrawResult,
   TimeResult,
@@ -617,6 +619,55 @@ function _check_round_end_conditions(model: Model): Model {
   return model;
 }
 
+function getAnimationMaxFrames(animType: AnimationType): number {
+  return Match.value(animType).pipe(
+    Match.tag("Death Animation", () => 48),
+    Match.tag("Soft Break Animation", () => 15),
+    Match.tag("PowerupBreak Animation", () => 15),
+    Match.exhaustive
+  );
+}
+
+function _process_new_animations(model: Model): Model {
+  if (model.vfxBuffer.length === 0) {
+    return model;
+  }
+
+  const newAnimations = model.vfxBuffer.map(cmd =>
+    ActiveAnimation.make({
+      cmd,
+      frameCounter: 0,
+      startFrame: model.globalFrameCount,
+    })
+  );
+
+  return Model.make({
+    ...model,
+    activeAnimations: [...model.activeAnimations, ...newAnimations],
+    vfxBuffer: [],
+  });
+}
+
+function _update_animations(model: Model): Model {
+  const updatedAnimations = model.activeAnimations
+    .map(anim => 
+      ActiveAnimation.make({
+        ...anim,
+        frameCounter: anim.frameCounter + 1,
+      })
+    )
+    .filter(anim => {
+      const maxFrames = getAnimationMaxFrames(anim.cmd.type);
+      return anim.frameCounter < maxFrames;
+    });
+
+  return Model.make({
+    ...model,
+    activeAnimations: updatedAnimations,
+    globalFrameCount: model.globalFrameCount + 1,
+  });
+}
+
 function _trySpawnBomb(model: Model, player_id_to_place: number): Model {
   const playerOption = Array.findFirst(
     Array.fromIterable(HashMap.values(model.world.entities)),
@@ -782,6 +833,8 @@ function _start_new_round(model: Model): Model {
     eventBuffer: [],
     sfxBuffer: [],
     vfxBuffer: [],
+    activeAnimations: [],
+    globalFrameCount: 0,
     tempWinner: -1,
     roundResult: Option.none(),
   };
@@ -802,7 +855,9 @@ function _tick_game(model: Model, dt: number): Model {
     _check_explosion_powerup_collision,
     _resolve_bomb_passthrough,
     _process_events,
-    _check_round_end_conditions
+    _check_round_end_conditions,
+    _process_new_animations,
+    _update_animations,
   );
 }
 
