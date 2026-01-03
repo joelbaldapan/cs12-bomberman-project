@@ -232,6 +232,170 @@ const renderUI = (model: Model): CanvasElement[] => {
   return elements;
 };
 
+// debug mode
+
+const renderDebugInfo = (model: Model): CanvasElement[] => {
+  if (!model.debugMode) return [];
+
+  const elements: CanvasElement[] = [];
+
+  // render debug info for each bot player
+  for (const player of model.players) {
+    // check if this player is a bot
+    const botInternalOption = HashMap.get(model.botInternals, player.id);
+    if (Option.isNone(botInternalOption)) continue; // not a bot
+
+    const botInternal = Option.getOrThrow(botInternalOption);
+    const config = botInternal.config;
+    const memory = botInternal.memory;
+    const currentState = botInternal.currentState;
+
+    const botCenterX = player.x + 8;
+    const botCenterY = player.y + 8;
+
+    const botTypeText = Match.value(config.botType).pipe(
+      Match.tag("Hostile Bot", () => "HOSTILE"),
+      Match.tag("Careful Bot", () => "CAREFUL"),
+      Match.tag("Greedy Bot", () => "GREEDY"),
+      Match.exhaustive
+    );
+
+    elements.push(
+      Text.make({
+        x: botCenterX - botTypeText.length * 2 + 13,
+        y: botCenterY + 23,
+        text: botTypeText,
+        color: "#FFFFFF",
+        fontSize: 8,
+      })
+    );
+
+    const stateText = Match.value(currentState).pipe(
+      Match.tag("Wander State", () => "Wander"),
+      Match.tag("Escape State", () => "Escape"),
+      Match.tag("Get Powerup State", () => "GetPowerup"),
+      Match.tag("Attack State", () => "Attack"),
+      Match.exhaustive
+    );
+
+    elements.push(
+      Text.make({
+        x: botCenterX - stateText.length * 2 + 12,
+        y: botCenterY + 30,
+        text: stateText,
+        color: "#FFFF00",
+        fontSize: 8,
+      })
+    );
+
+    if (config.dangerRadius > 0) {
+      const radiusPixels = config.dangerRadius * TILE_SIZE;
+      
+      const steps = 32;
+      for (let i = 0; i < steps; i++) {
+        const angle = (i / steps) * Math.PI * 2;
+        const nextAngle = ((i + 1) / steps) * Math.PI * 2;
+        
+        const x1 = botCenterX + Math.cos(angle) * radiusPixels;
+        const y1 = botCenterY + Math.sin(angle) * radiusPixels;
+        const x2 = botCenterX + Math.cos(nextAngle) * radiusPixels;
+        const y2 = botCenterY + Math.sin(nextAngle) * radiusPixels;
+        
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        const length = Math.sqrt(dx * dx + dy * dy);
+        
+        elements.push(
+          SolidRectangle.make({
+            x: x1,
+            y: y1,
+            width: Math.max(length, 1),
+            height: 2,
+            color: "#FF000080",
+          })
+        );
+      }
+    }
+
+    const pathColor = getPathColorForBot(player.id);
+    
+    for (const [row, col] of memory.path) {
+      const [markerX, markerY] = getPathMarkerPosition([row, col], player.id);
+      
+      elements.push(
+        SolidRectangle.make({
+          x: markerX,
+          y: markerY,
+          width: 3,
+          height: 3,
+          color: pathColor,
+        })
+      );
+    }
+
+    if (Option.isSome(memory.goal)) {
+      const [goalRow, goalCol] = Option.getOrThrow(memory.goal);
+      const goalX = goalCol * TILE_SIZE + TILE_SIZE / 2 - 4;
+      const goalY = goalRow * TILE_SIZE + TILE_SIZE / 2 - 4;
+      
+      elements.push(
+        SolidRectangle.make({
+          x: goalX,
+          y: goalY,
+          width: 8,
+          height: 2,
+          color: pathColor,
+        })
+      );
+      elements.push(
+        SolidRectangle.make({
+          x: goalX + 3,
+          y: goalY - 3,
+          width: 2,
+          height: 8,
+          color: pathColor,
+        })
+      );
+    }
+  }
+
+  return elements;
+};
+
+// get path color for each bot 
+const getPathColorForBot = (playerId: number): string => {
+  switch (playerId) {
+    case 0: return "#ffffffff"; // no need (player)
+    case 1: return "#FF8800FF"; // p2
+    case 2: return "#8800FFFF"; // p3
+    case 3: return "#00FFFFFF"; // p4
+    default: return "#FFFFFFFF";
+  }
+};
+
+// get marker position for path cells 
+const getPathMarkerPosition = (
+  cell: readonly [number, number], 
+  playerId: number
+): [number, number] => {
+  const [row, col] = cell;
+  const cellX = col * TILE_SIZE;
+  const cellY = row * TILE_SIZE;
+  
+  switch (playerId) {
+    case 0: 
+      return [cellX + 1, cellY + 1];
+    case 1: 
+      return [cellX + TILE_SIZE - 4, cellY + 1];
+    case 2: 
+      return [cellX + 1, cellY + TILE_SIZE - 4];
+    case 3: 
+      return [cellX + TILE_SIZE - 4, cellY + TILE_SIZE - 4];
+    default:
+      return [cellX + 1, cellY + 1];
+  }
+};
+
 // countdown
 
 const renderCountdown = (model: Model): CanvasElement[] => {
@@ -481,6 +645,7 @@ export function renderGame(
   elements.push(...renderAnimations(model));
   elements.push(...renderUI(model));
   elements.push(...renderCountdown(model));
+  elements.push(...renderDebugInfo(model))
 
   return elements;
 }
