@@ -44,7 +44,7 @@ Alternate `ESCAPE` implementations could:
 
 | Student Name              | Assigned Option (Part 2) |
 | :------------------------ | :----------------------- |
-| **Aranas, John Ray**      | **add ur option guys**           |
+| **Aranas, John Ray**      | **Option 3 extreme bot type (Python)**           |
 | **Baldapan, Joel Angelo** | **add ur option guys**           |
 | **Crucero Robert Rohan**  | **add ur option guys**           |
 | **Gonzalez Dayshaun**     | **add ur option guys**           |
