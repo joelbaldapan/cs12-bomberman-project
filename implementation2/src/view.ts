@@ -8,11 +8,11 @@ import {
 } from "cs12251-mvu/src/canvas";
 import { Array, HashMap, Match, pipe, Option } from "effect";
 import { Assets, createSpriteForEntity, updateAnimationFrame } from "./spritemap";
-import { Model, SoundType, Entity, Player, AnimationCmd, AnimationType, CoordMode, PowerUpType, BotInternalState } from "./model";
+import { Model, SoundType, Entity, Player, AnimationCmd, AnimationType, CoordMode, PowerUpType, BotInternalState, ActiveAnimation } from "./model";
 import type { Msg } from "./msg";
 
 
-//  BOARD / CONSTANTS
+// board / constants
 
 
 const TILE_SIZE = 16;
@@ -41,55 +41,18 @@ export const playSound = (sound: SoundType): void => {
   audio.play();
 };
 
-export const playSfxBuffer = (sfxBuffer: SoundType[]): void => {
+export const playSfxBuffer = (sfxBuffer: readonly SoundType[]): void => {
   for (const sound of sfxBuffer) {
     playSound(sound);
   }
 };
 
-// ANIMATIONS; initial implementation lang huhums
+// animation rendering
 
-// animation tracking
-type ActiveAnimation = {
-  cmd: AnimationCmd;
-  frameCounter: number;
-};
-
-let activeAnimations: ActiveAnimation[] = [];
-
-export const processAnimations = (vfxBuffer: AnimationCmd[]): void => {
-  for (const cmd of vfxBuffer) {
-    activeAnimations.push({
-      cmd,
-      frameCounter: 0,
-    });
-  }
-
-    activeAnimations = activeAnimations
-    .map((anim) => ({
-      ...anim,
-      frameCounter: anim.frameCounter + 1,
-    }))
-    .filter((anim) => {
-      const maxFrames = getAnimationMaxFrames(anim.cmd);
-      return anim.frameCounter < maxFrames;
-    });
-};
-
-const getAnimationMaxFrames = (cmd: AnimationCmd): number => {
-  return Match.value(cmd.type).pipe(
-    Match.tag("Death Animation", () => 48),
-    Match.tag("Soft Break Animation", () => 15),
-    Match.tag("PowerupBreak Animation", () => 15),
-    Match.exhaustive
-  );
-};
-
-// rendering animations
 const renderAnimations = (model: Model): CanvasElement[] => {
   const elements: CanvasElement[] = [];
 
-  for (const anim of activeAnimations) {
+  for (const anim of model.activeAnimations) {
     const { cmd, frameCounter } = anim;
 
     Match.value(cmd.type).pipe(
@@ -121,10 +84,9 @@ const renderDeathAnimation = (
 
   const playerId = Option.getOrThrow(cmd.id);
 
-  const totalSpriteFrames = 6; // death_1.png to death_6.png (but we use 0-5 index)
-  const framesPerSpriteFrame = cmd.durationFrames / totalSpriteFrames;
+  const totalSpriteFrames = 6;
+  const framesPerSpriteFrame = 8;
   
-  // Calculate which sprite frame to show
   let spriteFrame = Math.floor(frameCounter / framesPerSpriteFrame);
   spriteFrame = Math.min(spriteFrame, totalSpriteFrames - 1);
 
@@ -181,7 +143,6 @@ const renderPowerupBreakAnimation = (
     Match.exhaustive
   );
 
-  // blinking effect (placeholder lang)
   if (spriteFrame < 3 && frameCounter % 4 < 2) {
     const typeStr = Match.value(powerupType).pipe(
       Match.tag("Fire Powerup", () => "fire"),
@@ -202,35 +163,38 @@ const renderPowerupBreakAnimation = (
   return null;
 };
 
-
-// helper
-
-const hasAnimationAtCell = (row: number, col: number, animType: string): boolean => {
+// helpers
+const hasAnimationAtCell = (
+  activeAnimations: readonly ActiveAnimation[],
+  row: number, 
+  col: number, 
+  animType: string
+): boolean => {
   return activeAnimations.some((anim) => {
-    const { cmd } = anim;
-    if (cmd.type._tag !== animType) return false;
+    if (anim.cmd.type._tag !== animType) return false;
 
-    return Match.value(cmd.mode).pipe(
-      Match.tag("Cell Mode", () => cmd.a === row && cmd.b === col),
-      Match.tag("Pixel Mode", () => false),
-      Match.exhaustive
+    return Match.value(anim.cmd.mode).pipe(
+      Match.tag("Cell Mode", () => anim.cmd.a === row && anim.cmd.b === col),
+      Match.orElse(() => false)
     );
   });
 };
 
-const hasPlayerDeathAnimation = (playerId: number): boolean => {
+const hasPlayerDeathAnimation = (
+  activeAnimations: readonly ActiveAnimation[],
+  playerId: number
+): boolean => {
   return activeAnimations.some((anim) => {
-    const { cmd } = anim;
-    if (cmd.type._tag !== "Death Animation") return false;
+    if (anim.cmd.type._tag !== "Death Animation") return false;
     
-    return Option.match(cmd.id, {
+    return Option.match(anim.cmd.id, {
       onSome: (id) => id === playerId,
       onNone: () => false,
     });
   });
 };
 
-// ui timer
+// ui
 
 const renderUI = (model: Model): CanvasElement[] => {
   const elements: CanvasElement[] = [];
@@ -273,7 +237,7 @@ const renderUI = (model: Model): CanvasElement[] => {
 const renderCountdown = (model: Model): CanvasElement[] => {
   if (model.state._tag !== "Countdown Model") return [];
 
-  const secondsRemaining = 3;
+  const secondsRemaining = Math.ceil(model.roundStartTimer / model.fps);
 
   const text =
     secondsRemaining === 3
@@ -282,7 +246,9 @@ const renderCountdown = (model: Model): CanvasElement[] => {
       ? "Set"
       : secondsRemaining === 1
       ? "Go!"
-      : String(secondsRemaining);
+      : "";
+
+  if (!text) return [];
 
   const textWidth = text.length * 4;
   const centerX = SCREEN_WIDTH / 2;
@@ -306,8 +272,7 @@ const renderCountdown = (model: Model): CanvasElement[] => {
   ];
 };
 
-
-// result screen rendering
+// result screen
 
 const renderResultScreen = (model: Model): CanvasElement[] => {
   if (Option.isNone(model.roundResult)) return [];
@@ -318,7 +283,6 @@ const renderResultScreen = (model: Model): CanvasElement[] => {
   const centerX = SCREEN_WIDTH / 2;
   let yOffset = 30;
 
-  // results
   const resultText = Match.value(result.outcome).pipe(
     Match.tag("Win Result", () => {
       const winnerId = Option.getOrElse(result.winnerId, () => -1);
@@ -356,7 +320,6 @@ const renderResultScreen = (model: Model): CanvasElement[] => {
 
   yOffset += 20;
 
-  // scores
   const scoresTitle = "SCORES";
   elements.push(
     Text.make({
@@ -370,7 +333,6 @@ const renderResultScreen = (model: Model): CanvasElement[] => {
 
   yOffset += 15;
 
-  // individual scores
   for (let playerId = 0; playerId < 4; playerId++) {
     const score = HashMap.get(model.scores, playerId);
     const scoreValue = Option.getOrElse(score, () => 0);
@@ -389,7 +351,6 @@ const renderResultScreen = (model: Model): CanvasElement[] => {
     yOffset += 10;
   }
 
-  // match over
   if (result.matchOver && Option.isSome(result.overallWinnerId)) {
     yOffset += 10;
     const winnerId = Option.getOrThrow(result.overallWinnerId);
@@ -431,14 +392,9 @@ export function renderGame(
 ): CanvasElement[] {
   const elements: CanvasElement[] = [];
 
-  // update animation
   updateAnimationFrame();
+  playSfxBuffer(model.sfxBuffer);
 
-  // TODO: handled sa update
-  // playSfxBuffer(model.sfxBuffer);
-  // processAnimations(model.vfxBuffer);
-
-  //bg
   elements.push(
     SolidRectangle.make({
       x: 0,
@@ -449,26 +405,22 @@ export function renderGame(
     })
   );
 
-  // transition screen
   if (model.state._tag === "Transition Model") {
     elements.push(...renderResultScreen(model));
     return elements;
   }
 
-  // render grid entities
   HashMap.forEach(model.world.entities, (entity) => {
     if (entity._tag === "Player") return;
 
-    // skip blocks with soft break animation
     if (entity._tag === "Block" && !entity.isHard) {
-      if (hasAnimationAtCell(entity.row, entity.col, "Soft Break Animation")) {
+      if (hasAnimationAtCell(model.activeAnimations, entity.row, entity.col, "Soft Break Animation")) {
         return;
       }
     }
 
-    // skip powerups with break animation
     if (entity._tag === "Powerup") {
-      if (hasAnimationAtCell(entity.row, entity.col, "PowerupBreak Animation")) {
+      if (hasAnimationAtCell(model.activeAnimations, entity.row, entity.col, "PowerupBreak Animation")) {
         return;
       }
     }
@@ -479,7 +431,6 @@ export function renderGame(
       const x = entity.col * model.tileSize;
       const y = entity.row * model.tileSize;
 
-      // simple culling
       if (
         x >= -model.tileSize &&
         x <= screenWidth &&
@@ -497,9 +448,10 @@ export function renderGame(
     }
   });
 
-  // render players (16x24 sprites, hitbox is bottom 16x16)
   for (const player of model.players) {
-    if (player.isAlive) {
+    if (!player.isAlive || hasPlayerDeathAnimation(model.activeAnimations, player.player_id)) {
+      continue;
+    }
 
     const spriteParts = createSpriteForEntity(player);
 
@@ -513,7 +465,6 @@ export function renderGame(
         })
       );
 
-      // player label (P1, P2, etc.)
       const label = `P${player.player_id + 1}`;
       elements.push(
         Text.make({
@@ -526,14 +477,9 @@ export function renderGame(
       );
     }
   }
-}
-  // render animations (on top of entities)
+
   elements.push(...renderAnimations(model));
-
-  // render UI
   elements.push(...renderUI(model));
-
-  // render countdown
   elements.push(...renderCountdown(model));
 
   return elements;
