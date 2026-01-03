@@ -295,7 +295,7 @@ const renderUI = (model: Model): CanvasElement[] => {
 
   elements.push(
     Text.make({
-      x: textX + TILE_SIZE * 0.2, 
+      x: textX + TILE_SIZE * 0.6, 
       y: textY + textHeight * 0.8,
       text: timerText,
       color: "#ffe600ff",
@@ -499,8 +499,8 @@ const renderCountdown = (model: Model): CanvasElement[] => {
       color: "#000000",
     }),
     Text.make({
-      x: centerX - textWidth / 2 + 10,
-      y: centerY + FONT_LARGE * 0.2,
+      x: centerX,
+      y: centerY + FONT_LARGE * 0.1,
       text: text,
       color: "#ffe600ff",
       fontSize: FONT_LARGE,
@@ -541,31 +541,48 @@ const renderResultScreen = (model: Model): CanvasElement[] => {
   );
 
   const resultColor = Match.value(result.outcome).pipe(
-    Match.tag("Win Result", () => "#00FF00"),
+    Match.tag("Win Result", () => "#2d690aff"),
     Match.tag("Draw Result", () => "#FFFF00"),
     Match.exhaustive
   );
 
   const charWidth = FONT_MEDIUM * 0.5;
 
-  elements.push(
-    Text.make({
-      x: centerX - (resultText.length * charWidth) / 2,
-      y: yOffset,
-      text: resultText,
-      color: resultColor,
-      fontSize: FONT_MEDIUM,
+  Match.value(result.outcome).pipe(
+    Match.tag("Win Result", () => {
+      elements.push(
+        Text.make({
+          x: centerX - (resultText.length * charWidth) / 2 + 260,
+          y: yOffset,
+          text: resultText,
+          color: resultColor,
+          fontSize: FONT_MEDIUM,
+          font: "RetroPixel"
+        })
+      );
+    }),
+  Match.tag("Draw Result", () => { 
+    elements.push(
+      Text.make({
+        x: centerX - (resultText.length * charWidth) / 2 + 150,
+        y: yOffset,
+        text: resultText,
+        color: resultColor,
+        fontSize: FONT_MEDIUM,
         font: "RetroPixel"
+      })
+    );
+  }),
+  Match.exhaustive
+);
 
-    })
-  );
 
   yOffset += FONT_MEDIUM * 2;
 
   const scoresTitle = "SCORES";
   elements.push(
     Text.make({
-      x: centerX - (scoresTitle.length * charWidth) / 2,
+      x: centerX - (scoresTitle.length * charWidth) / 2 + 20,
       y: yOffset,
       text: scoresTitle,
       color: "#FFFFFF",
@@ -619,7 +636,7 @@ const renderResultScreen = (model: Model): CanvasElement[] => {
 
     elements.push(
       Text.make({
-        x: centerX - (instruction.length * charWidth) / 2,
+        x: centerX - (instruction.length * charWidth) / 2 + 210,
         y: yOffset,
         text: instruction,
         color: "#ffffffff",
@@ -719,7 +736,7 @@ export function renderGame(
       const label = `P${player.player_id + 1}`;
       elements.push(
         Text.make({
-          x: player.x + TILE_SIZE * 0.2,
+          x: player.x + TILE_SIZE * 0.5,
           y: player.y - TILE_SIZE * 0.1,
           text: label,
           color: "#FF0000",
