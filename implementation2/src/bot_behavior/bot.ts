@@ -26,8 +26,9 @@ import {
   BotUpdateResult,
   BotConfig,
   IdleAction,
+  Entity,
 } from "../model";
-import { HashSet, Match, Option } from "effect";
+import { Schema as S, HashSet, Match, Option } from "effect";
 
 import * as Policies from "./helpers/policies";
 import * as StateLogic from "./helpers/state";
@@ -324,7 +325,11 @@ const performGlobalReevaluation = (
 };
 
 // Helpers
-const getAllCoords = (world: World, type: any): HashSet.HashSet<GridCoords> => {
+
+const getAllCoords = <A extends Entity>(
+  world: World, 
+  type: S.Schema<A, any>
+): HashSet.HashSet<GridCoords> => {
   const entities = getAllType(world, type);
   let set = HashSet.empty<GridCoords>();
   for (const e of entities) {

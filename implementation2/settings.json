@@ -2,7 +2,7 @@
   "soft_block_spawn_chance": 40,
   "powerup_spawn_chance": 75,
   "timer_seconds": 180,
-  "num_human_players": 2,
-  "bot_types": ["careful", "greedy"],
+  "num_human_players": 1,
+  "bot_types": ["careful", "greedy", "greedy"],
   "rounds_to_win": 3
 }

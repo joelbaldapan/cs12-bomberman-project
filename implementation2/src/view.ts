@@ -107,7 +107,6 @@ const renderDeathAnimation = (
 
   const spritePath = Assets.path(Assets.factory.playerDeath(playerId, spriteFrame));
 
-  // 3. SCALE SPRITES: Added width/height to force scaling
   return CanvasImage.make({
     x: x,
     y: y,
@@ -214,7 +213,6 @@ const renderUI = (model: Model): CanvasElement[] => {
   const seconds = timerSeconds % 60;
   const timerText = `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
 
-  // 4. DYNAMIC UI SIZING
   const charWidthEstimate = FONT_MEDIUM * 0.6; 
   const textWidth = timerText.length * charWidthEstimate;
   const textHeight = FONT_MEDIUM;
@@ -303,7 +301,6 @@ const renderDebugInfo = (model: Model): CanvasElement[] => {
 
     if (config.dangerRadius > 0) {
       const radiusPixels = config.dangerRadius * TILE_SIZE;
-      console.log(radiusPixels)
         elements.push(
           SolidCircle.make({
             x: botCenterX,
@@ -382,7 +379,6 @@ const getPathMarkerPosition = (
   const cellX = col * TILE_SIZE;
   const cellY = row * TILE_SIZE;
   
-  // 7. SCALED OFFSETS for path dots
   const OFFSET_NEAR = TILE_SIZE * 0.1;
   const OFFSET_FAR = TILE_SIZE * 0.8;
 

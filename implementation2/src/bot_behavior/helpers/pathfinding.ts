@@ -17,7 +17,6 @@ export const isWalkable = (
   const cellOpt = world.board[r][c];
   const cell = Option.getOrNull(cellOpt);
 
-  // 3. Collision Logic
   if (cell) {
     if (cell._tag === "Block") {
       if (cell.isHard) return false;
