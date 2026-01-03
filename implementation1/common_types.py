@@ -339,7 +339,7 @@ class PowerupInfo(Protocol):
 
 class PowerupSpawner(Protocol):
     @staticmethod
-    def make(row: int, col: int) -> PowerupInfo: ...
+    def make(row: int, col: int, fps: int) -> PowerupInfo: ...
 
 @runtime_checkable
 class EffectInfo(Protocol):

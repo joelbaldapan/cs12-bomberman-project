@@ -7,7 +7,7 @@ Powerup_Factories: list[PowerupSpawner] = []
 
 @dataclass(eq=False)
 class Powerup: 
-    def __init__(self, row: int, col: int):
+    def __init__(self, row: int, col: int, fps: int):
         self._row: int = row
         self._col: int = col
         self._expired: bool = False
@@ -53,8 +53,8 @@ class Powerup:
 
 @dataclass(eq=False)
 class FireUp(Powerup):
-    def __init__(self, row: int, col: int):
-        super().__init__(row, col)
+    def __init__(self, row: int, col: int, fps: int):
+        super().__init__(row, col, fps)
         self._effect: EffectInfo = EffectFactory.make(None, 0, 0, 1)
     @property
     def powerup_type(self) -> PowerUpType:
@@ -62,8 +62,8 @@ class FireUp(Powerup):
 
 @dataclass(eq=False)
 class BombUp(Powerup):
-    def __init__(self, row: int, col: int):
-        super().__init__(row, col, )
+    def __init__(self, row: int, col: int, fps: int):
+        super().__init__(row, col, fps)
         self._effect: EffectInfo = EffectFactory.make(None, 0, 1, 0)
     @property
     def powerup_type(self) -> PowerUpType:
@@ -71,8 +71,8 @@ class BombUp(Powerup):
     
 @dataclass(eq=False)
 class SpeedUp(Powerup):
-    def __init__(self, row: int, col: int):
-        super().__init__(row, col)
+    def __init__(self, row: int, col: int, fps: int):
+        super().__init__(row, col, fps)
         self._effect: EffectInfo = EffectFactory.make(None, 0.2, 0, 0)
     @property
     def powerup_type(self) -> PowerUpType:
@@ -92,18 +92,18 @@ class Effect:
 
 class FireUpFactory():
     @staticmethod
-    def make(row: int, col: int) -> PowerupInfo:
-        return FireUp(row, col)
+    def make(row: int, col: int, fps: int) -> PowerupInfo:
+        return FireUp(row, col, fps)
 Powerup_Factories.append(FireUpFactory)
 class BombUpFactory():
     @staticmethod
-    def make(row: int, col: int) -> PowerupInfo:
-        return BombUp(row, col)
+    def make(row: int, col: int, fps: int) -> PowerupInfo:
+        return BombUp(row, col, fps)
 Powerup_Factories.append(BombUpFactory)
 class SpeedUpFactory():
     @staticmethod
-    def make(row: int, col: int) -> PowerupInfo:
-        return SpeedUp(row, col)
+    def make(row: int, col: int, fps: int) -> PowerupInfo:
+        return SpeedUp(row, col, fps)
 Powerup_Factories.append(SpeedUpFactory)
 
 

@@ -561,7 +561,7 @@ class Model:
         k = self._config.powerup_spawn_chance
         if randint(1, 100) <= k:
             pu: PowerupSpawner = choice(Powerup_Factories)
-            self._event_buffer.append(SpawnEvent(pu.make(row, col)))
+            self._event_buffer.append(SpawnEvent(pu.make(row, col, self.fps)))
 
     def _process_events(self):
         for event in self._event_buffer:
