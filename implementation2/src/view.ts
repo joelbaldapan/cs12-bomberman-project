@@ -5,6 +5,7 @@ import {
   SolidRectangle,
   Text,
   CanvasImage,
+  OutlinedCircle,
 } from "cs12251-mvu/src/canvas";
 import { Array, HashMap, Match, pipe, Option } from "effect";
 import { Assets, createSpriteForEntity, updateAnimationFrame } from "./spritemap";
@@ -261,7 +262,6 @@ const renderDebugInfo = (model: Model): CanvasElement[] => {
     const memory = botInternal.memory;
     const currentState = botInternal.currentState;
 
-    // 5. CENTER POINTS: Use HALF_TILE instead of +8
     const botCenterX = player.x + HALF_TILE;
     const botCenterY = player.y + HALF_TILE;
 
@@ -302,36 +302,20 @@ const renderDebugInfo = (model: Model): CanvasElement[] => {
 
     if (config.dangerRadius > 0) {
       const radiusPixels = config.dangerRadius * TILE_SIZE;
-      
-      const steps = 32;
-      for (let i = 0; i < steps; i++) {
-        const angle = (i / steps) * Math.PI * 2;
-        const nextAngle = ((i + 1) / steps) * Math.PI * 2;
-        
-        const x1 = botCenterX + Math.cos(angle) * radiusPixels;
-        const y1 = botCenterY + Math.sin(angle) * radiusPixels;
-        const x2 = botCenterX + Math.cos(nextAngle) * radiusPixels;
-        const y2 = botCenterY + Math.sin(nextAngle) * radiusPixels;
-        
-        const dx = x2 - x1;
-        const dy = y2 - y1;
-        const length = Math.sqrt(dx * dx + dy * dy);
-        
         elements.push(
-          SolidRectangle.make({
-            x: x1,
-            y: y1,
-            width: Math.max(length, 2),
-            height: 4,
+          OutlinedCircle.make({
+            x: player.x,
+            y: player.y,
+            radius: radiusPixels,
             color: "#FF000080",
+            lineWidth: 100
           })
         );
       }
-    }
+    
 
     const pathColor = getPathColorForBot(player.id);
     
-    // 6. SCALED MARKERS
     const MARKER_SIZE = TILE_SIZE * 0.15;
 
     for (const [row, col] of memory.path) {
