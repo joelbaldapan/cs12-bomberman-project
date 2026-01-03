@@ -53,6 +53,72 @@ export const playSfxBuffer = (sfxBuffer: readonly SoundType[]): void => {
   }
 };
 
+
+// bgm
+
+let currentBGM: HTMLAudioElement | null = null;
+
+export const playBGM = (bgmPath: string, loop: boolean = true, volume: number = 0.3): void => {
+  if (currentBGM) {
+    currentBGM.pause();
+    currentBGM.currentTime = 0;
+  }
+
+  currentBGM = new Audio(bgmPath);
+  currentBGM.volume = volume;
+  currentBGM.loop = loop;
+  currentBGM.play().catch(err => {
+    console.warn("BGM playback failed:", err);
+  });
+};
+
+export const stopBGM = (): void => {
+  if (currentBGM) {
+    currentBGM.pause();
+    currentBGM.currentTime = 0;
+    currentBGM = null;
+  }
+};
+
+export const pauseBGM = (): void => {
+  if (currentBGM) {
+    currentBGM.pause();
+  }
+};
+
+export const resumeBGM = (): void => {
+  if (currentBGM) {
+    currentBGM.play().catch(err => {
+      console.warn("BGM resume failed:", err);
+    });
+  }
+};
+
+let lastGameState: string | null = null;
+
+export const updateBGM = (model: Model): void => {
+  const currentState = model.state._tag;
+
+  if (currentState === lastGameState) return;
+  lastGameState = currentState;
+
+  if (currentState === "Countdown Model") {
+    playBGM("./public/sounds/stage_start.mp3", false, 0.4);
+    
+    if (currentBGM) {
+      currentBGM.onended = () => {
+        playBGM("./public/sounds/battle_bgm.mp3", true, 0.3);
+      };
+    }
+  } else if (currentState === "Playing Model") {
+    if (!currentBGM || currentBGM.paused) {
+      playBGM("./public/sounds/battle_bgm.mp3", true, 0.3);
+    }
+  } else if (currentState === "Transition Model") {
+    stopBGM();
+  }
+};
+
 // animation rendering
 
 const renderAnimations = (model: Model): CanvasElement[] => {
@@ -578,6 +644,7 @@ export function renderGame(
 
   updateAnimationFrame();
   playSfxBuffer(model.sfxBuffer);
+  updateBGM(model);
 
   elements.push(
     SolidRectangle.make({
