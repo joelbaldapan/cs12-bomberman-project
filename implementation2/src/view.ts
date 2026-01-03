@@ -501,7 +501,7 @@ const renderClickToStart = (model: Model): CanvasElement[] => {
       x: centerX - titleTextWidth * 0.0008,
       y: centerY - FONT_LARGE * 0.5,
       text: titleText,
-      color: "#FF0000",
+      color: "#ff3b3bff",
       fontSize: FONT_LARGE,
       font: "RetroPixel"
     })
@@ -512,7 +512,7 @@ const renderClickToStart = (model: Model): CanvasElement[] => {
   const instructionTextWidth = instructionText.length * instructionCharWidth;
   
   const blinkRate = Math.floor(model.globalFrameCount / 30) % 2;
-  const textColor = blinkRate === 0 ? "#ffe600ff" : "#FFFFFF";
+  const textColor = blinkRate === 0 ? "#ffe81eff" : "#FFFFFF";
   
   elements.push(
     Text.make({
@@ -534,7 +534,7 @@ const renderClickToStart = (model: Model): CanvasElement[] => {
       x: centerX - subTextWidth * 0.08,
       y: centerY + FONT_MEDIUM * 1.5,
       text: subText,
-      color: "#000000ff",
+      color: "#191919ff",
       fontSize: FONT_SMALL * 2,
       font: "RetroPixel"
     })

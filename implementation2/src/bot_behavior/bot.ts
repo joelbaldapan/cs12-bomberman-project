@@ -240,15 +240,9 @@ const performGlobalReevaluation = (
 
   // 2 - Powerup Check
   if (Math.random() <= config.powerupChance) {
+    if (currentState._tag === "Get Powerup State") return { state: currentState, memory };
     const target = Policies.getPowerupGoal(config.powerupPolicy, world, bot);
-
     if (target) {
-      if (
-        currentState._tag === "Get Powerup State" &&
-        isSameCoord(currentState.target, target)
-      ) {
-        return { state: currentState, memory };
-      }
       return transitionTo(
         GetPowerupState.make({ target: target }),
         config,
@@ -262,6 +256,7 @@ const performGlobalReevaluation = (
   // 3 - Attack Check
   const attackTarget = Policies.getAttackGoal(config.attackPolicy, world, bot);
   if (attackTarget) {
+    if (currentState._tag === "Attack State") return { state: currentState, memory };
     return transitionTo(
       AttackState.make({ target: attackTarget }),
       config,
