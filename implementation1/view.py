@@ -118,13 +118,13 @@ class View:
     def _get_bot_path_color(self, player_id: int) -> int:
         match player_id:
             case 2:
-                return 0
+                return 1
             case 3:
-                return 3
+                return 8
             case 4:
                 return 10  
             case _:
-                return 8  
+                return 0
 
     def _get_path_marker_position(self, cell: tuple[int, int], player_id: int) -> tuple[int, int]:
         row, col = cell
