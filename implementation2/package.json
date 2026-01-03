@@ -12,6 +12,6 @@
   "type": "commonjs",
   "dependencies": {
     "cs12251-mvu": "github:joelbaldapan/cs12251-mvu",
-    "effect": "^3.19.13"
+    "effect": "^3.19.14"
   }
 }
