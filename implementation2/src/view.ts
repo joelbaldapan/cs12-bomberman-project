@@ -6,6 +6,7 @@ import {
   Text,
   CanvasImage,
   OutlinedCircle,
+  SolidCircle,
 } from "cs12251-mvu/src/canvas";
 import { Array, HashMap, Match, pipe, Option } from "effect";
 import { Assets, createSpriteForEntity, updateAnimationFrame } from "./spritemap";
@@ -302,13 +303,13 @@ const renderDebugInfo = (model: Model): CanvasElement[] => {
 
     if (config.dangerRadius > 0) {
       const radiusPixels = config.dangerRadius * TILE_SIZE;
+      console.log(radiusPixels)
         elements.push(
-          OutlinedCircle.make({
-            x: player.x,
-            y: player.y,
+          SolidCircle.make({
+            x: botCenterX,
+            y: botCenterY,
             radius: radiusPixels,
-            color: "#FF000080",
-            lineWidth: 100
+            color: "#ff00002c",
           })
         );
       }
