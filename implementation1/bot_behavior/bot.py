@@ -118,10 +118,13 @@ class BotController:
                 return
 
         # 3 - Attack Check
-        target_attack_pos = self._config.attack_policy.get_goal(world, bot)
-        if target_attack_pos:
-            self.transition_to(AttackState(target_attack_pos), world, bot)
+        if isinstance(self._current_state, AttackState):
             return
+        else:
+            target_attack_pos = self._config.attack_policy.get_goal(world, bot)
+            if target_attack_pos:
+                self.transition_to(AttackState(target_attack_pos), world, bot)
+                return
 
         # 4 - Default -> Wander
         if not isinstance(self._current_state, WanderState):
