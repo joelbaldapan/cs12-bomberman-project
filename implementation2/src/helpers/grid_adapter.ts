@@ -1,6 +1,6 @@
 const ROWS = 13;
 const COLS = 15;
-const CELL_SIZE = 16;
+const CELL_SIZE = 128;
 
 
 export const cellToPixel = (

@@ -101,7 +101,7 @@ export const makePlayer = (
     row,
     col,
     x: col * tileSize,
-    y: row * tileSize - 8,
+    y: row * tileSize - tileSize/2,
     width: tileSize,
     height: tileSize,
     directionFacing: SouthDirection.make({ dr: 1, dc: 0 }),
@@ -109,7 +109,7 @@ export const makePlayer = (
     isExpired: false,
     activeBombs: [],
     effects: [],
-    speed: 1.0,
+    speed: 10.0,
 
     vx: 0,
     vy: 0,
@@ -157,6 +157,6 @@ export const makeBombUp = (row: number, col: number, fps: number) =>
   _makePowerup(row, col, BombPowerup.make({}), makeEffect(Option.none(), 0, 1, 0));
 
 export const makeSpeedUp = (row: number, col: number, fps: number) =>
-  _makePowerup(row, col, SpeedPowerup.make({}), makeEffect(Option.none(), 0.2, 0, 0));
+  _makePowerup(row, col, SpeedPowerup.make({}), makeEffect(Option.none(), 2, 0, 0));
 
 export const choicePowerups = [makeFireUp, makeBombUp, makeSpeedUp]

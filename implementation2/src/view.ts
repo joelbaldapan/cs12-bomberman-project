@@ -14,14 +14,21 @@ import type { Msg } from "./msg";
 
 // board / constants
 
-
-const TILE_SIZE = 16;
+// UPDATE TILE SIZE
+const TILE_SIZE = 128; 
 const ROWS = 15;
 const COLS = 13;
 const SCREEN_WIDTH = TILE_SIZE * ROWS;
 const SCREEN_HEIGHT = TILE_SIZE * COLS;
 const FPS = 60;
 const BACKGROUND_COLOR = "#70C6A9"; 
+
+// DEFINE SCALED VISUAL CONSTANTS
+const FONT_SMALL = Math.floor(TILE_SIZE * 0.25);
+const FONT_MEDIUM = Math.floor(TILE_SIZE * 0.4);
+const FONT_LARGE = Math.floor(TILE_SIZE * 0.75);
+const HALF_TILE = TILE_SIZE / 2;
+const QUARTER_TILE = TILE_SIZE / 4;
 
 
 // SOUNDS; since MVU canvas framework doesnt have sounds 
@@ -98,6 +105,7 @@ const renderDeathAnimation = (
 
   const spritePath = Assets.path(Assets.factory.playerDeath(playerId, spriteFrame));
 
+  // 3. SCALE SPRITES: Added width/height to force scaling
   return CanvasImage.make({
     x: x,
     y: y,
@@ -204,28 +212,31 @@ const renderUI = (model: Model): CanvasElement[] => {
   const seconds = timerSeconds % 60;
   const timerText = `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
 
-  const textWidth = timerText.length * 4;
-  const textHeight = 6;
+  // 4. DYNAMIC UI SIZING
+  const charWidthEstimate = FONT_MEDIUM * 0.6; 
+  const textWidth = timerText.length * charWidthEstimate;
+  const textHeight = FONT_MEDIUM;
+  
   const textX = (SCREEN_WIDTH - textWidth) / 2;
-  const textY = 4;
+  const textY = TILE_SIZE * 0.1; // Small top padding
 
   elements.push(
     SolidRectangle.make({
-      x: textX - 3,
-      y: textY - 2,
-      width: textWidth + 6,
-      height: textHeight + 5,
+      x: textX - TILE_SIZE * 0.1,
+      y: textY - TILE_SIZE * 0.05,
+      width: textWidth + TILE_SIZE * 0.2,
+      height: textHeight + TILE_SIZE * 0.1,
       color: "#000000ff",
     })
   );
 
   elements.push(
     Text.make({
-      x: textX + 10,
-      y: textY + 6.5,
+      x: textX + TILE_SIZE * 0.2, 
+      y: textY + textHeight * 0.8,
       text: timerText,
       color: "#ffe600ff",
-      fontSize: 8,
+      fontSize: FONT_MEDIUM,
     })
   );
 
@@ -250,8 +261,9 @@ const renderDebugInfo = (model: Model): CanvasElement[] => {
     const memory = botInternal.memory;
     const currentState = botInternal.currentState;
 
-    const botCenterX = player.x + 8;
-    const botCenterY = player.y + 8;
+    // 5. CENTER POINTS: Use HALF_TILE instead of +8
+    const botCenterX = player.x + HALF_TILE;
+    const botCenterY = player.y + HALF_TILE;
 
     const botTypeText = Match.value(config.botType).pipe(
       Match.tag("Hostile Bot", () => "HOSTILE"),
@@ -262,11 +274,11 @@ const renderDebugInfo = (model: Model): CanvasElement[] => {
 
     elements.push(
       Text.make({
-        x: botCenterX - botTypeText.length * 2 + 13,
-        y: botCenterY + 23,
+        x: player.x,
+        y: player.y - 4,
         text: botTypeText,
         color: "#FFFFFF",
-        fontSize: 8,
+        fontSize: FONT_SMALL,
       })
     );
 
@@ -280,11 +292,11 @@ const renderDebugInfo = (model: Model): CanvasElement[] => {
 
     elements.push(
       Text.make({
-        x: botCenterX - stateText.length * 2 + 12,
-        y: botCenterY + 30,
+        x: player.x,
+        y: player.y + TILE_SIZE + FONT_SMALL,
         text: stateText,
         color: "#FFFF00",
-        fontSize: 8,
+        fontSize: FONT_SMALL,
       })
     );
 
@@ -309,8 +321,8 @@ const renderDebugInfo = (model: Model): CanvasElement[] => {
           SolidRectangle.make({
             x: x1,
             y: y1,
-            width: Math.max(length, 1),
-            height: 2,
+            width: Math.max(length, 2),
+            height: 4,
             color: "#FF000080",
           })
         );
@@ -319,6 +331,9 @@ const renderDebugInfo = (model: Model): CanvasElement[] => {
 
     const pathColor = getPathColorForBot(player.id);
     
+    // 6. SCALED MARKERS
+    const MARKER_SIZE = TILE_SIZE * 0.15;
+
     for (const [row, col] of memory.path) {
       const [markerX, markerY] = getPathMarkerPosition([row, col], player.id);
       
@@ -326,8 +341,8 @@ const renderDebugInfo = (model: Model): CanvasElement[] => {
         SolidRectangle.make({
           x: markerX,
           y: markerY,
-          width: 3,
-          height: 3,
+          width: MARKER_SIZE,
+          height: MARKER_SIZE,
           color: pathColor,
         })
       );
@@ -335,24 +350,24 @@ const renderDebugInfo = (model: Model): CanvasElement[] => {
 
     if (Option.isSome(memory.goal)) {
       const [goalRow, goalCol] = Option.getOrThrow(memory.goal);
-      const goalX = goalCol * TILE_SIZE + TILE_SIZE / 2 - 4;
-      const goalY = goalRow * TILE_SIZE + TILE_SIZE / 2 - 4;
+      const goalX = goalCol * TILE_SIZE + HALF_TILE - (MARKER_SIZE * 2);
+      const goalY = goalRow * TILE_SIZE + HALF_TILE - (MARKER_SIZE * 2);
       
       elements.push(
         SolidRectangle.make({
           x: goalX,
           y: goalY,
-          width: 8,
-          height: 2,
+          width: MARKER_SIZE * 4,
+          height: MARKER_SIZE,
           color: pathColor,
         })
       );
       elements.push(
         SolidRectangle.make({
-          x: goalX + 3,
-          y: goalY - 3,
-          width: 2,
-          height: 8,
+          x: goalX + MARKER_SIZE * 1.5,
+          y: goalY - MARKER_SIZE * 1.5,
+          width: MARKER_SIZE,
+          height: MARKER_SIZE * 4,
           color: pathColor,
         })
       );
@@ -382,17 +397,21 @@ const getPathMarkerPosition = (
   const cellX = col * TILE_SIZE;
   const cellY = row * TILE_SIZE;
   
+  // 7. SCALED OFFSETS for path dots
+  const OFFSET_NEAR = TILE_SIZE * 0.1;
+  const OFFSET_FAR = TILE_SIZE * 0.8;
+
   switch (playerId) {
     case 0: 
-      return [cellX + 1, cellY + 1];
+      return [cellX + OFFSET_NEAR, cellY + OFFSET_NEAR];
     case 1: 
-      return [cellX + TILE_SIZE - 4, cellY + 1];
+      return [cellX + OFFSET_FAR, cellY + OFFSET_NEAR];
     case 2: 
-      return [cellX + 1, cellY + TILE_SIZE - 4];
+      return [cellX + OFFSET_NEAR, cellY + OFFSET_FAR];
     case 3: 
-      return [cellX + TILE_SIZE - 4, cellY + TILE_SIZE - 4];
+      return [cellX + OFFSET_FAR, cellY + OFFSET_FAR];
     default:
-      return [cellX + 1, cellY + 1];
+      return [cellX + OFFSET_NEAR, cellY + OFFSET_NEAR];
   }
 };
 
@@ -414,24 +433,25 @@ const renderCountdown = (model: Model): CanvasElement[] => {
 
   if (!text) return [];
 
-  const textWidth = text.length * 4;
+  const charWidth = FONT_LARGE * 0.6;
+  const textWidth = text.length * charWidth;
   const centerX = SCREEN_WIDTH / 2;
   const centerY = SCREEN_HEIGHT / 2;
 
   return [
     SolidRectangle.make({
-      x: centerX - textWidth / 2 - 4,
-      y: centerY - 4,
-      width: textWidth + 16,
-      height: 14,
+      x: centerX - textWidth / 2 - 20,
+      y: centerY - FONT_LARGE,
+      width: textWidth + 40,
+      height: FONT_LARGE * 1.5,
       color: "#000000",
     }),
     Text.make({
-      x: centerX - textWidth / 2 + 14,
-      y: centerY + 8,
+      x: centerX - textWidth / 2 + 10,
+      y: centerY + FONT_LARGE * 0.2,
       text: text,
       color: "#ffe600ff",
-      fontSize: 12,
+      fontSize: FONT_LARGE,
     }),
   ];
 };
@@ -445,7 +465,7 @@ const renderResultScreen = (model: Model): CanvasElement[] => {
   const elements: CanvasElement[] = [];
 
   const centerX = SCREEN_WIDTH / 2;
-  let yOffset = 30;
+  let yOffset = SCREEN_HEIGHT * 0.15; // Proportional offset
 
   const resultText = Match.value(result.outcome).pipe(
     Match.tag("Win Result", () => {
@@ -472,30 +492,32 @@ const renderResultScreen = (model: Model): CanvasElement[] => {
     Match.exhaustive
   );
 
+  const charWidth = FONT_MEDIUM * 0.5;
+
   elements.push(
     Text.make({
-      x: centerX - (resultText.length * 4) / 2 + 50,
+      x: centerX - (resultText.length * charWidth) / 2,
       y: yOffset,
       text: resultText,
       color: resultColor,
-      fontSize: 12,
+      fontSize: FONT_MEDIUM,
     })
   );
 
-  yOffset += 20;
+  yOffset += FONT_MEDIUM * 2;
 
   const scoresTitle = "SCORES";
   elements.push(
     Text.make({
-      x: centerX - (scoresTitle.length * 4) / 2 + 10,
+      x: centerX - (scoresTitle.length * charWidth) / 2,
       y: yOffset,
       text: scoresTitle,
       color: "#FFFFFF",
-      fontSize: 10,
+      fontSize: FONT_MEDIUM,
     })
   );
 
-  yOffset += 15;
+  yOffset += FONT_MEDIUM * 1.5;
 
   for (let playerId = 0; playerId < 4; playerId++) {
     const score = HashMap.get(model.scores, playerId);
@@ -504,42 +526,42 @@ const renderResultScreen = (model: Model): CanvasElement[] => {
 
     elements.push(
       Text.make({
-        x: centerX - (scoreText.length * 4) / 2 + 10,
+        x: centerX - (scoreText.length * charWidth) / 2,
         y: yOffset,
         text: scoreText,
         color: "#FFFFFF",
-        fontSize: 8,
+        fontSize: FONT_SMALL,
       })
     );
 
-    yOffset += 10;
+    yOffset += FONT_SMALL * 1.5;
   }
 
   if (result.matchOver && Option.isSome(result.overallWinnerId)) {
-    yOffset += 10;
+    yOffset += FONT_MEDIUM;
     const winnerId = Option.getOrThrow(result.overallWinnerId);
     const winnerText = `Player ${winnerId + 1} Wins the Match!`;
 
     elements.push(
       Text.make({
-        x: centerX - (winnerText.length * 4) / 2,
+        x: centerX - (winnerText.length * charWidth) / 2,
         y: yOffset,
         text: winnerText,
         color: "#FFD700",
-        fontSize: 12,
+        fontSize: FONT_LARGE,
       })
     );
   } else {
-    yOffset += 15;
+    yOffset += FONT_MEDIUM;
     const instruction = "Press ESC to continue";
 
     elements.push(
       Text.make({
-        x: centerX - (instruction.length * 4) / 2 + 40,
+        x: centerX - (instruction.length * charWidth) / 2,
         y: yOffset,
         text: instruction,
         color: "#ffffffff",
-        fontSize: 8,
+        fontSize: FONT_SMALL,
       })
     );
   }
@@ -592,13 +614,13 @@ export function renderGame(
     const spriteParts = createSpriteForEntity(entity);
     if (spriteParts) {
       const spritePath = Assets.path(spriteParts);
-      const x = entity.col * model.tileSize;
-      const y = entity.row * model.tileSize;
+      const x = entity.col * TILE_SIZE;
+      const y = entity.row * TILE_SIZE;
 
       if (
-        x >= -model.tileSize &&
+        x >= -TILE_SIZE &&
         x <= screenWidth &&
-        y >= -model.tileSize &&
+        y >= -TILE_SIZE &&
         y <= screenHeight
       ) {
         elements.push(
@@ -632,11 +654,11 @@ export function renderGame(
       const label = `P${player.player_id + 1}`;
       elements.push(
         Text.make({
-          x: player.x + 7,
-          y: player.y - 4,
+          x: player.x + TILE_SIZE * 0.2,
+          y: player.y - TILE_SIZE * 0.1,
           text: label,
           color: "#FF0000",
-          fontSize: 8,
+          fontSize: FONT_SMALL,
         })
       );
     }

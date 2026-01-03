@@ -1,42 +1,44 @@
 html,
 body {
-  margin: 0;
-  width: 100%;
   height: 100%;
+  margin: 0;
+  overflow: hidden;
 }
 
 body {
-  background: #001708;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  background-color: #000;
 }
 
+#gameHeader,
+#credit {
+  flex-shrink: 0;
 
-#gameHeader {
-  margin-top: 12px;
-  margin-bottom: 12px;
   text-align: center;
   font-family: system-ui, "Segoe UI", sans-serif;
   color: #ffffff;
+
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+#gameHeader {
   font-size: 40px;
   font-weight: bold;
 }
 
+#credit {
+  font-size: 20px;
+}
+
 #gameScreen {
-  height: 90vh;
-  width: auto;
+  flex-grow: 1;
+  min-height: 0;
+
+  width: 100%;
+  object-fit: contain;
 
   image-rendering: pixelated;
   image-rendering: crisp-edges;
-}
-
-#credit {
-  margin-top: 12px;
-  text-align: center;
-  font-family: system-ui, "Segoe UI", sans-serif;
-  color: #ffffff;
-  font-size: 20px;
-  margin-bottom: 12px;
 }

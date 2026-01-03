@@ -16,11 +16,13 @@ import {
 } from "../../model";
 import { Option } from "effect";
 
-const TILE_SIZE = 16;
-const HALF_TILE = 8;
-const STANDARD_TOL = 6.0;
-const STRICT_TOL = 4.0;
-const STEER_TOL = 2.0;
+const TILE_SIZE = 128;
+const HALF_TILE = TILE_SIZE / 2;
+
+// tol
+const STANDARD_TOL = TILE_SIZE * 0.375; 
+const STRICT_TOL = TILE_SIZE * 0.25;
+const STEER_TOL = TILE_SIZE * 0.125;
 
 type MoveResult = {
   action: BotAction;
@@ -87,7 +89,7 @@ export const followPathAction = (
     const centerPxX = nextCell[1] * TILE_SIZE + HALF_TILE;
     const centerPxY = nextCell[0] * TILE_SIZE + HALF_TILE;
 
-    const HITBOX_OFFSET_Y = 8; 
+    const HITBOX_OFFSET_Y = TILE_SIZE * 0.5; 
     
     const botPxX = entity.x + HALF_TILE;
     const botPxY = entity.y + HITBOX_OFFSET_Y + HALF_TILE;
@@ -156,7 +158,7 @@ export const followPathAction = (
   const targetPxX = nextCell[1] * TILE_SIZE + HALF_TILE;
   const targetPxY = nextCell[0] * TILE_SIZE + HALF_TILE;
 
-  const HITBOX_OFFSET_Y = 8;
+  const HITBOX_OFFSET_Y = TILE_SIZE * 0.5;
   const botPxX = entity.x + HALF_TILE;
   const botPxY = entity.y + HITBOX_OFFSET_Y + HALF_TILE;
 

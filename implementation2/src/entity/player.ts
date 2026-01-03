@@ -21,11 +21,11 @@ import { Array , Option} from "effect";
 import { pixelToCell } from "../helpers/grid_adapter";
 import { isCellBlocking } from "../helpers/world";
 
-const TILE_SIZE = 16;
-const HITBOX_WIDTH = 16;
-const HITBOX_HEIGHT = 16;
-const HITBOX_OFFSET_Y = 8;
-const SNAP_TOLERANCE = 6;
+const TILE_SIZE = 128;
+const HITBOX_WIDTH = TILE_SIZE;
+const HITBOX_HEIGHT = TILE_SIZE;
+const HITBOX_OFFSET_Y = TILE_SIZE / 2;
+const SNAP_TOLERANCE = TILE_SIZE * 0.375;
 
 
 const canMoveTo = (world: World, id: number, x: number, y: number): boolean => {
@@ -228,7 +228,7 @@ export const removeBomb = (player: Player, bomb: Bomb): Player => Player.make({.
 
 export const hitboxX = (player: Player): number => player.x
 
-export const hitboxY = (player: Player): number => player.y + 8
+export const hitboxY = (player: Player): number => player.y + HITBOX_OFFSET_Y
 
 export const getPlayerById = (players: HashSet.HashSet<Player>, id: number): Player | null =>Option.getOrNull(Array.findFirst(players, p => p.player_id === id));
 // need this for pathfinding
@@ -267,8 +267,7 @@ export const getOverlappingCells = (bot: Player): GridCoords[] => {
 }
 
 export const isOverlapping = (player: Player, cell: GridCoords): boolean => {
-    const TILE_SIZE = 16;
-    const ALLOWANCE = 2;
+    const ALLOWANCE = TILE_SIZE * 0.125; // 8
     
     const cellLeft = cell[1] * TILE_SIZE;
     const cellTop = cell[0] * TILE_SIZE;
@@ -278,8 +277,8 @@ export const isOverlapping = (player: Player, cell: GridCoords): boolean => {
     const playerLeft = hitboxX(player);
     const playerTop = hitboxY(player);
 
-    const playerRight = playerLeft + 16; 
-    const playerBottom = playerTop + 16;
+    const playerRight = playerLeft + HITBOX_WIDTH; 
+    const playerBottom = playerTop + HITBOX_HEIGHT;
 
     return (
         playerLeft < cellRight - ALLOWANCE &&
@@ -290,7 +289,6 @@ export const isOverlapping = (player: Player, cell: GridCoords): boolean => {
 };
 
 export const strictIsOverlapping = (player: Player, cell: GridCoords): boolean => {
-    const TILE_SIZE = 16;
     
     const cellLeft = cell[1] * TILE_SIZE;
     const cellTop = cell[0] * TILE_SIZE;
@@ -300,8 +298,8 @@ export const strictIsOverlapping = (player: Player, cell: GridCoords): boolean =
     const playerLeft = hitboxX(player);
     const playerTop = hitboxY(player);
 
-    const playerRight = playerLeft + 16; 
-    const playerBottom = playerTop + 16;
+    const playerRight = playerLeft + HITBOX_WIDTH; 
+    const playerBottom = playerTop + HITBOX_HEIGHT;
 
     return (
         playerLeft < cellRight &&
@@ -311,8 +309,8 @@ export const strictIsOverlapping = (player: Player, cell: GridCoords): boolean =
     );
 };
 export const getPlayerRow = (player: Player): number => {
-  const cx = hitboxX(player) + 16 / 2;
-  const cy = hitboxY(player) + 16 / 2;
+  const cx = hitboxX(player) + HITBOX_WIDTH / 2;
+  const cy = hitboxY(player) + HITBOX_HEIGHT / 2;
 
   const res = pixelToCell(Math.floor(cx), Math.floor(cy));
 
@@ -324,8 +322,8 @@ export const getPlayerRow = (player: Player): number => {
 };
 
 export const getPlayerCol = (player: Player): number => {
-  const cx = hitboxX(player) + 16 / 2;
-  const cy = hitboxY(player) + 16 / 2;
+  const cx = hitboxX(player) + HITBOX_WIDTH / 2;
+  const cy = hitboxY(player) + HITBOX_HEIGHT / 2;
 
   const res = pixelToCell(Math.floor(cx), Math.floor(cy));
 

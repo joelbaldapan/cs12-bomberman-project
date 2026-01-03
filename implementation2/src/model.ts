@@ -471,6 +471,8 @@ export const Model = S.Struct({
   lastTick: S.Number,
 });
 
+const TILE_SIZE = 128;
+
 export const initModel = (
   rows: number,
   cols: number,
@@ -514,7 +516,7 @@ export const initModel = (
     const startCoord = playerStartCoords[currentId];
     if (startCoord) {
       const [r, c] = startCoord;
-      const p = makePlayer(currentId, r, c, 16, fps);
+      const p = makePlayer(currentId, r, c, TILE_SIZE, fps);
 
       players = HashSet.add(players, p);
       entities = HashMap.set(entities, p.id, p);
@@ -528,7 +530,7 @@ export const initModel = (
     const startCoord = playerStartCoords[currentId];
     if (startCoord) {
       const [r, c] = startCoord;
-      const p = makePlayer(currentId, r, c, 16, fps);
+      const p = makePlayer(currentId, r, c, TILE_SIZE, fps);
 
       const internalState = initBotState(botType);
 
@@ -562,7 +564,7 @@ export const initModel = (
     players,
     botInternals,
     fps,
-    tileSize: 16,
+    tileSize: TILE_SIZE,
     timer: config.timerSeconds * fps,
     winCountdown: fps,
     roundStartTimer: 3 * fps,
