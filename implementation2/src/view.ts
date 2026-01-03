@@ -252,6 +252,8 @@ const renderDebugInfo = (model: Model): CanvasElement[] => {
 
   // render debug info for each bot player
   for (const player of model.players) {
+    // check if alive
+    if (!player.isAlive) continue;
     // check if this player is a bot
     const botInternalOption = HashMap.get(model.botInternals, player.id);
     if (Option.isNone(botInternalOption)) continue; // not a bot
