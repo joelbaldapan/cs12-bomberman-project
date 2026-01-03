@@ -82,7 +82,7 @@ export const parseGameConfig = (raw: unknown): GameConfig => {
     );
   }
 
-  const finalBotTypes = Array.map(botStrs,mapStringToBotType);
+  const finalBotTypes = Array.map(botStrs as readonly string[],mapStringToBotType);
 
   return GameConfig.make({
     softBlockSpawnChance: soft,
