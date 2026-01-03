@@ -100,8 +100,8 @@ export const createExplosions = (bomb: Bomb, world: World): [World, UpdateResult
 
 
   let result = UpdateResult.make({
-    events: Array.empty(),
-    sounds: Array.empty(),
+    events: [RemoveEvent.make({entity: bomb})],
+    sounds: [ExplosionSound.make()],
     animations: Array.empty(),
   });
 
