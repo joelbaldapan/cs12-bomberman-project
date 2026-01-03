@@ -4,6 +4,7 @@ import { createExplosions, shouldDetonate, updateBomb } from "./entity/bomb";
 import { updateExplosion } from "./entity/explosion";
 import {
   addBomb,
+  getOverlappingCells,
   getPlayerById,
   getPlayerCol,
   getPlayerRow,
@@ -346,6 +347,9 @@ function _update_entities(model: Model, dt: number): Model {
   let newPlayers = HashSet.empty<Player>();
 
   for (const [id, ent] of model.world.entities) {
+    if (ent._tag === "Block" && ent.isHard) {
+      continue
+    }
     const [updatedEntity, updateResult] = Match.value(ent).pipe(
       Match.tag("Explosion", (e) => updateExplosion(e, dt)),
       Match.tag("Bomb", (e) => updateBomb(e, dt)),
@@ -482,47 +486,59 @@ function _process_events(model: Model): Model {
 
 
 function _check_explosion_powerup_collision(model: Model): Model {
-  const explosions = getAllType(model.world, Explosion);
-  const powerups = getAllType(model.world, Powerup);
-  let picked: GridCoords[] = [];
   let newWorld = model.world;
   let results = UpdateResult.make({
     events: Array.empty(),
     sounds: Array.empty(),
     animations: Array.empty(),
   });
-  const currentPlayers = Array.filter(Array.fromIterable(getAllType(newWorld, Player)), (player)=> player.isAlive);
+  let picked: GridCoords[] = [];
+
+  const currentPlayers = Array.filter(
+    Array.fromIterable(getAllType(newWorld, Player)), 
+    (player) => player.isAlive
+  );
+
   for (const player of currentPlayers) {
     if (player.isExpired) continue;
-    for (const explosion of explosions) {
-      if (isOverlapping(player, [explosion.row, explosion.col])) {
-        newWorld = addEntity(newWorld, onExplosionHitPlayer(player));
-        // code for death animation most likely goes here
-      }
-    }
-    for (const powerup of powerups) {
-      if (powerup.isExpired) {
+
+    const overlappingCells = getOverlappingCells(player);
+
+    for (const [r, c] of overlappingCells) {
+
+       const entity = getEntityAt(newWorld, r, c);
+       const position: GridCoords = [r, c]
+       
+       if (!entity) continue;
+
+       if (entity._tag === "Explosion") {
+          if (player.isAlive) {
+             const deadPlayer = onExplosionHitPlayer(player);
+             newWorld = addEntity(newWorld, deadPlayer);
+             break; 
+          }
+       } 
+       
+       else if (entity._tag === "Powerup") {
+          const p = entity as Powerup;
+          if (Array.contains(picked, position)) {
         continue;
       }
-      let position: GridCoords = [powerup.row, powerup.col];
-      if (Array.contains(picked, position)) {
-        continue;
-      }
-      if (isOverlapping(player, [powerup.row, powerup.col])) {
-        const p = powerup as Powerup;
-        const [newPlayer, result] = onPickup(p, player);
-        newWorld = addEntity(newWorld, newPlayer);
-        results = {
-          ...results,
-          events: Array.appendAll(results.events, result.events),
-          sounds: Array.appendAll(results.sounds, result.sounds),
-          animations: Array.appendAll(results.animations, result.animations),
-        };
-        picked = Array.append(picked, position);
-        break;
-      }
+          if (!p.isExpired) {
+             const [newPlayer, result] = onPickup(p, player);
+
+             newWorld = addEntity(newWorld, newPlayer);
+             results = {
+                ...results,
+                events: Array.appendAll(results.events, result.events),
+                sounds: Array.appendAll(results.sounds, result.sounds),
+                animations: Array.appendAll(results.animations, result.animations),
+             };
+          }
+       }
     }
   }
+
   const newPlayers = _refresh_players_cache(newWorld);
 
   return {
