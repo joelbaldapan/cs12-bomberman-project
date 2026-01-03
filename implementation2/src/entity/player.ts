@@ -163,7 +163,9 @@ export const updatePlayer = (
   const remainingEffects = tickedEffects.filter((e) =>
     Option.getOrElse(e.timeRemaining, () => 1) > 0
   );
-
+  if (ent.isExpired) {
+    return [{...ent}, result]
+  }
 
   if (!ent.isAlive) {
     let animation = AnimationCmd.make({

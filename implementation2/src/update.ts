@@ -497,7 +497,7 @@ function _check_explosion_powerup_collision(model: Model): Model {
     sounds: Array.empty(),
     animations: Array.empty(),
   });
-  const currentPlayers = Array.fromIterable(getAllType(newWorld, Player));
+  const currentPlayers = Array.filter(Array.fromIterable(getAllType(newWorld, Player)), (player)=> player.isAlive);
   for (const player of currentPlayers) {
     if (player.isExpired) continue;
     for (const explosion of explosions) {
