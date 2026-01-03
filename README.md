@@ -4,15 +4,40 @@ A multiplayer Bomberman clone developed for CS 12 25.1. This repository contains
 1. **Python (Pyxel + MVC)**
 2. **TypeScript/Effect (CS 12 MVU Framework)**
 
-## Important Note (Forking of cs12251-mvu)
+## Important Notes
 
-**Implementation 2 (Typescript)** uses a _vendored_ version of [cs12251-mvu](https://github.com/UPD-CS12-251/cs12251-mvu). This was done to implement the following `TaggedStruct`s:
+### (Forking of cs12251-mvu)
+
+**Implementation 2 (Typescript)** uses a _vendored_ version of [cs12251-mvu](https://github.com/UPD-CS12-251/cs12251-mvu). The following `TaggedStruct`s were implemented:
 
 - Added `MsgKeyUp` and `MsgMouseUp` in `CanvasMsg` ([eed897b](https://github.com/joelbaldapan/cs12251-mvu/commit/eed897bb15a495f50193463fe44769cf4eedf1e2) and [0ea18ac](https://github.com/joelbaldapan/cs12251-mvu/commit/0ea18ac0d521e79e7d3916acc7f8ee65555777bd))
 
-This was done because there was no _reliable_ way to detect whenver the user has stopped pressing a certain key. An alternative would be to set _timeouts_ per `MsgKeyDown` presses. But this implementation led to clunky gameplay, and a not-so-fun experience.
+This was done because there was no _reliable_ way to detect when the user had stopped pressing a given key. An alternative would be to set _timeouts_ per `MsgKeyDown` presses. But this implementation led to clunky gameplay, and a not-so-fun experience.
 
 The fork of such repository may be found [here](https://github.com/joelbaldapan/cs12251-mvu).
+
+### Faulty Bot _Escape State_
+
+From the specs:
+```text
+💣 The ESCAPE state
+
+When a bot transitions to the ESCAPE state, it must do the following:
+   - Choose a random goal cell that is reachable from its current cell and is not dangerous
+   - Compute the shortest path from the bot's current cell to the goal cell
+
+If an appropriate goal cell does not exist (e.g., the bot is trapped), the bot must transition to the WANDER state.
+
+REACHABLE CELLS
+   A target cell is reachable from a starting cell if there exists any path connecting the starting cell and the target cell. This path must not have any cell containing soft blocks.
+```
+
+While the goal cell is guaranteed to be safe, the **path** itself is not checked for danger. When a nearby bomb explodes, a bot may _traverse cells that become part of an explosion range,_ including one caused by its own bomb.
+
+A more robust ESCAPE implementation could:
+- Recompute or invalidate the escape **path** if any cell along it becomes dangerous
+   - But only do so, when the bot's current cell is _not dangerous_ anymore. Otherwise, placing a bomb will freeze the bot.
+- Or, have the bot move to the _nearest safe cell_ (including its current cell, if it is safe). This guarantees the bots to move when it is standing in danger; thus, avoiding unnecessary path calculations that may include an explosion. 
 
 ## Group Members & Part 2 Assignments
 
