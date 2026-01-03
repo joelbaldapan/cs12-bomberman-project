@@ -400,31 +400,6 @@ const renderDebugInfo = (model: Model): CanvasElement[] => {
         })
       );
     }
-
-    if (Option.isSome(memory.goal)) {
-      const [goalRow, goalCol] = Option.getOrThrow(memory.goal);
-      const goalX = goalCol * TILE_SIZE + HALF_TILE - (MARKER_SIZE * 2);
-      const goalY = goalRow * TILE_SIZE + HALF_TILE - (MARKER_SIZE * 2);
-      
-      elements.push(
-        SolidRectangle.make({
-          x: goalX,
-          y: goalY,
-          width: MARKER_SIZE * 4,
-          height: MARKER_SIZE,
-          color: pathColor,
-        })
-      );
-      elements.push(
-        SolidRectangle.make({
-          x: goalX + MARKER_SIZE * 1.5,
-          y: goalY - MARKER_SIZE * 1.5,
-          width: MARKER_SIZE,
-          height: MARKER_SIZE * 4,
-          color: pathColor,
-        })
-      );
-    }
   }
 
   return elements;
