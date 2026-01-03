@@ -103,16 +103,16 @@ export const updateBGM = (model: Model): void => {
   lastGameState = currentState;
 
   if (currentState === "Countdown Model") {
-    playBGM("./public/sounds/stage_start.mp3", false, 0.4);
+    playBGM("/sounds/stage_start.mp3", false, 0.4);
     
     if (currentBGM) {
       currentBGM.onended = () => {
-        playBGM("./public/sounds/battle_bgm.mp3", true, 0.3);
+        playBGM("/sounds/battle_bgm.mp3", true, 0.3);
       };
     }
   } else if (currentState === "Playing Model") {
     if (!currentBGM || currentBGM.paused) {
-      playBGM("./public/sounds/battle_bgm.mp3", true, 0.3);
+      playBGM("/sounds/battle_bgm.mp3", true, 0.3);
     }
   } else if (currentState === "Transition Model") {
     stopBGM();
