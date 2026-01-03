@@ -77,6 +77,8 @@ import {
   DrawType,
   WinResult,
   BotAction,
+  BotInternalState,
+  BotMemory,
   // add others if needed
 } from "./model";
 import { Msg } from "./msg";
@@ -145,35 +147,35 @@ function _handle_input_for_players(model: Model): Model {
   let nextEntities = model.world.entities;
 
   for (const player of model.players) {
-      const controls = CONTROLS[player.player_id];
-      if (!controls) continue;
+    const controls = CONTROLS[player.player_id];
+    if (!controls) continue;
 
-      const right = isHeld(inputState, controls.right);
-      const left = isHeld(inputState, controls.left);
-      const down = isHeld(inputState, controls.down);
-      const up = isHeld(inputState, controls.up);
+    const right = isHeld(inputState, controls.right);
+    const left = isHeld(inputState, controls.left);
+    const down = isHeld(inputState, controls.down);
+    const up = isHeld(inputState, controls.up);
 
-      let dx = (right ? 1 : 0) - (left ? 1 : 0);
-      let dy = (down ? 1 : 0) - (up ? 1 : 0);
+    let dx = (right ? 1 : 0) - (left ? 1 : 0);
+    let dy = (down ? 1 : 0) - (up ? 1 : 0);
 
-      if (dx !== 0 && dy !== 0) dy = 0; 
+    if (dx !== 0 && dy !== 0) dy = 0;
 
-      if (dx === 0 && dy === 0 && player.vx === 0 && player.vy === 0) continue;
+    if (dx === 0 && dy === 0 && player.vx === 0 && player.vy === 0) continue;
 
-      let newDirection = player.directionFacing;
-      if (dx > 0) newDirection = EastDirection.make({ dr: 0, dc: 1 });
-      else if (dx < 0) newDirection = WestDirection.make({ dr: 0, dc: -1 });
-      else if (dy > 0) newDirection = SouthDirection.make({ dr: 1, dc: 0 });
-      else if (dy < 0) newDirection = NorthDirection.make({ dr: -1, dc: 0 });
+    let newDirection = player.directionFacing;
+    if (dx > 0) newDirection = EastDirection.make({ dr: 0, dc: 1 });
+    else if (dx < 0) newDirection = WestDirection.make({ dr: 0, dc: -1 });
+    else if (dy > 0) newDirection = SouthDirection.make({ dr: 1, dc: 0 });
+    else if (dy < 0) newDirection = NorthDirection.make({ dr: -1, dc: 0 });
 
-      const newPlayer = Player.make({
-        ...player,
-        vx: dx * playerSpeed(player),
-        vy: dy * playerSpeed(player),
-        directionFacing: newDirection,
-      });
+    const newPlayer = Player.make({
+      ...player,
+      vx: dx * playerSpeed(player),
+      vy: dy * playerSpeed(player),
+      directionFacing: newDirection,
+    });
 
-      nextEntities = HashMap.set(nextEntities, player.id, newPlayer);
+    nextEntities = HashMap.set(nextEntities, player.id, newPlayer);
   }
 
   return {
@@ -347,7 +349,7 @@ function _update_entities(model: Model, dt: number): Model {
 
   for (const [id, ent] of model.world.entities) {
     if (ent._tag === "Block" && ent.isHard) {
-      continue
+      continue;
     }
     const [updatedEntity, updateResult] = Match.value(ent).pipe(
       Match.tag("Explosion", (e) => updateExplosion(e, dt)),
@@ -483,7 +485,6 @@ function _process_events(model: Model): Model {
   });
 }
 
-
 function _check_explosion_powerup_collision(model: Model): Model {
   let newWorld = model.world;
   let results = UpdateResult.make({
@@ -494,7 +495,7 @@ function _check_explosion_powerup_collision(model: Model): Model {
   let picked: GridCoords[] = [];
 
   const currentPlayers = Array.filter(
-    Array.fromIterable(getAllType(newWorld, Player)), 
+    Array.fromIterable(getAllType(newWorld, Player)),
     (player) => player.isAlive
   );
 
@@ -504,37 +505,34 @@ function _check_explosion_powerup_collision(model: Model): Model {
     const overlappingCells = getOverlappingCells(player);
 
     for (const [r, c] of overlappingCells) {
+      const entity = getEntityAt(newWorld, r, c);
+      const position: GridCoords = [r, c];
 
-       const entity = getEntityAt(newWorld, r, c);
-       const position: GridCoords = [r, c]
-       
-       if (!entity) continue;
+      if (!entity) continue;
 
-       if (entity._tag === "Explosion") {
-          if (player.isAlive) {
-             const deadPlayer = onExplosionHitPlayer(player);
-             newWorld = addEntity(newWorld, deadPlayer);
-             break; 
-          }
-       } 
-       
-       else if (entity._tag === "Powerup") {
-          const p = entity as Powerup;
-          if (Array.contains(picked, position)) {
-        continue;
+      if (entity._tag === "Explosion") {
+        if (player.isAlive) {
+          const deadPlayer = onExplosionHitPlayer(player);
+          newWorld = addEntity(newWorld, deadPlayer);
+          break;
+        }
+      } else if (entity._tag === "Powerup") {
+        const p = entity as Powerup;
+        if (Array.contains(picked, position)) {
+          continue;
+        }
+        if (!p.isExpired) {
+          const [newPlayer, result] = onPickup(p, player);
+
+          newWorld = addEntity(newWorld, newPlayer);
+          results = {
+            ...results,
+            events: Array.appendAll(results.events, result.events),
+            sounds: Array.appendAll(results.sounds, result.sounds),
+            animations: Array.appendAll(results.animations, result.animations),
+          };
+        }
       }
-          if (!p.isExpired) {
-             const [newPlayer, result] = onPickup(p, player);
-
-             newWorld = addEntity(newWorld, newPlayer);
-             results = {
-                ...results,
-                events: Array.appendAll(results.events, result.events),
-                sounds: Array.appendAll(results.sounds, result.sounds),
-                animations: Array.appendAll(results.animations, result.animations),
-             };
-          }
-       }
     }
   }
 
@@ -642,7 +640,7 @@ function _process_new_animations(model: Model): Model {
     return model;
   }
 
-  const newAnimations = model.vfxBuffer.map(cmd =>
+  const newAnimations = model.vfxBuffer.map((cmd) =>
     ActiveAnimation.make({
       cmd,
       frameCounter: 0,
@@ -659,13 +657,13 @@ function _process_new_animations(model: Model): Model {
 
 function _update_animations(model: Model): Model {
   const updatedAnimations = model.activeAnimations
-    .map(anim => 
+    .map((anim) =>
       ActiveAnimation.make({
         ...anim,
         frameCounter: anim.frameCounter + 1,
       })
     )
-    .filter(anim => {
+    .filter((anim) => {
       const maxFrames = getAnimationMaxFrames(anim.cmd.type);
       return anim.frameCounter < maxFrames;
     });
@@ -825,6 +823,16 @@ function _start_new_round(model: Model): Model {
     )
   );
 
+  const newBotInternals = HashMap.map(model.botInternals, (state) => (BotInternalState.make({
+    ...state,
+    memory: BotMemory.make({
+      ...state.memory,
+      path: Array.empty(),
+      goal: Option.none(),
+      isStrictMovement: false
+    }),
+  })));
+
   return {
     ...model,
     world: World.make({
@@ -845,7 +853,7 @@ function _start_new_round(model: Model): Model {
     globalFrameCount: 0,
     tempWinner: -1,
     roundResult: Option.none(),
-    debugMode: false
+    botInternals: newBotInternals
   };
 }
 function _tick_game(model: Model, dt: number): Model {
@@ -866,7 +874,7 @@ function _tick_game(model: Model, dt: number): Model {
     _process_events,
     _check_round_end_conditions,
     _process_new_animations,
-    _update_animations,
+    _update_animations
   );
 }
 
@@ -883,7 +891,7 @@ export const update = (msg: Msg, model: Model) =>
 
       // Calculate how many frames have passed IRL!
       let dt = Math.floor(elapsedMS / EXPECTED_FRAME_MS);
-      const MAX_DT = 9.0; 
+      const MAX_DT = 9.0;
       dt = Math.min(dt, MAX_DT);
       dt = Math.max(dt, 1);
 
@@ -915,8 +923,8 @@ export const update = (msg: Msg, model: Model) =>
 
           return _start_new_round(nextModel);
         }
-        if (nextModel.state._tag === "Countdown Model"){
-          return nextModel
+        if (nextModel.state._tag === "Countdown Model") {
+          return nextModel;
         }
         return { ...nextModel, debugMode: !nextModel.debugMode };
       }
@@ -940,9 +948,11 @@ export const update = (msg: Msg, model: Model) =>
       return { ...model, inputState: nextInputState };
     }),
     Match.tag("Canvas.MsgMouseDown", () => {
-      if (model.startedGame) return model
+      if (model.startedGame) return model;
       return Model.make({
-        ...model, startedGame: true, state: CountdownModel.make({})
+        ...model,
+        startedGame: true,
+        state: CountdownModel.make({}),
       });
     }),
     Match.tag("Canvas.MsgMouseUp", () => {

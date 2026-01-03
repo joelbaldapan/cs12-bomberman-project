@@ -340,11 +340,11 @@ const renderDebugInfo = (model: Model): CanvasElement[] => {
 
     elements.push(
       Text.make({
-        x: player.x,
-        y: player.y - 4,
+        x: player.x + HALF_TILE,
+        y: player.y + TILE_SIZE * 1.5 + 16,
         text: botTypeText,
         color: "#FFFFFF",
-        fontSize: FONT_SMALL,
+        fontSize: FONT_MEDIUM,
         font: "RetroPixel"
 
       })
@@ -360,11 +360,11 @@ const renderDebugInfo = (model: Model): CanvasElement[] => {
 
     elements.push(
       Text.make({
-        x: player.x,
-        y: player.y + TILE_SIZE + FONT_SMALL,
+        x: player.x + HALF_TILE,
+        y: player.y + TILE_SIZE * 1.5 + FONT_MEDIUM,
         text: stateText,
         color: "#FFFF00",
-        fontSize: FONT_SMALL,
+        fontSize: FONT_MEDIUM,
         font: "RetroPixel"
 
       })
@@ -377,7 +377,7 @@ const renderDebugInfo = (model: Model): CanvasElement[] => {
             x: botCenterX,
             y: botCenterY,
             radius: radiusPixels,
-            color: "#ff00002c",
+            color: "#ff000020",
           })
         );
       }
@@ -409,9 +409,9 @@ const renderDebugInfo = (model: Model): CanvasElement[] => {
 const getPathColorForBot = (playerId: number): string => {
   switch (playerId) {
     case 0: return "#ffffffff"; // no need (player)
-    case 1: return "#FF8800FF"; // p2
-    case 2: return "#8800FFFF"; // p3
-    case 3: return "#00FFFFFF"; // p4
+    case 1: return "#326cc3ff"; // p2
+    case 2: return "#d62929ff"; // p3
+    case 3: return "#eaed48ff"; // p4
     default: return "#FFFFFFFF";
   }
 };
@@ -774,7 +774,7 @@ export function renderGame(
           x: player.x + TILE_SIZE * 0.5,
           y: player.y - TILE_SIZE * 0.1,
           text: label,
-          color: "#FF0000",
+          color: "#ffffffff",
           fontSize: FONT_SMALL * 2,
           font: "RetroPixel"
         })
