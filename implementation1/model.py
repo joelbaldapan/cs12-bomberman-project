@@ -269,15 +269,14 @@ class RoundManager:
             self._finalize_round(DrawType.TIME, [])
             return True
 
-        if len(alive_players) == 0:
-            self._finalize_round(DrawType.DEATH, [])
-            return True
-
-        if len(alive_players) == 1:
+        if len(alive_players) <= 1:
             if self._state != ModelState.END_DELAY:
                 self._state = ModelState.END_DELAY
                 self._win_countdown = self._fps
             elif self._win_countdown <= 0:
+                if len(alive_players) == 0:
+                    self._finalize_round(DrawType.DEATH, [])
+                    return True
                 self._finalize_round(None, alive_players)
                 return True
 
