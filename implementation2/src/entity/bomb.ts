@@ -30,6 +30,7 @@ import { onExplosionHitBlock } from "./block";
 import { onExplosionHitPowerup } from "./powerup";
 import { onExplosionHitExplosion } from "./explosion";
 import { onExplosionHitPlayer } from "./player";
+import { makeExplosion } from "../helpers/factories";
 
 export const updateBomb = (ent: Bomb, dt: number): [Bomb, UpdateResult] => {
   let result = UpdateResult.make({ events: [], sounds: [], animations: [] });
@@ -95,16 +96,8 @@ export const createExplosions = (bomb: Bomb, world: World): [World, UpdateResult
   const duration = explosionDuration(bomb);
   let newWorld = World.make({...world})
 
-  const centerExplosion = Explosion.make({
-    id: generateId(row, col),
-    row: row,
-    col: col,
-    isExpired: false,
-    currentTimer: 0,
-    fullTimer: duration,
-    orientation: CenterExplosion.make({}),
-    terminalDirection: Option.none()
-  });
+  const centerExplosion = makeExplosion(row, col,CenterExplosion.make(), duration);
+
 
   let result = UpdateResult.make({
     events: Array.empty(),
@@ -177,16 +170,8 @@ export const createExplosions = (bomb: Bomb, world: World): [World, UpdateResult
         ? VerticalExplosion.make({})
         : HorizontalExplosion.make({});
 
-      const explosionPart = Explosion.make({
-        id: generateId(er, ec),
-        row: er,
-        col: ec,
-        isExpired: false,
-        currentTimer: 0,
-        fullTimer: duration,
-        orientation: orient,
-        terminalDirection: Option.none()
-      });
+      const explosionPart = makeExplosion(er, ec, orient, duration);
+
 
       result = UpdateResult.make({
         ...result,
