@@ -168,7 +168,6 @@ export const updateBot = (
     state.config.dangerRadius
   );
 
-  console.log(`CURR BEV ${currentBehavior._tag}`)
   if (isInDanger) {
     if (currentBehavior._tag !== "Escape State") {
       const res = transitionTo(

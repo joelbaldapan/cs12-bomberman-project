@@ -259,7 +259,6 @@ function _update_bots(model: Model, dt: number): Model {
       player,
       dt
     );
-    console.log(action._tag)
 
     // update INTERNALS
     nextBotInternals = HashMap.set(nextBotInternals, botId, nextState);
@@ -719,7 +718,6 @@ function _trySpawnBomb(model: Model, player_id_to_place: number): Model {
 
   let newBomb = makeBomb(r, c, fuseDuration, playerRange(player), player.id);
   newBomb = { ...newBomb, moveAwayIds: overlappingIds };
-  console.log(overlappingIds)
 
   let newWorld = addEntity(model.world, newBomb);
 

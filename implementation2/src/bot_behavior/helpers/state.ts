@@ -126,8 +126,6 @@ export const runOnTick = (
     const overlapping = getOverlappingCells(bot)
     return overlapping.some(([r, c]) => r === gr && c === gc);
   };
-  console.log(`Goal? ${atGoal(memory.goal)}`)
-  console.log(`Goal? ${memory.goal}`)
 
   return Match.value(state).pipe(
 
@@ -143,13 +141,6 @@ export const runOnTick = (
 
     Match.tag("Escape State", (currentState) => {
       if (memory.path.length === 0) {
-        console.log("LENGTH 0")
-        console.log("LENGTH 0")
-        console.log("LENGTH 0")
-        console.log("LENGTH 0")
-        console.log("LENGTH 0")
-        console.log("LENGTH 0")
-        console.log("LENGTH 0")
         const reset = runOnEnter(currentState, config, memory, world, bot);
         return { nextState: null, memory: reset.memory };
       }
@@ -160,7 +151,6 @@ export const runOnTick = (
       const inDanger = overlapping.some(([r, c]) => 
         HashSet.has(dangerZones, `${r},${c}`)
     );
-      console.log(inDanger)
       
       const newState = EscapeState.make({
         ...currentState,
@@ -218,7 +208,6 @@ export const decideAction = (
   world: World,
   bot: Player
 ): { action: BotAction; memory: BotMemory } => {
-  console.log(`State: ${state._tag}`)
   return Match.value(state).pipe(
     Match.tag("Wander State", () =>
       followPathAction(memory, world, bot, true)
