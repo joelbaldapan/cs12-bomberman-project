@@ -6,7 +6,7 @@ A multiplayer Bomberman clone developed for CS 12 25.1. This repository contains
 
 ## Important Notes
 
-### (Forking of cs12251-mvu)
+### A. Forking of cs12251-mvu
 
 **Implementation 2 (Typescript)** uses a _vendored_ version of [cs12251-mvu](https://github.com/UPD-CS12-251/cs12251-mvu). The following `TaggedStruct`s were implemented:
 
@@ -16,7 +16,7 @@ This was done because there was no _reliable_ way to detect when the user had st
 
 The fork of such repository may be found [here](https://github.com/joelbaldapan/cs12251-mvu).
 
-### Faulty Bot _Escape State_
+### B. Faulty Bot _Escape State_
 
 From the specs:
 ```text
@@ -32,12 +32,13 @@ REACHABLE CELLS
    A target cell is reachable from a starting cell if there exists any path connecting the starting cell and the target cell. This path must not have any cell containing soft blocks.
 ```
 
-While the goal cell is guaranteed to be safe, the **path** itself is not checked for danger. When a nearby bomb explodes, a bot may _traverse cells that become part of an explosion range,_ including one caused by its own bomb.
+While the goal cell is guaranteed to be safe, the **path** itself is not checked for danger. Meaning, a bot might _traverse cells with explosions_.
 
-A more robust ESCAPE implementation could:
+Alternate `ESCAPE` implementations could:
 - Recompute or invalidate the escape **path** if any cell along it becomes dangerous
-   - But only do so, when the bot's current cell is _not dangerous_ anymore. Otherwise, placing a bomb will freeze the bot.
-- Or, have the bot move to the _nearest safe cell_ (including its current cell, if it is safe). This guarantees the bots to move when it is standing in danger; thus, avoiding unnecessary path calculations that may include an explosion. 
+   - But only do so when the bot's current cell is _not dangerous_ anymore. Otherwise, placing a bomb will freeze the bot.
+- Or, have the bot move to the _nearest safe cell_ (including its current cell, if it is safe).
+   - This guarantees the bots to stand still on a safe cell when in danger; thus, avoiding path calculations that may include an explosion. 
 
 ## Group Members & Part 2 Assignments
 
