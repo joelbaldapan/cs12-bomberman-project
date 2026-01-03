@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from common_types import ActionInfo, BotControllerInfo, PlayerAction, AnimationCmd, AnimationType, BombInfo, BotType, CoordMode, EffectInfo, GridCoords, PlayerInfo, SoundType, WorldInfo, Direction, EntityType, UpdateResultInfo
 from helpers.event import UpdateResult
 from helpers.grid_adapter import GridAdapter
-from bot_behavior.bot_configs import BotFactory
+from bot_behavior.bot_config import BotFactory
 
 
 @dataclass(eq=False)
