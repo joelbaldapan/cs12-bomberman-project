@@ -24,8 +24,8 @@ const FPS = 60;
 const BACKGROUND_COLOR = "#70C6A9"; 
 
 const FONT_SMALL = Math.floor(TILE_SIZE * 0.25);
-const FONT_MEDIUM = Math.floor(TILE_SIZE * 0.4);
-const FONT_LARGE = Math.floor(TILE_SIZE * 0.75);
+const FONT_MEDIUM = Math.floor(TILE_SIZE * 0.5);
+const FONT_LARGE = Math.floor(TILE_SIZE * 2);
 const HALF_TILE = TILE_SIZE / 2;
 const QUARTER_TILE = TILE_SIZE / 4;
 
@@ -504,10 +504,68 @@ const renderCountdown = (model: Model): CanvasElement[] => {
       text: text,
       color: "#ffe600ff",
       fontSize: FONT_LARGE,
-        font: "RetroPixel"
-
+      font: "RetroPixel"
     }),
   ];
+};
+
+// click to start
+
+const renderClickToStart = (model: Model): CanvasElement[] => {
+  const elements: CanvasElement[] = [];
+  
+  const centerX = SCREEN_WIDTH / 2;
+  const centerY = SCREEN_HEIGHT / 2;
+  
+  const titleText = "BOMBERMAN";
+  const titleCharWidth = FONT_LARGE * 0.6;
+  const titleTextWidth = titleText.length * titleCharWidth;
+  
+  elements.push(
+    Text.make({
+      x: centerX - titleTextWidth * 0.025,
+      y: centerY - FONT_LARGE * 0.5,
+      text: titleText,
+      color: "#FF0000",
+      fontSize: FONT_LARGE,
+      font: "RetroPixel"
+    })
+  );
+  
+  const instructionText = "Click to Start!";
+  const instructionCharWidth = FONT_MEDIUM * 0.6;
+  const instructionTextWidth = instructionText.length * instructionCharWidth;
+  
+  const blinkRate = Math.floor(model.globalFrameCount / 30) % 2;
+  const textColor = blinkRate === 0 ? "#ffe600ff" : "#FFFFFF";
+  
+  elements.push(
+    Text.make({
+      x: centerX - instructionTextWidth * 0.08,
+      y: centerY,
+      text: instructionText,
+      color: textColor,
+      fontSize: FONT_LARGE * 0.5,
+      font: "RetroPixel"
+    })
+  );
+  
+  const subText = "This is required to load all BGM and SFX!";
+  const subCharWidth = FONT_SMALL * 0.6;
+  const subTextWidth = subText.length * subCharWidth;
+  
+  elements.push(
+    Text.make({
+      x: centerX - subTextWidth * 0.08,
+      y: centerY + FONT_MEDIUM * 1.5,
+      text: subText,
+      color: "#000000ff",
+      fontSize: FONT_SMALL * 2,
+      font: "RetroPixel"
+    })
+  );
+
+  return elements;
 };
 
 // result screen
@@ -587,8 +645,7 @@ const renderResultScreen = (model: Model): CanvasElement[] => {
       text: scoresTitle,
       color: "#FFFFFF",
       fontSize: FONT_MEDIUM,
-        font: "RetroPixel"
-
+      font: "RetroPixel"
     })
   );
 
@@ -607,7 +664,6 @@ const renderResultScreen = (model: Model): CanvasElement[] => {
         color: "#FFFFFF",
         fontSize: FONT_SMALL,
         font: "RetroPixel"
-
       })
     );
 
@@ -627,7 +683,6 @@ const renderResultScreen = (model: Model): CanvasElement[] => {
         color: "#FFD700",
         fontSize: FONT_LARGE,
         font: "RetroPixel"
-
       })
     );
   } else {
@@ -642,7 +697,6 @@ const renderResultScreen = (model: Model): CanvasElement[] => {
         color: "#ffffffff",
         fontSize: FONT_SMALL,
         font: "RetroPixel"
-
       })
     );
   }
@@ -672,6 +726,12 @@ export function renderGame(
       color: BACKGROUND_COLOR,
     })
   );
+
+  // Show click to start screen if game hasn't started
+  if (!model.startedGame) {
+    elements.push(...renderClickToStart(model));
+    return elements;
+  }
 
   if (model.state._tag === "Transition Model") {
     elements.push(...renderResultScreen(model));
@@ -741,7 +801,7 @@ export function renderGame(
           text: label,
           color: "#FF0000",
           fontSize: FONT_SMALL,
-        font: "RetroPixel"
+          font: "RetroPixel"
         })
       );
     }
@@ -750,7 +810,7 @@ export function renderGame(
   elements.push(...renderAnimations(model));
   elements.push(...renderUI(model));
   elements.push(...renderCountdown(model));
-  elements.push(...renderDebugInfo(model))
+  elements.push(...renderDebugInfo(model));
 
   return elements;
 }
