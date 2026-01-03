@@ -891,16 +891,22 @@ export const update = (msg: Msg, model: Model) =>
       const nextInputState = HashSet.add(model.inputState, key);
       let nextModel = { ...model, inputState: nextInputState };
 
-      if (key === "L" || key === "l") {
-        let explosions = getAllType(model.world, Explosion);
-        for (const explosion of explosions) {
-          console.log(explosion.row, explosion.col);
-        }
-      }
-
       if (key === "Escape") {
         if (nextModel.state._tag === "Transition Model") {
+          const isMatchOver = Option.getOrElse(
+            Option.map(nextModel.roundResult, (r) => r.matchOver),
+            () => false
+          );
+
+          if (isMatchOver) {
+            console.log("GAME OVER");
+            return nextModel;
+          }
+
           return _start_new_round(nextModel);
+        }
+        if (nextModel.state._tag === "Countdown Model"){
+          return nextModel
         }
         return { ...nextModel, debugMode: !nextModel.debugMode };
       }
