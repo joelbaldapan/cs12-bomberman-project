@@ -4,6 +4,7 @@ from view import View
 from helpers.grid_adapter import GridAdapter
 from helpers.settings import Settings as SettingsLoader, SettingsError
 from common_types import ConfigInfo
+from entities.powerup import Powerup_Factories
 import sys
 
 def main():
@@ -24,8 +25,10 @@ def main():
     fps = 30
     
     config: ConfigInfo = SettingsLoader.from_json("settings.json")
+
+    powerups = Powerup_Factories
     
-    model = Model(world, grid, fps, config)
+    model = Model(world, grid, fps, config, powerups)
     view = View(grid, fps)
     controller = Controller(model, view)
     

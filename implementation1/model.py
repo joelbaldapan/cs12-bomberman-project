@@ -12,7 +12,6 @@ from helpers.grid_adapter import GridAdapter
 from helpers.event import RemoveEvent, SpawnEvent, UpdateResult
 from entities.bomb import BombFactory
 from entities.block import BlockFactory
-from entities.powerup import Powerup_Factories
 from entities.player import PlayerFactory
 
 T = TypeVar("T", bound=EntityInfo)
@@ -328,7 +327,7 @@ class Model:
             4.) Win conditions
     """
 
-    def __init__(self, world: WorldInfo, grid: GridAdapter, fps: int, config: ConfigInfo):
+    def __init__(self, world: WorldInfo, grid: GridAdapter, fps: int, config: ConfigInfo, powerups: tuple[PowerupSpawner, ...]):
         self._world = world
         self._config = config
         self._fps = fps
@@ -337,6 +336,8 @@ class Model:
         self._map_gen = MapGenerator(world.rows, world.cols, config)
         self._physics = PhysicsEngine(grid)
         self._round_mgr = RoundManager(fps, config)
+
+        self._powerups = powerups
 
         self._event_buffer: list[EventInfo] = []
         self._sfx_buffer: list[SoundType] = []
@@ -560,7 +561,7 @@ class Model:
     def _powerup_spawn(self, row: int, col: int) -> None:
         k = self._config.powerup_spawn_chance
         if randint(1, 100) <= k:
-            pu: PowerupSpawner = choice(Powerup_Factories)
+            pu: PowerupSpawner = choice(self._powerups)
             self._event_buffer.append(SpawnEvent(pu.make(row, col, self.fps)))
 
     def _process_events(self):
