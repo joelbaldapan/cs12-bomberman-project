@@ -150,13 +150,13 @@ export const makeEffect = (
   });
 
 
-export const makeFireUp = (row: number, col: number) =>
+export const makeFireUp = (row: number, col: number, fps: number) =>
   _makePowerup(row, col, FirePowerup.make({}), makeEffect(Option.none(), 0, 0, 1));
 
-export const makeBombUp = (row: number, col: number) =>
+export const makeBombUp = (row: number, col: number, fps: number) =>
   _makePowerup(row, col, BombPowerup.make({}), makeEffect(Option.none(), 0, 1, 0));
 
-export const makeSpeedUp = (row: number, col: number) =>
+export const makeSpeedUp = (row: number, col: number, fps: number) =>
   _makePowerup(row, col, SpeedPowerup.make({}), makeEffect(Option.none(), 0.2, 0, 0));
 
 export const choicePowerups = [makeFireUp, makeBombUp, makeSpeedUp]

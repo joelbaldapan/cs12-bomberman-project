@@ -441,7 +441,7 @@ function _detonate_bombs(model: Model): Model {
         ...result,
         events: Array.append(
           result.events,
-          SpawnEvent.make({ entity: pw(entity.row, entity.col) })
+          SpawnEvent.make({ entity: pw(entity.row, entity.col, model.fps) })
         ),
       };
     }
