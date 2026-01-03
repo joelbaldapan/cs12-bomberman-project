@@ -58,7 +58,7 @@ export const playSfxBuffer = (sfxBuffer: readonly SoundType[]): void => {
 
 let currentBGM: HTMLAudioElement | null = null;
 
-export const playBGM = (bgmPath: string, loop: boolean = true, volume: number = 0.3): void => {
+export const playBGM = (bgmPath: string, loop: boolean = true, volume: number = 1): void => {
   if (currentBGM) {
     currentBGM.pause();
     currentBGM.currentTime = 0;
@@ -103,16 +103,16 @@ export const updateBGM = (model: Model): void => {
   lastGameState = currentState;
 
   if (currentState === "Countdown Model") {
-    playBGM("/sounds/stage_start.mp3", false, 0.4);
+    playBGM("/sounds/stage_start.mp3", false, 1);
     
     if (currentBGM) {
       currentBGM.onended = () => {
-        playBGM("/sounds/battle_bgm.mp3", true, 0.3);
+        playBGM("/sounds/battle_bgm.mp3", true, 1);
       };
     }
   } else if (currentState === "Playing Model") {
     if (!currentBGM || currentBGM.paused) {
-      playBGM("/sounds/battle_bgm.mp3", true, 0.3);
+      playBGM("/sounds/battle_bgm.mp3", true, 1);
     }
   } else if (currentState === "Transition Model") {
     stopBGM();
