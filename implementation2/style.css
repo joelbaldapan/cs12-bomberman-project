@@ -1,3 +1,16 @@
+@font-face {
+  font-family: "AldercyPixel";
+  src: url(fonts/AldercyPixelDemoRegular-nAgdg.otf)
+    format("opentype");
+}
+
+@font-face {
+  font-family: "NapzerPixel";
+  src: url(fonts/NapzerPixelDemoRegular-aYyLa.otf)
+    format("opentype");
+}
+
+
 html,
 body {
   height: 100%;
@@ -16,11 +29,20 @@ body {
   flex-shrink: 0;
 
   text-align: center;
-  font-family: system-ui, "Segoe UI", sans-serif;
   color: #ffffff;
 
   padding-top: 12px;
   padding-bottom: 12px;
+}
+
+#gameHeader {
+  font-weight: 500;
+  font-family: "AldercyPixel", "Segoe UI", sans-serif;
+}
+
+#credit {
+  font-family: "NapzerPixel", "Segoe UI", sans-serif;
+  line-height: 1.0;
 }
 
 #gameHeader {

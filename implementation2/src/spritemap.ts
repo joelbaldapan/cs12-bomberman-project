@@ -86,7 +86,7 @@ export const getAnimationFrame = (): number => {
 const getPlayerFolder = (id: number) => `p${id + 1}`;
 
 export const Assets = {
-  orig: "./public/images/sprites/",
+  orig: "images/sprites/",
   path: (part: SpriteParts | string): string => {
     if (typeof part === "string") {
       return `${Assets.orig}${part}.png`;

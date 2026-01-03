@@ -34,9 +34,9 @@ const QUARTER_TILE = TILE_SIZE / 4;
 
 export const soundToPath = (sound: SoundType): string =>
   Match.value(sound).pipe(
-    Match.tag("Explosion Sound", () => "./public/sounds/explosion.mp3"),
-    Match.tag("PowerupGet Sound", () => "./public/sounds/powerup.mp3"),
-    Match.tag("Death Sound", () => "./public/sounds/death.mp3"),
+    Match.tag("Explosion Sound", () => "sounds/explosion.mp3"),
+    Match.tag("PowerupGet Sound", () => "sounds/powerup.mp3"),
+    Match.tag("Death Sound", () => "sounds/death.mp3"),
     Match.exhaustive
   );
 
