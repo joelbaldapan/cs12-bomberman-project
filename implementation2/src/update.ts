@@ -885,6 +885,7 @@ export const update = (msg: Msg, model: Model) =>
       let dt = Math.floor(elapsedMS / EXPECTED_FRAME_MS);
       const MAX_DT = 9.0; 
       dt = Math.min(dt, MAX_DT);
+      dt = Math.max(dt, 1);
 
       const nextModel = pipe(
         model,
