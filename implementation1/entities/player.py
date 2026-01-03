@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from common_types import ActionInfo, BotControllerInfo, PlayerAction, AnimationCmd, AnimationType, BombInfo, BotType, CoordMode, EffectInfo, GridCoords, PlayerInfo, SoundType, WorldInfo, Direction, EntityType, UpdateResultInfo
 from helpers.event import UpdateResult
 from helpers.grid_adapter import GridAdapter
-from bot_behavior.bot import BotFactory
+from bot_behavior.bot_configs import BotFactory
 
 
 @dataclass(eq=False)
@@ -340,13 +340,6 @@ class BotPlayer(Player):
 
         self._controller.update(self._dt_seconds, self, self._world)
         action: ActionInfo = self._controller.decide_action(self, self._world)
-
-        # if self._id == 3: # Only print for Player 3 to avoid spam
-            #DEBUG
-            # print(f"Bot P3 State: {self._controller.current_state}")
-            # print(f"Action: {action.action_type} | Path Len: {len(self._controller.memory.path)}")
-            # print(f"Direction: {action.move_direction}")
-            # print(f"Strict Movement: {self._controller.memory.is_strict_movement}")
 
         if action.action_type == PlayerAction.MOVE and action.move_direction:
             self.direction_facing = action.move_direction
