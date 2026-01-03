@@ -845,6 +845,7 @@ function _start_new_round(model: Model): Model {
     globalFrameCount: 0,
     tempWinner: -1,
     roundResult: Option.none(),
+    debugMode: false
   };
 }
 function _tick_game(model: Model, dt: number): Model {
@@ -939,6 +940,7 @@ export const update = (msg: Msg, model: Model) =>
       return { ...model, inputState: nextInputState };
     }),
     Match.tag("Canvas.MsgMouseDown", () => {
+      if (model.startedGame) return model
       return Model.make({
         ...model, startedGame: true, state: CountdownModel.make({})
       });

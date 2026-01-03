@@ -107,12 +107,12 @@ export const updateBGM = (model: Model): void => {
     
     if (currentBGM) {
       currentBGM.onended = () => {
-        playBGM("/sounds/battle_bgm.mp3", true, 1);
+        playBGM("/sounds/battle_bgm.mp3", true, 0.7);
       };
     }
   } else if (currentState === "Playing Model") {
     if (!currentBGM || currentBGM.paused) {
-      playBGM("/sounds/battle_bgm.mp3", true, 1);
+      playBGM("/sounds/battle_bgm.mp3", true, 0.7);
     }
   } else if (currentState === "Transition Model") {
     stopBGM();

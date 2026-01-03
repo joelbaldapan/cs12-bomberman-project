@@ -1,7 +1,6 @@
 import { Array, HashMap, HashSet, pipe, Option } from "effect";
 import { BotInternalState, BotType, Entity, GameConfig, GridCoords, WanderState } from "../model"; 
-import { makeSoftBlock } from "./factories";
-import { createBotConfig } from "../bot_behavior/bot";
+import { createBotConfig } from "../bot_behavior/bot_config";
 
 export const getSpacedBlockCoords = (): GridCoords[] => {
   const rows = [2, 4, 6, 8, 10];
