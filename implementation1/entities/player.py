@@ -350,6 +350,10 @@ class BotPlayer(Player):
         
         return 0
 
+    def reset_for_new_round(self) -> None:
+        self._controller: BotControllerInfo = BotFactory.make(self._bot_type)
+        super().reset_for_new_round()
+
 class PlayerFactory:
     @classmethod
     def make(cls, 
