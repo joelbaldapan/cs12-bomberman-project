@@ -565,7 +565,7 @@ export const initModel = (
     tileSize: 16,
     timer: config.timerSeconds * fps,
     winCountdown: fps,
-    roundStartTimer: 0 * fps,
+    roundStartTimer: 3 * fps,
     roundsToWin: config.roundsToWin,
     draw: false,
     inputState: HashSet.empty(),
