@@ -194,6 +194,13 @@ export const AnimationCmd = S.Struct({
   powerupType: S.Option(PowerUpType),
 });
 
+export const ActiveAnimation = S.Struct({
+  cmd: AnimationCmd,
+  frameCounter: S.Number,
+  startFrame: S.Number,
+});
+export type ActiveAnimation = typeof ActiveAnimation.Type;
+
 // entities
 
 export const EntityFields = {
@@ -429,6 +436,8 @@ export const Model = S.Struct({
   eventBuffer: S.Array(EventType),
   sfxBuffer: S.Array(SoundType),
   vfxBuffer: S.Array(AnimationCmd),
+  activeAnimations: S.Array(ActiveAnimation),
+  globalFrameCount: S.Number,
 
   players: S.HashSet(Player),
 
@@ -548,6 +557,8 @@ export const initModel = (
     eventBuffer: [],
     sfxBuffer: [],
     vfxBuffer: [],
+    activeAnimations: [],
+    globalFrameCount: 0,
     players,
     botInternals,
     fps,
