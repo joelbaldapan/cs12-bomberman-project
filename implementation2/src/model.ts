@@ -433,6 +433,8 @@ export const Model = S.Struct({
   world: World,
   config: GameConfig,
 
+  startedGame: S.Boolean,
+
   eventBuffer: S.Array(EventType),
   sfxBuffer: S.Array(SoundType),
   vfxBuffer: S.Array(AnimationCmd),
@@ -553,9 +555,10 @@ export const initModel = (
   );
 
   return Model.make({
+    startedGame: false,
     world: World.make({ rows, cols, entities, board }),
     config,
-    state: CountdownModel.make({}),
+    state: TransitionModel.make({}),
     eventBuffer: [],
     sfxBuffer: [],
     vfxBuffer: [],

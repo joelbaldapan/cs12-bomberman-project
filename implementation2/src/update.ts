@@ -939,7 +939,9 @@ export const update = (msg: Msg, model: Model) =>
       return { ...model, inputState: nextInputState };
     }),
     Match.tag("Canvas.MsgMouseDown", () => {
-      return model;
+      return Model.make({
+        ...model, startedGame: true, state: CountdownModel.make({})
+      });
     }),
     Match.tag("Canvas.MsgMouseUp", () => {
       return model;
