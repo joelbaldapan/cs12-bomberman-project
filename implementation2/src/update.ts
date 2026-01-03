@@ -14,6 +14,7 @@ import {
   onExplosionHitPlayer,
   playerMaxBombs,
   playerRange,
+  playerSpeed,
   removeBomb,
   updatePlayer,
 } from "./entity/player";
@@ -167,8 +168,8 @@ function _handle_input_for_players(model: Model): Model {
 
       const newPlayer = Player.make({
         ...player,
-        vx: dx * player.speed,
-        vy: dy * player.speed,
+        vx: dx * playerSpeed(player),
+        vy: dy * playerSpeed(player),
         directionFacing: newDirection,
       });
 
