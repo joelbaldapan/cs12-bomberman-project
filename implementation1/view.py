@@ -118,9 +118,9 @@ class View:
     def _get_bot_path_color(self, player_id: int) -> int:
         match player_id:
             case 2:
-                return 8
+                return 0
             case 3:
-                return 8
+                return 3
             case 4:
                 return 10  
             case _:
