@@ -810,7 +810,7 @@ function _start_new_round(model: Model): Model {
   for (const p of model.players) {
     const start = startCoords[p.player_id];
     if (!start) continue;
-    const newP = makePlayer(p.player_id, start[0], start[1], 16, model.fps);
+    const newP = makePlayer(p.player_id, start[0], start[1], 128, model.fps);
 
     newPlayers = HashSet.add(newPlayers, newP);
     newEntities = HashMap.set(newEntities, newP.id, newP);
