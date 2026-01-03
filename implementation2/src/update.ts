@@ -140,46 +140,40 @@ function _clear_sfx_buffer(model: Model): Model {
 function _handle_input_for_players(model: Model): Model {
   const { inputState } = model;
 
-  const nextEntities = pipe(
-    model.world.entities,
-    HashMap.map((entity) =>
-      pipe(
-        entity,
-        Match.value,
-        Match.tag("Player", (player) => {
-          const controls = CONTROLS[player.player_id];
-          if (!controls) return player;
+  let nextEntities = model.world.entities;
+  console.log("shi works")
 
-          const right = isHeld(inputState, controls.right);
-          const left = isHeld(inputState, controls.left);
-          const down = isHeld(inputState, controls.down);
-          const up = isHeld(inputState, controls.up);
+  for (const player of model.players) {
+      const controls = CONTROLS[player.player_id];
+      if (!controls) continue;
 
-          let dx = (right ? 1 : 0) - (left ? 1 : 0);
-          let dy = (down ? 1 : 0) - (up ? 1 : 0);
+      const right = isHeld(inputState, controls.right);
+      const left = isHeld(inputState, controls.left);
+      const down = isHeld(inputState, controls.down);
+      const up = isHeld(inputState, controls.up);
 
-          if (dx !== 0 && dy !== 0) {
-            dy = 0;
-          }
-          let newDirection = player.directionFacing;
+      let dx = (right ? 1 : 0) - (left ? 1 : 0);
+      let dy = (down ? 1 : 0) - (up ? 1 : 0);
 
-          if (dx > 0) newDirection = EastDirection.make({ dr: 0, dc: 1 });
-          else if (dx < 0) newDirection = WestDirection.make({ dr: 0, dc: -1 });
-          else if (dy > 0) newDirection = SouthDirection.make({ dr: 1, dc: 0 });
-          else if (dy < 0)
-            newDirection = NorthDirection.make({ dr: -1, dc: 0 });
+      if (dx !== 0 && dy !== 0) dy = 0; 
 
-          return Player.make({
-            ...player,
-            vx: dx * player.speed,
-            vy: dy * player.speed,
-            directionFacing: newDirection,
-          });
-        }),
-        Match.orElse((other) => other)
-      )
-    )
-  );
+      if (dx === 0 && dy === 0 && player.vx === 0 && player.vy === 0) continue;
+
+      let newDirection = player.directionFacing;
+      if (dx > 0) newDirection = EastDirection.make({ dr: 0, dc: 1 });
+      else if (dx < 0) newDirection = WestDirection.make({ dr: 0, dc: -1 });
+      else if (dy > 0) newDirection = SouthDirection.make({ dr: 1, dc: 0 });
+      else if (dy < 0) newDirection = NorthDirection.make({ dr: -1, dc: 0 });
+
+      const newPlayer = Player.make({
+        ...player,
+        vx: dx * player.speed,
+        vy: dy * player.speed,
+        directionFacing: newDirection,
+      });
+
+      nextEntities = HashMap.set(nextEntities, player.id, newPlayer);
+  }
 
   return {
     ...model,

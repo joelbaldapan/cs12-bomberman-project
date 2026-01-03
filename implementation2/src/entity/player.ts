@@ -173,7 +173,7 @@ export const updatePlayer = (
       mode: PixelMode.make(),
       a: ent.x,
       b: ent.y,
-      durationFrames: (1/dt)*2,
+      durationFrames: (1/dt),
       id: Option.some(ent.id),
       powerupType: Option.none(),
     });
