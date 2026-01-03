@@ -142,7 +142,6 @@ function _handle_input_for_players(model: Model): Model {
   const { inputState } = model;
 
   let nextEntities = model.world.entities;
-  console.log("shi works")
 
   for (const player of model.players) {
       const controls = CONTROLS[player.player_id];

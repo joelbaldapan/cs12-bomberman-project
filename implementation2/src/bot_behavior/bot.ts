@@ -25,6 +25,7 @@ import {
   PowerupPolicy1,
   BotUpdateResult,
   BotConfig,
+  IdleAction,
 } from "../model";
 import { HashSet, Match, Option } from "effect";
 
@@ -167,6 +168,7 @@ export const updateBot = (
     state.config.dangerRadius
   );
 
+  console.log(`CURR BEV ${currentBehavior._tag}`)
   if (isInDanger) {
     if (currentBehavior._tag !== "Escape State") {
       const res = transitionTo(
@@ -182,7 +184,7 @@ export const updateBot = (
   }
 
   // 5 - reevaluate if we should
-  if (timerTrigger || shouldForceReeval || isInDanger) {
+  if (timerTrigger || shouldForceReeval) {
     const res = performGlobalReevaluation(
       state.config,
       memory,

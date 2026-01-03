@@ -143,6 +143,13 @@ export const runOnTick = (
 
     Match.tag("Escape State", (currentState) => {
       if (memory.path.length === 0) {
+        console.log("LENGTH 0")
+        console.log("LENGTH 0")
+        console.log("LENGTH 0")
+        console.log("LENGTH 0")
+        console.log("LENGTH 0")
+        console.log("LENGTH 0")
+        console.log("LENGTH 0")
         const reset = runOnEnter(currentState, config, memory, world, bot);
         return { nextState: null, memory: reset.memory };
       }
@@ -159,11 +166,7 @@ export const runOnTick = (
         ...currentState,
         leftDanger: !inDanger ? true : currentState.leftDanger,
       });
-
-      if (inDanger) {
-        return { nextState: null, memory };
-      }
-
+      
       if (newState.leftDanger) {
         const pathDanger = memory.path.some((p) =>
           HashSet.has(dangerZones, `${p[0]},${p[1]}`)
@@ -180,12 +183,9 @@ export const runOnTick = (
         }
       }
 
+      // reached goal
       if (Option.isNone(memory.goal)) {
         return { nextState: WanderState.make({}), memory };
-      }
-
-      if (newState.leftDanger !== currentState.leftDanger) {
-        return { nextState: newState, memory };
       }
 
       return { nextState: null, memory };
