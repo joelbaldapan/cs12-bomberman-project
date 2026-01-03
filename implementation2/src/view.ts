@@ -295,7 +295,7 @@ const renderUI = (model: Model): CanvasElement[] => {
 
   elements.push(
     Text.make({
-      x: textX + TILE_SIZE * 0.6, 
+      x: textX + TILE_SIZE * 0.75, 
       y: textY + textHeight * 0.8,
       text: timerText,
       color: "#ffe600ff",
@@ -523,7 +523,7 @@ const renderClickToStart = (model: Model): CanvasElement[] => {
   
   elements.push(
     Text.make({
-      x: centerX - titleTextWidth * 0.025,
+      x: centerX - titleTextWidth * 0.0008,
       y: centerY - FONT_LARGE * 0.5,
       text: titleText,
       color: "#FF0000",
@@ -533,7 +533,7 @@ const renderClickToStart = (model: Model): CanvasElement[] => {
   );
   
   const instructionText = "Click to Start!";
-  const instructionCharWidth = FONT_MEDIUM * 0.6;
+  const instructionCharWidth = FONT_MEDIUM * 0.08;
   const instructionTextWidth = instructionText.length * instructionCharWidth;
   
   const blinkRate = Math.floor(model.globalFrameCount / 30) % 2;
@@ -551,7 +551,7 @@ const renderClickToStart = (model: Model): CanvasElement[] => {
   );
   
   const subText = "This is required to load all BGM and SFX!";
-  const subCharWidth = FONT_SMALL * 0.6;
+  const subCharWidth = FONT_SMALL * 0.08;
   const subTextWidth = subText.length * subCharWidth;
   
   elements.push(
@@ -610,11 +610,11 @@ const renderResultScreen = (model: Model): CanvasElement[] => {
     Match.tag("Win Result", () => {
       elements.push(
         Text.make({
-          x: centerX - (resultText.length * charWidth) / 2 + 260,
+          x: centerX - (resultText.length * charWidth) * 0.008,
           y: yOffset,
           text: resultText,
           color: resultColor,
-          fontSize: FONT_MEDIUM,
+          fontSize: FONT_LARGE * 0.5,
           font: "RetroPixel"
         })
       );
@@ -622,11 +622,11 @@ const renderResultScreen = (model: Model): CanvasElement[] => {
   Match.tag("Draw Result", () => { 
     elements.push(
       Text.make({
-        x: centerX - (resultText.length * charWidth) / 2 + 150,
+        x: centerX - (resultText.length * charWidth) * 0.03,
         y: yOffset,
         text: resultText,
         color: resultColor,
-        fontSize: FONT_MEDIUM,
+        fontSize: FONT_LARGE,
         font: "RetroPixel"
       })
     );
@@ -640,11 +640,11 @@ const renderResultScreen = (model: Model): CanvasElement[] => {
   const scoresTitle = "SCORES";
   elements.push(
     Text.make({
-      x: centerX - (scoresTitle.length * charWidth) / 2 + 20,
-      y: yOffset,
+      x: centerX - (scoresTitle.length * charWidth) * 0.07,
+      y: yOffset * 1.1,
       text: scoresTitle,
-      color: "#FFFFFF",
-      fontSize: FONT_MEDIUM,
+      color: "#af041bff",
+      fontSize: FONT_LARGE * 0.5,
       font: "RetroPixel"
     })
   );
@@ -658,16 +658,16 @@ const renderResultScreen = (model: Model): CanvasElement[] => {
 
     elements.push(
       Text.make({
-        x: centerX - (scoreText.length * charWidth) / 2,
-        y: yOffset,
+        x: centerX - (scoreText.length * charWidth) * 0.08,
+        y: yOffset * 1.2,
         text: scoreText,
         color: "#FFFFFF",
-        fontSize: FONT_SMALL,
+        fontSize: FONT_MEDIUM * 2,
         font: "RetroPixel"
       })
     );
 
-    yOffset += FONT_SMALL * 1.5;
+    yOffset += FONT_SMALL * 3;
   }
 
   if (result.matchOver && Option.isSome(result.overallWinnerId)) {
@@ -691,11 +691,11 @@ const renderResultScreen = (model: Model): CanvasElement[] => {
 
     elements.push(
       Text.make({
-        x: centerX - (instruction.length * charWidth) / 2 + 210,
-        y: yOffset,
+        x: centerX - (instruction.length * charWidth) * 0.008,
+        y: yOffset * 1.2,
         text: instruction,
-        color: "#ffffffff",
-        fontSize: FONT_SMALL,
+        color: "#fff700d1",
+        fontSize: FONT_MEDIUM * 2,
         font: "RetroPixel"
       })
     );
@@ -800,7 +800,7 @@ export function renderGame(
           y: player.y - TILE_SIZE * 0.1,
           text: label,
           color: "#FF0000",
-          fontSize: FONT_SMALL,
+          fontSize: FONT_SMALL * 2,
           font: "RetroPixel"
         })
       );
