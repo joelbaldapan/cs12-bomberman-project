@@ -86,7 +86,7 @@ export const getAnimationFrame = (): number => {
 const getPlayerFolder = (id: number) => `p${id + 1}`;
 
 export const Assets = {
-  orig: "/assets/images/sprites/",
+  orig: "./public/images/sprites/",
   path: (part: SpriteParts | string): string => {
     if (typeof part === "string") {
       return `${Assets.orig}${part}.png`;
@@ -95,7 +95,7 @@ export const Assets = {
       part,
       Match.value,
       Match.tag("BlockSprite", (sprite: BlockSprite) => {
-        // example: assets/images/blocks/hard_block.png
+        // example: public/images/blocks/hard_block.png
         return `${Assets.orig}blocks/${sprite.name}_block.png`;
       }),
       Match.tag("SoftBlockBreakSprite", (sprite: SoftBlockBreakSprite) => {
@@ -104,7 +104,7 @@ export const Assets = {
         return `${Assets.orig}blocks/soft_on_hit_${frameNum}.png`;
       }),
       Match.tag("BombSprite", (sprite: BombSprite) => {
-        // example:  assets/images/bombs/bomb_frame_1.png
+        // example:  public/images/bombs/bomb_frame_1.png
         const frameNum = (sprite.frame % 3) + 1;
         return `${Assets.orig}bombs/bomb_frame_${frameNum}.png`;
       }),
@@ -130,7 +130,7 @@ export const Assets = {
       }),
 
       Match.tag("PlayerSprite", (sprite: PlayerSprite) => {
-        // example: assets/images/players/p1/walk_north_1.png
+        // example: public/images/players/p1/walk_north_1.png
         const folder = getPlayerFolder(sprite.playerId);
         const isMoving = Option.getOrElse(sprite.isMoving, () => false);
         const walkFrame = Option.getOrElse(sprite.walkFrame, () => 0);

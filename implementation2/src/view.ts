@@ -14,9 +14,7 @@ import { Model, SoundType, Entity, Player, AnimationCmd, AnimationType, CoordMod
 import type { Msg } from "./msg";
 
 
-// board / constants
-
-// UPDATE TILE SIZE
+// TILES AND CONSTANTS
 const TILE_SIZE = 128; 
 const ROWS = 15;
 const COLS = 13;
@@ -25,7 +23,6 @@ const SCREEN_HEIGHT = TILE_SIZE * COLS;
 const FPS = 60;
 const BACKGROUND_COLOR = "#70C6A9"; 
 
-// DEFINE SCALED VISUAL CONSTANTS
 const FONT_SMALL = Math.floor(TILE_SIZE * 0.25);
 const FONT_MEDIUM = Math.floor(TILE_SIZE * 0.4);
 const FONT_LARGE = Math.floor(TILE_SIZE * 0.75);
@@ -37,9 +34,9 @@ const QUARTER_TILE = TILE_SIZE / 4;
 
 export const soundToPath = (sound: SoundType): string =>
   Match.value(sound).pipe(
-    Match.tag("Explosion Sound", () => "/assets/sounds/explosion.mp3"),
-    Match.tag("PowerupGet Sound", () => "/assets/sounds/powerup.mp3"),
-    Match.tag("Death Sound", () => "/assets/sounds/death.mp3"),
+    Match.tag("Explosion Sound", () => "./public/sounds/explosion.mp3"),
+    Match.tag("PowerupGet Sound", () => "./public/sounds/powerup.mp3"),
+    Match.tag("Death Sound", () => "./public/sounds/death.mp3"),
     Match.exhaustive
   );
 
@@ -237,6 +234,8 @@ const renderUI = (model: Model): CanvasElement[] => {
       text: timerText,
       color: "#ffe600ff",
       fontSize: FONT_MEDIUM,
+        font: "RetroPixel"
+
     })
   );
 
@@ -280,6 +279,8 @@ const renderDebugInfo = (model: Model): CanvasElement[] => {
         text: botTypeText,
         color: "#FFFFFF",
         fontSize: FONT_SMALL,
+        font: "RetroPixel"
+
       })
     );
 
@@ -298,6 +299,8 @@ const renderDebugInfo = (model: Model): CanvasElement[] => {
         text: stateText,
         color: "#FFFF00",
         fontSize: FONT_SMALL,
+        font: "RetroPixel"
+
       })
     );
 
@@ -435,6 +438,8 @@ const renderCountdown = (model: Model): CanvasElement[] => {
       text: text,
       color: "#ffe600ff",
       fontSize: FONT_LARGE,
+        font: "RetroPixel"
+
     }),
   ];
 };
@@ -484,6 +489,8 @@ const renderResultScreen = (model: Model): CanvasElement[] => {
       text: resultText,
       color: resultColor,
       fontSize: FONT_MEDIUM,
+        font: "RetroPixel"
+
     })
   );
 
@@ -497,6 +504,8 @@ const renderResultScreen = (model: Model): CanvasElement[] => {
       text: scoresTitle,
       color: "#FFFFFF",
       fontSize: FONT_MEDIUM,
+        font: "RetroPixel"
+
     })
   );
 
@@ -514,6 +523,8 @@ const renderResultScreen = (model: Model): CanvasElement[] => {
         text: scoreText,
         color: "#FFFFFF",
         fontSize: FONT_SMALL,
+        font: "RetroPixel"
+
       })
     );
 
@@ -532,6 +543,8 @@ const renderResultScreen = (model: Model): CanvasElement[] => {
         text: winnerText,
         color: "#FFD700",
         fontSize: FONT_LARGE,
+        font: "RetroPixel"
+
       })
     );
   } else {
@@ -545,6 +558,8 @@ const renderResultScreen = (model: Model): CanvasElement[] => {
         text: instruction,
         color: "#ffffffff",
         fontSize: FONT_SMALL,
+        font: "RetroPixel"
+
       })
     );
   }
@@ -642,6 +657,7 @@ export function renderGame(
           text: label,
           color: "#FF0000",
           fontSize: FONT_SMALL,
+        font: "RetroPixel"
         })
       );
     }

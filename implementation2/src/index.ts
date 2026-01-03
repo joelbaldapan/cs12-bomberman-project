@@ -3,6 +3,7 @@ import { GameConfig, initModel } from "./model";
 import { update } from "./update";
 import { view } from "./view";
 import { loadGameConfig } from "./helpers/settings";
+import { loadFonts } from "./helpers/fonts";
 
 const root = document.getElementById("app")!;
 
@@ -13,6 +14,7 @@ const SETTINGS_URL = "/settings.json";
 
 async function main() {
   try {
+    loadFonts()
     console.log("TRY");
     const config = await loadGameConfig(SETTINGS_URL);
     console.log("LOADED:", config);
