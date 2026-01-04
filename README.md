@@ -46,13 +46,13 @@ Alternate `ESCAPE` implementations could:
 | :------------------------ | :----------------------- |
 | **Aranas, John Ray**      | **Option 3: extreme bot type (Python)**           |
 | **Baldapan, Joel Angelo** | **add ur option guys**           |
-| **Crucero Robert Rohan**  | **add ur option guys**           |
-| **Gonzalez Dayshaun**     | **Option 1: Rainbow powerup (Python)**           |
+| **Crucero, Robert Rohan**  | **add ur option guys**           |
+| **Gonzalez, Dayshaun Justin**     | **Option 1: Rainbow powerup (Python)**           |
 
 ## Highest Phase Accomplished
 
-- **Implementation 1 (Python):** Phase 5
-- **Implementation 2 (TypeScript):** Phase 5
+- **Implementation 1 (Python):** Phase 6
+- **Implementation 2 (TypeScript):** Phase 6
 
 ## Project Structure
 
