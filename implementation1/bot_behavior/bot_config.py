@@ -1,5 +1,3 @@
-
-
 from dataclasses import dataclass
 from bot_behavior.bot import BotController
 from bot_behavior.bot_policy import AttackPolicy1, AttackPolicy2, BombOnlyDangerPolicy, ExplosionPredictionDangerPolicy, PowerupPolicy1, PowerupPolicy2
@@ -58,8 +56,13 @@ class GreedyBotConfig:
     powerup_policy = PowerupPolicy1()
     powerup_chance = 1.0
 
-
 class BotFactory:
+    _CONFIG_MAP: dict[BotType, type[BotConfigInfo]] = {
+        BotType.HOSTILE: HostileBotConfig,
+        BotType.CAREFUL: CarefulBotConfig,
+        BotType.GREEDY: GreedyBotConfig,
+        }
+
     @classmethod
     def make(cls, bot_type: BotType) -> BotControllerInfo:
         config = cls.create_bot_config(bot_type)
@@ -67,12 +70,10 @@ class BotFactory:
 
     @classmethod
     def create_bot_config(cls, bot_type: BotType) -> BotConfigInfo:
-        match bot_type:
-            case BotType.HOSTILE:
-                return HostileBotConfig()
-            case BotType.CAREFUL:
-                return CarefulBotConfig()
-            case BotType.GREEDY:
-                return GreedyBotConfig()
-            case _:
-                raise ValueError(f"Unknown bot type: {bot_type}")
+        config_class = cls._CONFIG_MAP.get(bot_type)
+        
+        if config_class is None:
+            raise ValueError(f"Unknown bot type: {bot_type}")
+        
+        return config_class()
+
