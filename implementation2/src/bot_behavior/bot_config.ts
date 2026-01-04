@@ -72,6 +72,19 @@ export const createBotConfig = (botType: BotType): BotConfig => {
       powerupChance: 1.0,
     })),
 
+    Match.tag("Extreme Bot", (bot) => ({
+      botType: bot,
+      reevalInterval: 0.1,
+      reevalChance: 0.10,
+      dangerRadius: 10,
+      dangerPolicy: ExplosionPredictionDangerPolicy.make({}),
+      attackPolicy: AttackPolicy2.make({}),
+      attackRangeTrigger: 10,
+      attackSearchRadius: 0,
+      powerupPolicy: PowerupPolicy1.make({}),
+      powerupChance: 1.0,
+    })),
+
     Match.exhaustive
   );
 }

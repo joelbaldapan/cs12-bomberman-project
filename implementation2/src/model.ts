@@ -10,15 +10,6 @@ import {
   initBotState,
 } from "./helpers/init_world_gen";
 
-// FOR CONSISTENCY:
-//    ADD ALL TYPES UP IN THE FILE
-
-/*
-TODO: add all types up here
-TODO: add all types up here
-TODO: add all types up here
-TODO: add all types up here
-*/
 
 export type BotType = typeof BotType.Type;
 export type ModelState = typeof ModelState.Type;
@@ -48,22 +39,25 @@ export type GridCoords = typeof GridCoords.Type;
 export type World = typeof World.Type;
 export type Board = typeof Board.Type;
 
+export type BotMemory = typeof BotMemory.Type;
+export type BotInternalState = typeof BotInternalState.Type;
+export type BotConfig = typeof BotConfig.Type;
+export type InputState = typeof InputState.Type;
+
 export type GameConfig = typeof GameConfig.Type;
 
 export type Model = typeof Model.Type;
 export type initModel = typeof initModel;
 
-// ^^ TYPES
-// ^^ TYPES
-// ^^ TYPES
 
 // BotType
 export const BotType = S.Union(
   S.TaggedStruct("Hostile Bot", {}),
   S.TaggedStruct("Careful Bot", {}),
-  S.TaggedStruct("Greedy Bot", {})
+  S.TaggedStruct("Greedy Bot", {}),
+  S.TaggedStruct("Extreme Bot", {}),
 );
-export const [HostileBot, CarefulBot, GreedyBot] = BotType.members;
+export const [HostileBot, CarefulBot, GreedyBot, ExtremeBot] = BotType.members;
 export type HostileBot = typeof HostileBot.Type;
 export type CarefulBot = typeof CarefulBot.Type;
 export type GreedyBot = typeof GreedyBot.Type;
@@ -177,6 +171,7 @@ export type NorthDirection = typeof NorthDirection.Type;
 export type SouthDirection = typeof SouthDirection.Type;
 export type EastDirection = typeof EastDirection.Type;
 export type WestDirection = typeof WestDirection.Type;
+
 
 export const RoundResult = S.Struct({
   outcome: ResultType,
@@ -377,7 +372,7 @@ export const BotMemory = S.Struct({
   lastBombCoords: S.HashSet(GridCoords),
   lastExplosionCoords: S.HashSet(GridCoords),
 });
-export type BotMemory = typeof BotMemory.Type;
+
 
 // THE CONTAINER
 
@@ -387,13 +382,21 @@ export const BotInternalState = S.Struct({
   memory: BotMemory,
   currentState: BotBehavior,
 });
-export type BotInternalState = typeof BotInternalState.Type;
+
 
 export const BotAction = S.Union(
   S.TaggedStruct("Idle Action", {}),
   S.TaggedStruct("Place Bomb Action", {}),
   S.TaggedStruct("Move Action", { direction: Direction })
 );
+
+export const [IdleAction, PlaceBombAction, MoveAction] = BotAction.members;
+
+export type BotAction = typeof BotAction.Type;
+export type IdleAction = typeof IdleAction.Type;
+export type PlaceBombAction = typeof PlaceBombAction.Type;
+export type MoveAction = typeof MoveAction.Type;
+
 
 export const BotConfig = S.Struct({
   botType: BotType,
@@ -412,14 +415,6 @@ export const BotConfig = S.Struct({
   powerupChance: S.Number,
 });
 
-export type BotConfig = typeof BotConfig.Type;
-
-export const [IdleAction, PlaceBombAction, MoveAction] = BotAction.members;
-
-export type BotAction = typeof BotAction.Type;
-export type IdleAction = typeof IdleAction.Type;
-export type PlaceBombAction = typeof PlaceBombAction.Type;
-export type MoveAction = typeof MoveAction.Type;
 
 export type BotUpdateResult = {
   nextState: BotInternalState;
@@ -427,7 +422,7 @@ export type BotUpdateResult = {
 };
 
 export const InputState = S.HashSet(S.String);
-export type InputState = typeof InputState.Type;
+
 
 // MODEL
 

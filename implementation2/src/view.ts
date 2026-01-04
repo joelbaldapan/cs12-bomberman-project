@@ -330,6 +330,7 @@ const renderDebugInfo = (model: Model): CanvasElement[] => {
       Match.tag("Hostile Bot", () => "HOSTILE"),
       Match.tag("Careful Bot", () => "CAREFUL"),
       Match.tag("Greedy Bot", () => "GREEDY"),
+      Match.tag("Extreme Bot", () => "EXTREME"),
       Match.exhaustive
     );
 

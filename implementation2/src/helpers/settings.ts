@@ -4,6 +4,7 @@ import {
   HostileBot,
   CarefulBot,
   GreedyBot,
+  ExtremeBot,
 } from "../model";
 import { Schema as S , Array} from "effect";
 
@@ -32,6 +33,8 @@ const mapStringToBotType = (typeStr: string): BotType => {
       return CarefulBot.make({});
     case "greedy":
       return GreedyBot.make({});
+    case "extreme":
+      return ExtremeBot.make({});
     default:
       throw new SettingsError(
         `Invalid bot type '${typeStr}'. Allowed: hostile, careful, greedy`
