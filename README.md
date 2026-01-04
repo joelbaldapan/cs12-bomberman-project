@@ -1,4 +1,4 @@
-# Bomberman Clone in MVU/MVC! (CS 12 25.1 MP)
+# Bomberman (CS 12 25.1 MP)
 
 <p align="center">
   <img src="assets/header.png" alt="Header" style="width:80%; max-width:500px;"/>
@@ -8,8 +8,8 @@
   <img src="assets/game.png" alt="Game" style="width:50%; max-width:400px;"/>
 </p>
 
+A multiplayer Bomberman clone developed for CS 12 25.1. This repository contains two separate implementations of the game:
 
-A multiplayer Bomberman clone developed for CS 12 25.1. This repository contains two separate implementations of the game: 
 1. **Python (Pyxel + MVC)**
 2. **TypeScript/Effect (CS 12 MVU Framework)**
 
@@ -28,6 +28,7 @@ The fork of such repository may be found [here](https://github.com/joelbaldapan/
 ### B. Faulty Bot _Escape State_
 
 From the specs:
+
 ```text
 💣 The ESCAPE state
 
@@ -44,19 +45,26 @@ REACHABLE CELLS
 While the goal cell is guaranteed to be safe, the **path** itself is not checked for danger. Meaning, a bot might _traverse cells with explosions_.
 
 Alternate `ESCAPE` implementations could:
+
 - Recompute or invalidate the escape **path** if any cell along it becomes dangerous
-   - But only do so when the bot's current cell is _not dangerous_ anymore. Otherwise, placing a bomb will freeze the bot.
+  - But only do so when the bot's current cell is _not dangerous_ anymore. Otherwise, placing a bomb will freeze the bot.
 - Or, have the bot move to the _nearest safe cell_ (including its current cell, if it is safe).
-   - This guarantees the bots to stand still on a safe cell when in danger; thus, avoiding path calculations that may include an explosion. 
+  - This guarantees the bots to stand still on a safe cell when in danger; thus, avoiding path calculations that may include an explosion.
+
+### C. Click to Start (Typescript)
+
+This feature was added because browsers **do not autoplay background music or sounds** if the player has not interacted with the webpage (e.g., clicking the screen).
+
+By requiring a click to start, we make sure that audio playback works consistently across all browsers.
 
 ## Group Members & Part 2 Assignments
 
-| Student Name              | Assigned Option (Part 2) |
-| :------------------------ | :----------------------- |
-| **Aranas, John Ray**      | **Option 3: extreme bot type (Python)**           |
-| **Baldapan, Joel Angelo** | **add ur option guys**           |
-| **Crucero, Robert Rohan**  | **add ur option guys**           |
-| **Gonzalez, Dayshaun Justin**     | **Option 1: Rainbow powerup (Python)**           |
+| Student Name                  | Assigned Option (Part 2)                  |
+| :---------------------------- | :---------------------------------------- |
+| **Aranas, John Ray**          | **Option 3: `extreme` bot type (Python)** |
+| **Baldapan, Joel Angelo**     | **Option 2: Rainbow powerup (Python)**    |
+| **Crucero, Robert Rohan**     | **Option 5: Vest powerup (Typescript)**   |
+| **Gonzalez, Dayshaun Justin** | **Option 1: Rainbow powerup (Python)**    |
 
 ## Highest Phase Accomplished
 
@@ -67,11 +75,14 @@ Alternate `ESCAPE` implementations could:
 
 ```text
 .
+├── assets/                 # Documentation assets for README.md
 ├── implementation1/        # Python-based implementation (Pyxel/MVC)
 │   ├── settings.json       # Configuration file for Python version
 │   └── ...
 ├── implementation2/        # TypeScript-based implementation (MVU)
 │   ├── settings.json       # Configuration file for TS version
+│   └── ...
+├── live-demos/             # Video recordings for Part 2 Implementation
 │   └── ...
 ├── llm-python.txt          # Logs of LLM prompts/responses for Python
 ├── llm-typescript.txt      # Logs of LLM prompts/responses for TypeScript
@@ -84,14 +95,14 @@ Both implementations are controlled via a `settings.json` file located in their 
 
 ### JSON Fields
 
-| Key Name            | Type         | Value Range                    | Description                                                                                               |
-| :------------------ | :----------- | :----------------------------- | :-------------------------------------------------------------------------------------------------------- |
+| Key Name                  | Type         | Value Range                    | Description                                                                                               |
+| :------------------------ | :----------- | :----------------------------- | :-------------------------------------------------------------------------------------------------------- |
 | `soft_block_spawn_chance` | Integer      | `0` to `100`                   | Percentage chance a soft block spawns in a valid cell.                                                    |
 | `powerup_spawn_chance`    | Integer      | `0` to `100`                   | Percentage chance a powerup spawns when a block is destroyed.                                             |
-| `timer_seconds`     | Integer      | `30` to `600`                  | Duration of the round in seconds.                                                                         |
-| `num_human_players`     | Integer      | `1` or `2`                     | Number of human-controlled players.                                                                       |
-| `bot_types`         | List[String] | `hostile`, `careful`, `greedy` | Strategies for the bots. The list length depends on `human_players`. (e.g., If 1 human, provide 3 types). |
-| `rounds_to_win`     | Integer      | `1` to `4`                     | Number of round wins required to win the overall match.                                                   |
+| `timer_seconds`           | Integer      | `30` to `600`                  | Duration of the round in seconds.                                                                         |
+| `num_human_players`       | Integer      | `1` or `2`                     | Number of human-controlled players.                                                                       |
+| `bot_types`               | List[String] | `hostile`, `careful`, `greedy` | Strategies for the bots. The list length depends on `human_players`. (e.g., If 1 human, provide 3 types). |
+| `rounds_to_win`           | Integer      | `1` to `4`                     | Number of round wins required to win the overall match.                                                   |
 
 > **Note on Deprecated Fields:** As per Phase 4 requirements, fields regarding specific bot probabilities (e.g., probability to plant bomb/move) were removed in favor of the `bot_types` logic.
 
@@ -103,7 +114,7 @@ Both implementations are controlled via a `settings.json` file located in their 
   "powerup_spawn_chance": 20,
   "timer_seconds": 180,
   "num_human_players": 1,
-  "bot_types": [ "hostile" ,"careful", "greedy"],
+  "bot_types": ["hostile", "careful", "greedy"],
   "rounds_to_win": 3
 }
 ```
