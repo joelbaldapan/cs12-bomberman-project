@@ -23,9 +23,27 @@ async function main() {
 
     startModelCmd(root, model, update, view);
 
-  } catch (e) {
+  } catch (e: any) {
 
     console.error("ERROR:", e);
+    root.innerHTML = `
+      <div style="
+        display: flex; 
+        flex-direction: column; 
+        align-items: center; 
+        justify-content: center; 
+        padding-top: 50px;
+        text-align: center;
+      ">
+        <h1 style="color: #e74c3c;">🔪Configuration Error🔪</h1>
+        <p style="font-size: 1.2rem; color: #e74c3c; margin: 10px 0;">
+          ${e.message}
+        </p>
+        <p style="opacity: 0.8; color: #e74c3c;">
+          Please check <code>src/settings.json</code> and reload.
+        </p>
+      </div>
+    `;
   }
 }
 
