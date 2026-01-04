@@ -7,6 +7,7 @@ class BotType(StrEnum):
     HOSTILE = auto()
     CAREFUL = auto()
     GREEDY = auto()
+    EXTREME = auto()
 
 class ModelState(Enum):
     TRANSITION = auto()

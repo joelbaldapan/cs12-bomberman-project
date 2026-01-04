@@ -56,11 +56,29 @@ class GreedyBotConfig:
     powerup_policy = PowerupPolicy1()
     powerup_chance = 1.0
 
+@dataclass(frozen=True)
+class ExtremeBotConfig:
+    bot_type = BotType.EXTREME
+
+    reeval_interval = 0.1
+    reeval_chance = 0.1
+
+    danger_radius = 10
+    danger_check_type = ExplosionPredictionDangerPolicy()
+
+    attack_policy = AttackPolicy2()
+    attack_range_trigger = 10
+    attack_search_radius = 0
+
+    powerup_policy = PowerupPolicy1()
+    powerup_chance = 1.0
+
 class BotFactory:
     _CONFIG_MAP: dict[BotType, type[BotConfigInfo]] = {
         BotType.HOSTILE: HostileBotConfig,
         BotType.CAREFUL: CarefulBotConfig,
         BotType.GREEDY: GreedyBotConfig,
+        BotType.EXTREME: ExtremeBotConfig,
         }
 
     @classmethod
@@ -76,4 +94,3 @@ class BotFactory:
             raise ValueError(f"Unknown bot type: {bot_type}")
         
         return config_class()
-
