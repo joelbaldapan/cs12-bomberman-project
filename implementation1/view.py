@@ -347,6 +347,8 @@ class View:
                 sprite = SpriteMap.POWERUP_BOMB
             case PowerUpType.SPEED:
                 sprite = SpriteMap.POWERUP_SPEED
+            case PowerUpType.RAINBOW:
+                sprite = SpriteMap.POWERUP_RAINBOW
             case _:
                 sprite = SpriteMap.POWERUP_FIRE
         
@@ -476,6 +478,8 @@ class View:
                 powerup_str = "BOMB"
             case PowerUpType.SPEED:
                 powerup_str = "SPEED"
+            case PowerUpType.RAINBOW:
+                powerup_str = "RAINBOW"
             case _:
                 powerup_str = "FIRE" 
         

@@ -67,6 +67,7 @@ class PowerUpType(Enum):
     FIRE = auto()
     BOMB = auto()
     SPEED = auto()
+    RAINBOW = auto ()
 
 @dataclass(frozen=True)
 class AnimationCmd:

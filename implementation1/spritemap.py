@@ -428,6 +428,10 @@ def get_powerup_sprite(frame: int, powerup: str) -> SpriteCoords:
             match frame:
                     case 0: return SpriteMap.POWERUP_BOMB
                     case _: return SpriteMap.POWERUP_BOMB_2
+        case "RAINBOW":
+            match frame:
+                    case 0: return SpriteMap.POWERUP_RAINBOW
+                    case _: return SpriteMap.POWERUP_RAINBOW_2
         case _: # "SPEED"
             match frame:
                     case 0: return SpriteMap.POWERUP_SPEED

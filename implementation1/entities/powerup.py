@@ -77,6 +77,15 @@ class SpeedUp(Powerup):
         return PowerUpType.SPEED
 
 @dataclass(eq=False)
+class Rainbow(Powerup):
+    def __init__(self, row: int, col: int, fps: int):
+        super().__init__(row, col, fps)
+        self._effect: EffectInfo = EffectFactory.make(10*fps, 0.2, 1, 1)
+    @property
+    def powerup_type(self) -> PowerUpType:
+        return PowerUpType.RAINBOW
+
+@dataclass(eq=False)
 class Effect:
     time_remaining: int|None
     speed_delta: float
@@ -103,7 +112,12 @@ class SpeedUpFactory():
     def make(row: int, col: int, fps: int) -> PowerupInfo:
         return SpeedUp(row, col, fps)
 
-Powerup_Factories: tuple[PowerupSpawner, *tuple[PowerupSpawner,...]] = (FireUpFactory, BombUpFactory, SpeedUpFactory)
+class RainbowFactory():
+    @staticmethod
+    def make(row: int, col: int, fps: int) -> PowerupInfo:
+        return Rainbow(row, col, fps)
+
+Powerup_Factories: tuple[PowerupSpawner, *tuple[PowerupSpawner,...]] = (FireUpFactory, BombUpFactory, SpeedUpFactory, RainbowFactory)
 
 class EffectFactory():
     @classmethod
