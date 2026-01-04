@@ -1567,6 +1567,478 @@ Integrate with view.ts to actually render sprites
 
 The core sprite mapping logic is solid - you just need to export the types and connect it to your view system. Would you like me to show you how to integrate this with your view.ts file specifically?
 
+PROMPT:
+Can you help me do 5?
+
+RESPONSE:
+Absolutely! Let's add animation frame management to your spritemap.ts. Here's the enhanced version with animation frame updating:
+
+typescript
+import {Schema as S, Match, pipe} from "effect";
+
+// ... (keep all your existing type definitions and constants)
+
+export const Assets = {
+    orig: "/assets/sprites/",
+    path: (part: SpriteParts | string): string => {
+        if (typeof part === 'string') {
+            return `${Assets.orig}${part}.png`;
+        }
+        return pipe(
+            part,
+            Match.tag("BlockSprite", (sp) => {
+                return `${Assets.orig}${sp.name}.png`;
+            }),
+            // ... (keep all existing Match.tag cases)
+            Match.exhaustive
+        );
+    },
+    
+    // Animation frame management
+    updateAnimationFrame: (
+        sprite: SpriteParts, 
+        deltaTime: number,
+        animationSpeed: number = 1
+    ): SpriteParts => {
+        return pipe(
+            sprite,
+            Match.tag("SoftBlockBreakSprite", (sp) => {
+                // Soft block break animation: 4 frames, progress based on time
+                const newFrame = Math.min(sp.frame + animationSpeed, 3); // 0-3 frames
+                return SoftBlockBreakSprite.make({ frame: newFrame });
+            }),
+            Match.tag("BombSprite", (sp) => {
+                // Bomb animation: 3 frames loop
+                const newFrame = (sp.frame + animationSpeed) % 3; // 0-2 frames
+                return BombSprite.make({ frame: newFrame });
+            }),
+            Match.tag("ExplosionSprite", (sp) => {
+                // Explosion animation: 4 frames then disappears (handled elsewhere)
+                const newFrame = sp.frame + animationSpeed;
+                return ExplosionSprite.make({ 
+                    direction: sp.direction, 
+                    orientation: sp.orientation, 
+                    frame: newFrame 
+                });
+            }),
+            Match.tag("PowerupSprite", (sp) => {
+                // Powerup animation: 2 frames loop (flashing effect)
+                const newFrame = (sp.frame + animationSpeed) % 2; // 0-1 frames
+                return PowerupSprite.make({ type: sp.type, frame: newFrame });
+            }),
+            Match.tag("PlayerSprite", (sp) => {
+                // Player walk animation: only update if moving
+                if (sp.isMoving) {
+                    const currentWalkFrame = sp.walkFrame ?? 0;
+                    const newWalkFrame = (currentWalkFrame + animationSpeed) % 2; // 0-1 frames
+                    return PlayerSprite.make({ 
+                        playerId: sp.playerId,
+                        direction: sp.direction,
+                        isMoving: true,
+                        walkFrame: newWalkFrame
+                    });
+                }
+                // If not moving, keep current frame (idle)
+                return sp;
+            }),
+            Match.tag("PlayerDeathSprite", (sp) => {
+                // Death animation: 6 frames, then stays on last frame
+                const newFrame = Math.min(sp.frame + animationSpeed, 5); // 0-5 frames
+                return PlayerDeathSprite.make({ playerId: sp.playerId, frame: newFrame });
+            }),
+            Match.tag("BlockSprite", (sp) => {
+                // Blocks don't animate
+                return sp;
+            }),
+            Match.exhaustive
+        );
+    },
+    
+    // Check if a sprite animation is complete
+    isAnimationComplete: (sprite: SpriteParts): boolean => {
+        return pipe(
+            sprite,
+            Match.tag("SoftBlockBreakSprite", (sp) => sp.frame >= 3), // After 4th frame
+            Match.tag("PlayerDeathSprite", (sp) => sp.frame >= 5), // After 6th frame
+            Match.tag("ExplosionSprite", (sp) => sp.frame >= 4), // After 4th frame
+            Match.orElse(() => false) // Other sprites don't have completion
+        );
+    },
+    
+    // Get animation progress (0 to 1)
+    getAnimationProgress: (sprite: SpriteParts): number => {
+        return pipe(
+            sprite,
+            Match.tag("SoftBlockBreakSprite", (sp) => sp.frame / 3), // 0-3 frames
+            Match.tag("PlayerDeathSprite", (sp) => sp.frame / 5), // 0-5 frames
+            Match.tag("ExplosionSprite", (sp) => sp.frame / 4), // 0-4 frames
+            Match.orElse(() => 0) // Others not animated
+        );
+    },
+    
+    // Create initial sprite for an entity type
+    createInitialSprite: (entityType: string, params: any = {}): SpriteParts => {
+        switch(entityType) {
+            case "hard_block":
+                return Assets.helpers.block("hard");
+            case "soft_block":
+                return Assets.helpers.block("soft");
+            case "bomb":
+                return Assets.helpers.bomb(0);
+            case "explosion_center":
+                return Assets.helpers.explosion(undefined, "center", 0);
+            case "explosion_vertical":
+                return Assets.helpers.explosion("vertical", "center", 0);
+            case "explosion_horizontal":
+                return Assets.helpers.explosion("horizontal", "center", 0);
+            case "powerup_fire":
+                return Assets.helpers.powerup("fire", 0);
+            case "powerup_bomb":
+                return Assets.helpers.powerup("bomb", 0);
+            case "powerup_speed":
+                return Assets.helpers.powerup("speed", 0);
+            case "player_idle":
+                return Assets.helpers.player(params.playerId, params.direction || "south");
+            case "player_walk":
+                return Assets.helpers.playerWalk(params.playerId, params.direction || "south", 0);
+            case "player_death":
+                return Assets.helpers.playerDeath(params.playerId, 0);
+            default:
+                throw new Error(`Unknown entity type: ${entityType}`);
+        }
+    },
+    
+    // Reset sprite to initial frame
+    resetAnimation: (sprite: SpriteParts): SpriteParts => {
+        return pipe(
+            sprite,
+            Match.tag("SoftBlockBreakSprite", () => Assets.helpers.softBlockBreak(0)),
+            Match.tag("BombSprite", () => Assets.helpers.bomb(0)),
+            Match.tag("ExplosionSprite", (sp) => 
+                Assets.helpers.explosion(sp.direction, sp.orientation, 0)
+            ),
+            Match.tag("PowerupSprite", (sp) => 
+                Assets.helpers.powerup(sp.type, 0)
+            ),
+            Match.tag("PlayerSprite", (sp) => 
+                Assets.helpers.player(sp.playerId, sp.direction)
+            ),
+            Match.tag("PlayerDeathSprite", (sp) => 
+                Assets.helpers.playerDeath(sp.playerId, 0)
+            ),
+            Match.orElse(() => sprite) // Blocks don't animate
+        );
+    },
+    
+    helpers: {
+        // ... (keep all your existing helpers)
+        
+        // New helper for entity-specific sprites
+        entity: {
+            bomb: (frame: number = 0): BombSprite => Assets.helpers.bomb(frame),
+            explosion: (
+                direction?: string,
+                orientation: string = "center",
+                frame: number = 0
+            ): ExplosionSprite => Assets.helpers.explosion(direction, orientation, frame),
+            powerup: (type: string, frame: number = 0): PowerupSprite => 
+                Assets.helpers.powerup(type, frame),
+            playerIdle: (playerId: number, direction: string): PlayerSprite =>
+                Assets.helpers.player(playerId, direction),
+            playerWalk: (playerId: number, direction: string, walkFrame: number = 0): PlayerSprite =>
+                Assets.helpers.playerWalk(playerId, direction, walkFrame),
+            playerDeath: (playerId: number, frame: number = 0): PlayerDeathSprite =>
+                Assets.helpers.playerDeath(playerId, frame),
+            block: (isHard: boolean): BlockSprite =>
+                Assets.helpers.block(isHard ? "hard" : "soft"),
+            softBlockBreaking: (frame: number = 0): SoftBlockBreakSprite =>
+                Assets.helpers.softBlockBreak(frame),
+        }
+    },
+};
+How to Use in Your Update Loop:
+In your update.ts, you can now manage sprite animations:
+
+typescript
+// In your update function for each entity
+const [updatedEntity, updateResult] = Match.value(ent).pipe(
+  Match.tag("Explosion", (e) => {
+    // Update explosion entity logic
+    const updatedExplosion = updateExplosion(e, dt);
+    
+    // Also update its sprite animation
+    if (e.sprite) { // Assuming you add sprite to entities
+      const updatedSprite = Assets.updateAnimationFrame(e.sprite, dt);
+      return [{ ...updatedExplosion, sprite: updatedSprite }, updateResult];
+    }
+    return [updatedExplosion, updateResult];
+  }),
+  // ... other entity types
+);
+In Your Model:
+You might want to add sprite references to your entities:
+
+typescript
+// In model.ts, add sprite to EntityFields
+export const EntityFields = {
+  row: S.Int,
+  col: S.Int,
+  id: S.Int,
+  isExpired: S.Boolean,
+  sprite: S.Optional(S.String), // Or store the full SpriteParts object
+};
+Integration Benefits:
+Frame Management: Each sprite type has appropriate frame limits and loops
+
+Animation Completion: Easily check when animations finish
+
+Progress Tracking: Get normalized progress (0-1) for any animation
+
+Reset Capability: Reset animations to start
+
+Entity Integration: Easy creation of sprites for entity types
+
+This system gives you full control over sprite animations in your game loop!
+
+PROMPT:
+What if I don't want to add in 5, what else do I need considering that this is the current code:
+
+RESPONSE:
+Looking at your current spritemap.ts, it's actually in good shape! Since you don't want to add the animation frame management system, here's what you still need considering your overall game structure:
+
+1. Integration with Model Entities
+You need to add sprite references to your entity types in model.ts:
+
+typescript
+// In model.ts, add to EntityFields
+export const EntityFields = {
+  row: S.Int,
+  col: S.Int,
+  id: S.Int,
+  isExpired: S.Boolean,
+  // Add sprite property
+  spriteData: S.Optional(S.Record({ 
+    type: S.String, 
+    frame: S.Number,
+    // other sprite-specific data
+  })),
+};
+2. Sprite Creation Functions
+Add functions to create sprites for entities:
+
+typescript
+// In spritemap.ts, add these functions:
+export const createSpriteForEntity = (entity: any): SpriteParts | null => {
+  return pipe(
+    entity,
+    Match.tag("Player", (player) => {
+      const direction = directionToStr(player.directionFacing);
+      // Check if player is moving (you'd need to track velocity)
+      const isMoving = player.vx !== 0 || player.vy !== 0;
+      if (isMoving) {
+        const walkFrame = Math.floor(Date.now() / 200) % 2; // Simple animation
+        return Assets.factory.playerWalk(player.player_id, direction, walkFrame);
+      }
+      return Assets.factory.player(player.player_id, direction);
+    }),
+    Match.tag("Bomb", () => {
+      const frame = Math.floor(Date.now() / 300) % 3; // Bomb animation
+      return Assets.factory.bomb(frame);
+    }),
+    Match.tag("Explosion", (explosion) => {
+      const orientation = explosionOryeToStr(explosion.orientation);
+      const frame = Math.min(explosion.currentTimer, 3); // Based on timer
+      return Assets.factory.explosion(undefined, orientation, frame);
+    }),
+    Match.tag("Powerup", (powerup) => {
+      const type = powerupToStr(powerup.powerupType);
+      const frame = Math.floor(Date.now() / 500) % 2; // Flashing effect
+      return Assets.factory.powerup(type, frame);
+    }),
+    Match.tag("Block", (block) => {
+      return Assets.factory.block(block.isHard ? "hard" : "soft");
+    }),
+    Match.orElse(() => null)
+  );
+};
+3. Update Your View.ts
+Your view.ts needs to use the spritemap:
+
+typescript
+// In view.ts
+import { Assets, createSpriteForEntity, SpriteParts } from "./spritemap";
+import { pipe, Match, HashMap } from "effect";
+
+export function renderScreenAndSound(
+  model: Model,
+  screenWidth: number,
+  screenHeight: number,
+): CanvasElement[] {
+  const elements: CanvasElement[] = [];
+  
+  // 1. Render game board background
+  elements.push(SolidRectangle.make({
+    x: 0, y: 0,
+    width: screenWidth,
+    height: screenHeight,
+    color: "#2C3E50"
+  }));
+  
+  // 2. Render all entities
+  HashMap.forEach(model.world.entities, (entity, id) => {
+    const sprite = createSpriteForEntity(entity);
+    if (sprite) {
+      const spritePath = Assets.path(sprite);
+      
+      // Convert grid coordinates to pixel coordinates
+      const pixelX = entity.col * model.tileSize;
+      const pixelY = entity.row * model.tileSize;
+      
+      elements.push(CanvasImage.make({
+        x: pixelX,
+        y: pixelY,
+        src: spritePath,
+        width: model.tileSize,
+        height: model.tileSize
+      }));
+    }
+  });
+  
+  // 3. Render players separately (if they're not in world.entities)
+  for (const player of model.players) {
+    const sprite = createSpriteForEntity(player);
+    if (sprite) {
+      const spritePath = Assets.path(sprite);
+      
+      elements.push(CanvasImage.make({
+        x: player.x,
+        y: player.y,
+        src: spritePath,
+        width: player.width,
+        height: player.height
+      }));
+    }
+  }
+  
+  // 4. Render UI (scores, timer, etc.)
+  // TODO: Add UI rendering
+  
+  return elements;
+}
+4. Animation in Update Loop
+Even without a formal animation system, you need to update sprite frames:
+
+typescript
+// In update.ts, add a simple animation update
+function _updateSpriteAnimations(model: Model): Model {
+  const time = Date.now();
+  
+  // You could update a global animation counter
+  const animationCounter = Math.floor(time / 100); // Updates every 100ms
+  
+  // Or update entity-specific animation data
+  const updatedEntities = HashMap.map(model.world.entities, (entity) => {
+    return pipe(
+      entity,
+      Match.tag("Bomb", (bomb) => ({
+        ...bomb,
+        spriteData: {
+          type: "bomb",
+          frame: animationCounter % 3 // 3-frame animation
+        }
+      })),
+      Match.tag("Powerup", (powerup) => ({
+        ...powerup,
+        spriteData: {
+          type: powerupToStr(powerup.powerupType),
+          frame: animationCounter % 2 // 2-frame flashing
+        }
+      })),
+      Match.orElse((e) => e)
+    );
+  });
+  
+  return {
+    ...model,
+    world: {
+      ...model.world,
+      entities: updatedEntities
+    }
+  };
+}
+5. Asset Preloading (Critical!)
+Add asset preloading to prevent flickering:
+
+typescript
+// In spritemap.ts or a separate file
+export const preloadSprites = async (): Promise<void> => {
+  const spritePaths = [
+    // Block sprites
+    Assets.path(Assets.factory.block("hard")),
+    Assets.path(Assets.factory.block("soft")),
+    
+    // Bomb frames
+    Assets.path(Assets.factory.bomb(0)),
+    Assets.path(Assets.factory.bomb(1)),
+    Assets.path(Assets.factory.bomb(2)),
+    
+    // Player sprites (example for player 1)
+    Assets.path(Assets.factory.player(1, "north")),
+    Assets.path(Assets.factory.player(1, "south")),
+    Assets.path(Assets.factory.player(1, "east")),
+    Assets.path(Assets.factory.player(1, "west")),
+    Assets.path(Assets.factory.playerWalk(1, "north", 0)),
+    Assets.path(Assets.factory.playerWalk(1, "south", 0)),
+    // ... add all player sprites
+    
+    // Explosion sprites
+    Assets.path(Assets.factory.explosion(undefined, "center", 0)),
+    // ... other explosion types
+    
+    // Powerup sprites
+    Assets.path(Assets.factory.powerup("fire", 0)),
+    Assets.path(Assets.factory.powerup("bomb", 0)),
+    Assets.path(Assets.factory.powerup("speed", 0)),
+  ];
+  
+  const uniquePaths = [...new Set(spritePaths)];
+  
+  const promises = uniquePaths.map(path => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(path);
+      img.onerror = () => reject(`Failed to load: ${path}`);
+      img.src = path;
+    });
+  });
+  
+  await Promise.all(promises);
+  console.log("All sprites preloaded!");
+};
+6. Call Preload in index.ts
+typescript
+// In index.ts
+import { preloadSprites } from "./spritemap";
+
+// Start the game after preloading
+preloadSprites().then(() => {
+  const root = document.getElementById("app")!;
+  startModelCmd(root, initModel, update, view);
+});
+Summary of What You Still Need:
+Sprite creation function for each entity type
+
+Integration with view.ts to render sprites
+
+Basic animation updates in your game loop
+
+Asset preloading to prevent visual glitches
+
+Coordinate conversion from grid to pixels
+
+UI rendering for scores and timer
+
+Your spritemap.ts is ready - you just need to connect it to the rest of your game! The most critical piece is updating view.ts to actually use the sprites.
 
 PROMPT:
 I need to add background music that plays different tracks based on game state:
@@ -1659,3 +2131,115 @@ Benefits:
 2. Configuration can be externalized to JSON
 3. Easier to test and maintain
 4. Clear separation of data and behavior
+
+PROMPT:
+Here's the current code, what else do I need to do
+
+RESPONSE:
+Looking at your spritemap.ts file, I can see you have a well-structured TypeScript file using Effect for schema validation and pattern matching. However, I notice a few issues and improvements that could be made:
+
+Issues to Fix:
+Missing exports - You're not exporting anything besides Assets
+
+Type exports - The types are defined but not exported
+
+Schema export - The SpriteParts schema itself isn't exported
+
+Here's what you should add/change:
+typescript
+// Add these export statements at the end of the file:
+
+// Export all individual sprite types
+export type {
+    SpriteParts,
+    BlockSprite,
+    SoftBlockBreakSprite,
+    BombSprite,
+    ExplosionSprite,
+    PowerupSprite,
+    PlayerSprite,
+    PlayerDeathSprite
+};
+
+// Export the schema itself for validation purposes
+export { SpriteParts };
+
+// Export the individual schema constructors if needed elsewhere
+export {
+    BlockSprite,
+    SoftBlockBreakSprite,
+    BombSprite,
+    ExplosionSprite,
+    PowerupSprite,
+    PlayerSprite,
+    PlayerDeathSprite
+};
+
+// Your existing export stays
+export const Assets = {
+    // ... existing Assets implementation
+};
+Additional Improvements:
+Consider making Assets.path more robust by handling edge cases:
+
+typescript
+path: (part: SpriteParts | string): string => {
+    if (typeof part === 'string') {
+        // Add validation or normalization if needed
+        const normalized = part.trim().toLowerCase();
+        return `${Assets.orig}${normalized}.png`;
+    }
+    // ... rest of the existing implementation
+},
+Add validation helpers (optional but useful):
+
+typescript
+helpers: {
+    // ... existing helpers
+    
+    // Add validation helper
+    validate: (data: unknown): S.ParseResult<SpriteParts> => 
+        SpriteParts.decode(data),
+    
+    // Add safe path generation
+    safePath: (part: SpriteParts | string): string | null => {
+        try {
+            return Assets.path(part);
+        } catch {
+            return null;
+        }
+    },
+},
+Consider adding constants for common values:
+
+typescript
+// Add this before or after the Assets object
+export const Direction = {
+    UP: 'up',
+    DOWN: 'down',
+    LEFT: 'left',
+    RIGHT: 'right'
+} as const;
+
+export const Orientation = {
+    CENTER: 'center',
+    END: 'end',
+    MIDDLE: 'middle'
+} as const;
+
+export const PowerupType = {
+    BOMB: 'bomb',
+    FLAME: 'flame',
+    SPEED: 'speed',
+    // ... etc.
+} as const;
+What you should do next:
+Add the export statements I showed above to make all types available to other modules
+
+Check if any other files are importing from this one and update imports if needed
+
+Consider adding the suggested improvements based on your project's needs
+
+Add documentation (JSDoc comments) for the exported functions if this is a library
+
+The main priority is exporting the types and schema so other parts of your application can use them properly. Without exports, this module isn't very useful outside of its own file.
