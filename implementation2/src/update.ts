@@ -84,10 +84,10 @@ import {
 import { Msg } from "./msg";
 import { Array, HashMap, pipe, Match, HashSet, Option } from "effect";
 
-const _refresh_players_cache = (world: World): HashSet.HashSet<Player> =>
+const refreshPlayersCache = (world: World): HashSet.HashSet<Player> =>
   HashSet.fromIterable(getAllByTag(world, "Player"));
 
-function _update_timers(model: Model, dt: number): Model {
+function updateTimers(model: Model, dt: number): Model {
   // const dt = 1;
   return Match.value(model.state).pipe(
     Match.tag("Transition Model", () => {
@@ -107,20 +107,20 @@ function _update_timers(model: Model, dt: number): Model {
 
       if (model.winCountdown <= 0) {
         if (model.tempWinner !== -1) {
-          return _finalize_round(
+          return finalizeRound(
             model,
             Option.some(model.tempWinner),
             Option.none()
           );
         } else {
           if (model.timer <= 0) {
-            return _finalize_round(
+            return finalizeRound(
               model,
               Option.none(),
               Option.some(TimeResult.make({}))
             );
           } else {
-            return _finalize_round(
+            return finalizeRound(
               model,
               Option.none(),
               Option.some(DeathResult.make({}))
@@ -134,14 +134,14 @@ function _update_timers(model: Model, dt: number): Model {
   );
 }
 
-function _clear_sfx_buffer(model: Model): Model {
+function clearSfxBuffer(model: Model): Model {
   return Model.make({
     ...model,
     sfxBuffer: Array.empty(),
   });
 }
 
-function _handle_input_for_players(model: Model): Model {
+function handleInputForPlayers(model: Model): Model {
   const { inputState } = model;
 
   let nextEntities = model.world.entities;
@@ -187,7 +187,7 @@ function _handle_input_for_players(model: Model): Model {
   };
 }
 
-function _apply_bot_movement(player: Player, action: BotAction): Player {
+function applyBotMovement(player: Player, action: BotAction): Player {
   return Match.value(action).pipe(
     Match.tag("Move Action", ({ direction }) => {
       return Match.value(direction).pipe(
@@ -234,7 +234,7 @@ function _apply_bot_movement(player: Player, action: BotAction): Player {
   );
 }
 
-function _update_bots(model: Model, dt: number): Model {
+function updateBots(model: Model, dt: number): Model {
   if (
     model.state._tag !== "Playing Model" &&
     model.state._tag !== "EndDelay Model"
@@ -266,7 +266,7 @@ function _update_bots(model: Model, dt: number): Model {
     nextBotInternals = HashMap.set(nextBotInternals, botId, nextState);
 
     // update BOT
-    const movedPlayer = _apply_bot_movement(player, action);
+    const movedPlayer = applyBotMovement(player, action);
     nextEntities = HashMap.set(nextEntities, botId, movedPlayer);
 
     // if we place bomb:
@@ -277,7 +277,7 @@ function _update_bots(model: Model, dt: number): Model {
         botInternals: nextBotInternals,
       };
 
-      const modelAfterBomb = _trySpawnBomb(tempModel, botId);
+      const modelAfterBomb = trySpawnBomb(tempModel, botId);
 
       currentModel = modelAfterBomb;
       nextBotInternals = currentModel.botInternals;
@@ -295,7 +295,7 @@ function _update_bots(model: Model, dt: number): Model {
   };
 }
 
-// function _update_entities(model: Model): Model {
+// function updateEntities(model: Model): Model {
 //   const dt = 1 / model.fps;
 
 //   let newWorld = model.world;
@@ -321,7 +321,7 @@ function _update_bots(model: Model, dt: number): Model {
 //     newVfx = [...newVfx, ...updateResult.animations];
 //   }
 
-//   const nextPlayers = _refresh_players_cache(newWorld);
+//   const nextPlayers = refreshPlayersCache(newWorld);
 //   // Return a new model with updated entities and buffers
 //   return Model.make({
 //     ...model,
@@ -333,7 +333,7 @@ function _update_bots(model: Model, dt: number): Model {
 //   });
 // }
 
-function _update_entities(model: Model, dt: number): Model {
+function updateEntities(model: Model, dt: number): Model {
   // const dt = 1 / model.fps;
 
   let newEntities = model.world.entities;
@@ -383,7 +383,7 @@ function _update_entities(model: Model, dt: number): Model {
     vfxBuffer: newVfx,
   });
 }
-function _detonate_bombs(model: Model): Model {
+function detonateBombs(model: Model): Model {
   let newWorld = World.make({ ...model.world });
   let result = UpdateResult.make({ events: [], sounds: [], animations: [] });
 
@@ -452,7 +452,7 @@ function _detonate_bombs(model: Model): Model {
   const newSfx = [...model.sfxBuffer, ...result.sounds];
   const newVfx = [...model.vfxBuffer, ...result.animations];
 
-  const newPlayers = _refresh_players_cache(newWorld);
+  const newPlayers = refreshPlayersCache(newWorld);
 
   return {
     ...model,
@@ -464,7 +464,7 @@ function _detonate_bombs(model: Model): Model {
   };
 }
 
-function _process_events(model: Model): Model {
+function processEvents(model: Model): Model {
   let newWorld = model.world;
 
   Array.map(model.eventBuffer, (event) => {
@@ -485,7 +485,7 @@ function _process_events(model: Model): Model {
   });
 }
 
-function _check_explosion_powerup_collision(model: Model): Model {
+function checkExplosionPowerupCollision(model: Model): Model {
   let newWorld = model.world;
   let results = UpdateResult.make({
     events: Array.empty(),
@@ -536,7 +536,7 @@ function _check_explosion_powerup_collision(model: Model): Model {
     }
   }
 
-  const newPlayers = _refresh_players_cache(newWorld);
+  const newPlayers = refreshPlayersCache(newWorld);
 
   return {
     ...model,
@@ -548,7 +548,7 @@ function _check_explosion_powerup_collision(model: Model): Model {
   };
 }
 
-function _resolve_bomb_passthrough(model: Model): Model {
+function resolveBombPassthrough(model: Model): Model {
   let newWorld = model.world;
 
   const bombs = getAllByTag(model.world, "Bomb") as Bomb[];
@@ -579,7 +579,7 @@ function _resolve_bomb_passthrough(model: Model): Model {
   };
 }
 
-function _check_round_end_conditions(model: Model): Model {
+function checkRoundEndConditions(model: Model): Model {
   if (model.state._tag === "Transition Model") return model;
 
   const alive = Array.filter(
@@ -635,7 +635,7 @@ function getAnimationMaxFrames(animType: AnimationType): number {
   );
 }
 
-function _process_new_animations(model: Model): Model {
+function processNewAnimations(model: Model): Model {
   if (model.vfxBuffer.length === 0) {
     return model;
   }
@@ -655,7 +655,7 @@ function _process_new_animations(model: Model): Model {
   });
 }
 
-function _update_animations(model: Model): Model {
+function updateAnimations(model: Model): Model {
   const updatedAnimations = model.activeAnimations
     .map((anim) =>
       ActiveAnimation.make({
@@ -675,7 +675,7 @@ function _update_animations(model: Model): Model {
   });
 }
 
-function _trySpawnBomb(model: Model, player_id_to_place: number): Model {
+function trySpawnBomb(model: Model, player_id_to_place: number): Model {
   const playerOption = Array.findFirst(
     Array.fromIterable(HashMap.values(model.world.entities)),
     (e): e is Player =>
@@ -731,12 +731,12 @@ function _trySpawnBomb(model: Model, player_id_to_place: number): Model {
   return {
     ...model,
     world: newWorld,
-    players: _refresh_players_cache(newWorld),
+    players: refreshPlayersCache(newWorld),
     eventBuffer: nextEvents,
   };
 }
 
-function _finalize_round(
+function finalizeRound(
   model: Model,
   winnerId: Option.Option<number>,
   drawType: Option.Option<DrawType>
@@ -780,7 +780,7 @@ function _finalize_round(
   };
 }
 
-function _start_new_round(model: Model): Model {
+function startNewRound(model: Model): Model {
   let newEntities = HashMap.empty<number, Entity>();
 
   const hardBlocks = [...model.spacedBlockCoords, ...model.borderBlockCoords];
@@ -857,7 +857,7 @@ function _start_new_round(model: Model): Model {
     debugMode: false
   };
 }
-function _tick_game(model: Model, dt: number): Model {
+function tickGame(model: Model, dt: number): Model {
   if (
     model.state._tag === "Transition Model" ||
     model.state._tag === "Countdown Model"
@@ -866,16 +866,16 @@ function _tick_game(model: Model, dt: number): Model {
   }
   return pipe(
     model,
-    (m) => _update_bots(m, dt),
-    (m) => _update_entities(m, dt),
-    _detonate_bombs,
-    _process_events,
-    _check_explosion_powerup_collision,
-    _resolve_bomb_passthrough,
-    _process_events,
-    _check_round_end_conditions,
-    _process_new_animations,
-    _update_animations
+    (m) => updateBots(m, dt),
+    (m) => updateEntities(m, dt),
+    detonateBombs,
+    processEvents,
+    checkExplosionPowerupCollision,
+    resolveBombPassthrough,
+    processEvents,
+    checkRoundEndConditions,
+    processNewAnimations,
+    updateAnimations
   );
 }
 
@@ -898,10 +898,10 @@ export const update = (msg: Msg, model: Model) =>
 
       const nextModel = pipe(
         model,
-        _clear_sfx_buffer,
-        _handle_input_for_players,
-        (m) => _update_timers(m, dt),
-        (m) => _tick_game(m, dt)
+        clearSfxBuffer,
+        handleInputForPlayers,
+        (m) => updateTimers(m, dt),
+        (m) => tickGame(m, dt)
       );
 
       return Model.make({ ...nextModel, lastTick: now });
@@ -922,7 +922,7 @@ export const update = (msg: Msg, model: Model) =>
             return nextModel;
           }
 
-          return _start_new_round(nextModel);
+          return startNewRound(nextModel);
         }
         if (nextModel.state._tag === "Countdown Model") {
           return nextModel;
@@ -938,9 +938,9 @@ export const update = (msg: Msg, model: Model) =>
       }
 
       if (CONTROLS[0].bomb.includes(key))
-        nextModel = _trySpawnBomb(nextModel, 0);
+        nextModel = trySpawnBomb(nextModel, 0);
       if (CONTROLS[1].bomb.includes(key))
-        nextModel = _trySpawnBomb(nextModel, 1);
+        nextModel = trySpawnBomb(nextModel, 1);
 
       return nextModel;
     }),
