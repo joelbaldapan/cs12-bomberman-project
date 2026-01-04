@@ -1568,3 +1568,94 @@ Integrate with view.ts to actually render sprites
 The core sprite mapping logic is solid - you just need to export the types and connect it to your view system. Would you like me to show you how to integrate this with your view.ts file specifically?
 
 
+PROMPT:
+I need to add background music that plays different tracks based on game state:
+- Countdown: stage_start.mp3 (plays once)
+- Playing: battle_bgm.mp3 (loops)
+- Transition: stop music
+
+How should I implement this?
+
+RESPONSE:
+Create a BGM management system with state-driven configuration:
+
+let currentBGM: HTMLAudioElement | null = null;
+
+export const playBGM = (bgmPath: string, loop: boolean = true, 
+                         volume: number = 0.3): void => {
+  if (currentBGM) {
+    currentBGM.pause();
+    currentBGM.currentTime = 0;
+  }
+  
+  currentBGM = new Audio(bgmPath);
+  currentBGM.volume = volume;
+  currentBGM.loop = loop;
+  currentBGM.play().catch(err => console.warn("BGM failed:", err));
+};
+
+type BGMConfig = {
+  path?: string;
+  loop: boolean;
+  volume: number;
+  onEnded?: () => void;
+  shouldStop?: boolean;
+};
+
+const BGM_STATE_CONFIG: Record<string, BGMConfig> = {
+  "Countdown Model": {
+    path: "./public/sounds/stage_start.mp3",
+    loop: false,
+    volume: 0.4,
+    onEnded: () => playBGM("./public/sounds/battle_bgm.mp3", true, 0.3),
+  },
+  "Playing Model": {
+    path: "./public/sounds/battle_bgm.mp3",
+    loop: true,
+    volume: 0.3,
+  },
+  "Transition Model": {
+    shouldStop: true,
+    loop: false,
+    volume: 0,
+  },
+};
+
+This is OCP compliant - adding new states only requires extending the config
+object, not modifying the playback logic.
+
+PROMPT:
+What's the best practice for making switch/match statements OCP compliant?
+
+Replace control flow with data structures:
+
+**BAD (Violates OCP):**
+
+function getColor(id: number): string {
+  switch (id) {
+    case 1: return "#FF8800FF";
+    case 2: return "#8800FFFF";
+    case 3: return "#00FFFFFF";
+    default: return "#FFFFFFFF";
+  }
+}
+```
+
+**GOOD (Follows OCP):**
+
+const PATH_COLORS: string[] = [
+  "#ffffffff",  // P1
+  "#FF8800FF",  // P2
+  "#8800FFFF",  // P3
+  "#00FFFFFF",  // P4
+];
+
+const getColor = (id: number): string => {
+  return PATH_COLORS[id] || "#FFFFFFFF";
+};
+
+Benefits:
+1. Adding colors requires no code changes
+2. Configuration can be externalized to JSON
+3. Easier to test and maintain
+4. Clear separation of data and behavior
