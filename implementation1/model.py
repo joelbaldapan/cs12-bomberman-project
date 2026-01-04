@@ -327,7 +327,7 @@ class Model:
             4.) Win conditions
     """
 
-    def __init__(self, world: WorldInfo, grid: GridAdapter, fps: int, config: ConfigInfo, powerups: tuple[PowerupSpawner, ...]):
+    def __init__(self, world: WorldInfo, grid: GridAdapter, fps: int, config: ConfigInfo, powerups: tuple[PowerupSpawner, *tuple[PowerupSpawner,...]]):
         self._world = world
         self._config = config
         self._fps = fps

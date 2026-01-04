@@ -103,7 +103,7 @@ class SpeedUpFactory():
     def make(row: int, col: int, fps: int) -> PowerupInfo:
         return SpeedUp(row, col, fps)
 
-Powerup_Factories: tuple[PowerupSpawner, ...] = (FireUpFactory, BombUpFactory, SpeedUpFactory)
+Powerup_Factories: tuple[PowerupSpawner, *tuple[PowerupSpawner,...]] = (FireUpFactory, BombUpFactory, SpeedUpFactory)
 
 class EffectFactory():
     @classmethod
