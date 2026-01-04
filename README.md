@@ -59,12 +59,12 @@ By requiring a click to start, we make sure that audio playback works consistent
 
 ## Group Members & Part 2 Assignments
 
-| Student Name                  | Assigned Option (Part 2)                  |
-| :---------------------------- | :---------------------------------------- |
-| **Aranas, John Ray**          | **Option 3: `extreme` bot type (Python)** |
-| **Baldapan, Joel Angelo**     | **Option 2: Rainbow powerup (Python)**    |
-| **Crucero, Robert Rohan**     | **Option 5: Vest powerup (Typescript)**   |
-| **Gonzalez, Dayshaun Justin** | **Option 1: Rainbow powerup (Python)**    |
+| Student Name                  | Assigned Option (Part 2)                   |
+| :---------------------------- | :----------------------------------------- |
+| **Aranas, John Ray**          | **Option 3: `extreme` bot type (Python)**  |
+| **Baldapan, Joel Angelo**     | **Option 2: Rainbow powerup (Typescript)** |
+| **Crucero, Robert Rohan**     | **Option 5: Vest powerup (Typescript)**    |
+| **Gonzalez, Dayshaun Justin** | **Option 1: Rainbow powerup (Python)**     |
 
 ## Highest Phase Accomplished
 
@@ -95,14 +95,14 @@ Both implementations are controlled via a `settings.json` file located in their 
 
 ### JSON Fields
 
-| Key Name                  | Type         | Value Range                    | Description                                                                                               |
-| :------------------------ | :----------- | :----------------------------- | :-------------------------------------------------------------------------------------------------------- |
-| `soft_block_spawn_chance` | Integer      | `0` to `100`                   | Percentage chance a soft block spawns in a valid cell.                                                    |
-| `powerup_spawn_chance`    | Integer      | `0` to `100`                   | Percentage chance a powerup spawns when a block is destroyed.                                             |
-| `timer_seconds`           | Integer      | `30` to `600`                  | Duration of the round in seconds.                                                                         |
-| `num_human_players`       | Integer      | `1` or `2`                     | Number of human-controlled players.                                                                       |
+| Key Name                  | Type         | Value Range                               | Description                                                                                               |
+| :------------------------ | :----------- | :---------------------------------------- | :-------------------------------------------------------------------------------------------------------- |
+| `soft_block_spawn_chance` | Integer      | `0` to `100`                              | Percentage chance a soft block spawns in a valid cell.                                                    |
+| `powerup_spawn_chance`    | Integer      | `0` to `100`                              | Percentage chance a powerup spawns when a block is destroyed.                                             |
+| `timer_seconds`           | Integer      | `30` to `600`                             | Duration of the round in seconds.                                                                         |
+| `num_human_players`       | Integer      | `1` or `2`                                | Number of human-controlled players.                                                                       |
 | `bot_types`               | List[String] | `hostile`, `careful`, `greedy`, `extreme` | Strategies for the bots. The list length depends on `human_players`. (e.g., If 1 human, provide 3 types). |
-| `rounds_to_win`           | Integer      | `1` to `4`                     | Number of round wins required to win the overall match.                                                   |
+| `rounds_to_win`           | Integer      | `1` to `4`                                | Number of round wins required to win the overall match.                                                   |
 
 > **Note on Deprecated Fields:** As per Phase 4 requirements, fields regarding specific bot probabilities (e.g., probability to plant bomb/move) were removed in favor of the `bot_types` logic.
 
