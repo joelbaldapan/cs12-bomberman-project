@@ -15,7 +15,7 @@ class Bomb:
         self._owner: PlayerInfo = owner
         self._current_timer: int = 0 
         self._expired: bool = False
-        self.move_away_ids: set[int] = set()
+        self._move_away_ids: set[int] = set()
 
     @property
     def row(self) -> int:
@@ -51,6 +51,14 @@ class Bomb:
     @property
     def explosion_duration(self) -> int:
         return self._fuse//3
+    
+    @property
+    def move_away_ids(self) -> set[int]:
+        return self._move_away_ids
+    
+    def set_move_away_ids(self, ids: set[int]):
+        self._move_away_ids = ids
+    
 
 
     def update(self, dt: int) -> UpdateResultInfo:

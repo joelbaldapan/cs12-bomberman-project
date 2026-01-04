@@ -203,8 +203,9 @@ class PhysicsEngine:
                 # If player is gone OR no longer overlapping, remove them from the list
                 if player is None or not self.check_player_overlap(player, bomb.row, bomb.col):
                     to_remove.add(pid)
-
-            bomb.move_away_ids.difference_update(to_remove)
+            new = bomb.move_away_ids
+            new.difference_update(to_remove)
+            bomb.set_move_away_ids(new)
 
 
 class RoundManager:
@@ -458,7 +459,7 @@ class Model:
                 p.id for p in self._players
                 if self._physics.check_player_overlap(p, bomb.row, bomb.col)
             }
-            bomb.move_away_ids = overlapping_ids
+            bomb.set_move_away_ids(overlapping_ids)
             self._event_buffer.append(SpawnEvent(bomb))
 
     def pop_sfx(self) -> list[SoundType]:
