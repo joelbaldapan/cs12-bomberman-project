@@ -229,7 +229,6 @@ class ExplosionPredictionDangerPolicy:
         bot_pos = (bot.row, bot.col)
         danger_zones = self.get_all_danger_zones(world)
 
-        print(f"danger: {any(p in danger_zones for p in overlap_pos)}")
         if any(p in danger_zones for p in overlap_pos):
             return True
 
@@ -260,7 +259,5 @@ class ExplosionPredictionDangerPolicy:
             # dont include bomb
             danger_cells.add((b.row, b.col))
             danger_cells.update(b.get_affected_cells(world))
-
-        print(danger_cells)
 
         return danger_cells

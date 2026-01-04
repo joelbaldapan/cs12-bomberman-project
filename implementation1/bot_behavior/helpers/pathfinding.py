@@ -185,8 +185,6 @@ def follow_path_action(
     entity: PlayerInfo,
     allow_bombing: bool
 ) -> ActionInfo:
-    print(entity.row, entity.col)
-    print(memory.path)
     if not memory.path:
         return Action(PlayerAction.IDLE)
 
@@ -338,7 +336,6 @@ def _follow_action_strict(
 
     # MOVE to next
     move_dir = _get_direction(prev_cell, goal_cell)
-    print(f"MOVE IN PATH: {move_dir}")
 
     # Check if we're done
     is_touching = prev_cell in entity.get_overlapping_cells()
