@@ -182,8 +182,6 @@ export const runOnTick = (
     }),
 
     Match.tag("Get Powerup State", () => {
-      console.log(Option.some(memory.goal))
-      console.log(atGoal(memory.goal))
       if (atGoal(memory.goal)) {
         return { nextState: WanderState.make({}), memory };
       }

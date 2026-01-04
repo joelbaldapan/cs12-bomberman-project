@@ -1459,3 +1459,69 @@ Bot Logic: Calculate max_bots = 4 - humans. If the length of the bot list exceed
 This simply handles the file I/O. It should try to json.load() the file and then pass the dictionary to from_dict. Wrap this in a try/except block to catch FileNotFoundError or JSONDecodeError and re-raise them as your custom SettingsError for a clean error message.
 
 
+PROMPT:
+I'm building a Bomberman clone in Python using Pyxel and MVC architecture. I have a View class that handles rendering. Currently, my powerup rendering uses a match statement that maps PowerUpType enum values to string identifiers. This violates the Open/Closed Principle because adding new powerup types requires modifying the _draw_powerup method. 
+
+How can I refactor this to be SOLID-compliant, specifically following OCP? The powerup types are defined as an Enum (PowerUpType.FIRE, PowerUpType.BOMB, PowerUpType.SPEED), and I need to convert them to strings like "FIRE", "BOMB", "SPEED" for sprite lookup.
+
+RESPONSE:
+
+The view violates OCP because adding new powerup types requires modifying the method. Here are three progressively better solutions:
+
+1. Configuration-based approach: Store a dictionary mapping PowerUpType to strings in __init__, then use .get() for lookup
+2. Enum method approach: Add a .to_string() method directly to the PowerUpType enum that returns self.name
+3. Best approach: Use the enum's .name property directly, eliminating the need for any mapping
+
+The third approach is most SOLID because the view doesn't need to know about specific powerup types at all - it delegates string conversion to the enum itself.
+
+PROMPT:
+I have sprite animation frames defined in my SpriteMap class (BOMB_FRAME_1, BOMB_FRAME_2, EXPLOSION_MIDDLE_1, EXPLOSION_MIDDLE_2, etc.). The project spec says Phase 1 doesn't need animations, only Phase 6 requires animated sprites. Should I keep the frame2 sprites in my sprite coordinate mapping, or simplify?
+
+RESPONSE:
+For Phase 1-5, you don't need multiple animation frames. Simplify by removing _frame2 variants - just use single sprites for bomb and explosion. You can add animation frames later when implementing Phase 6.
+
+PROMPT:
+I'm trying to extract sprite PNGs from my .pyxres file. I tried using pyxel.image(1).save() but got "Type of save unknown" error. I need to extract powerup sprites at specific coordinates:
+- (128, 0): powerup_bomb_2.png
+- (144, 0): powerup_fire_2.png
+- (160, 0): powerup_speed_2.png
+- (176, 0): powerup_rainbow_2.png
+- (192, 0): powerup_vest_2.png
+
+How can I programmatically extract these 16x16 sprites from the .pyxres file?
+
+RESPONSE:
+Use PIL/Pillow to read Pyxel's pixel data directly. Access pixels with pyxel.images[0].pget(x, y), convert color indices to RGB using Pyxel's palette, then save with PIL.
+
+PROMPT:
+I'm building a View class for a Bomberman game. When rendering, should I separate sprite loading/drawing logic into a different class, or keep everything in one View class? I want to follow SOLID principles but also keep it practical for a project this size.
+
+RESPONSE:
+For better SOLID compliance, separate concerns into a SpriteRenderer class that handles sprite loading and drawing, while View orchestrates what to render. This follows Single Responsibility Principle:
+
+- SpriteRenderer: sprite loading, coordinate mapping, drawing at pixel/grid positions
+- View: deciding what entities to render, UI layout, game state display
+
+However, the single-class version is also acceptable for a project this size. The separation is more useful if you later want to swap renderers or reuse SpriteRenderer elsewhere.
+
+PROMPT:
+Why are x and y typed as float in my _draw_sprite method signature? Aren't pixel positions integers?
+
+RESPONSE:
+According to the game spec: "The granularity of movement is such that Bomberman's position can be in between grid cells" - so player positions are floats for sub-pixel movement.
+
+While pyxel.blt() will truncate floats to integers when drawing, accepting float parameters allows the method to handle both:
+- Grid-aligned entities (blocks, bombs) with integer positions
+- Players with sub-pixel float positions
+
+Pyxel handles the float-to-pixel conversion internally, so it's fine to keep the float type signature.
+
+PROMPT:
+Looking at my game coordinates: the top-left pixel of the grid (including hard blocks at r 0, c 0) is at (0, 0) screen coordinates right? My movement code calculates positions based on this assumption using 16x16 pixel cells.
+
+Yes, correct! The coordinate system:
+- Top-left corner of entire grid (row 0, col 0): (0, 0) pixels
+- Top-left corner of playable area (row 1, col 1): (16, 16) pixels  
+- Any cell at (row, col): (col * 16, row * 16) pixels
+
+So your movement code calculating positions from (0, 0) with 16x16 cells works perfectly. The view doesn't need to expose this - it's already implicit in the grid-to-pixel conversion.
