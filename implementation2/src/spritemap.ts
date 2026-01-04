@@ -28,8 +28,8 @@ export const SpriteParts = S.Union(
   }),
   // explosion
   S.TaggedStruct("ExplosionSprite", {
-    shape: S.String, // "middle", "segment", "end"
-    direction: S.Option(S.String), // "north", "south", "east", "west"
+    shape: S.String,
+    direction: S.Option(S.String),
     frame: S.Int,
   }),
   // powerups
