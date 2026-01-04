@@ -9,7 +9,7 @@ import {
   SolidCircle,
 } from "cs12251-mvu/src/canvas";
 import { Array, HashMap, Match, pipe, Option } from "effect";
-import { Assets, createSpriteForEntity, updateAnimationFrame } from "./spritemap";
+import { Assets, createSpriteForEntity, powerupToStr, updateAnimationFrame } from "./spritemap";
 import { Model, SoundType, Entity, Player, AnimationCmd, AnimationType, CoordMode, PowerUpType, BotInternalState, ActiveAnimation } from "./model";
 import type { Msg } from "./msg";
 
@@ -216,12 +216,7 @@ const renderPowerupBreakAnimation = (
   );
 
   if (spriteFrame < 3 && frameCounter % 4 < 2) {
-    const typeStr = Match.value(powerupType).pipe(
-      Match.tag("Fire Powerup", () => "fire"),
-      Match.tag("Bomb Powerup", () => "bomb"),
-      Match.tag("Speed Powerup", () => "speed"),
-      Match.exhaustive
-    );
+    const typeStr = powerupToStr(powerupType)
 
     const spritePath = Assets.path(Assets.factory.powerup(typeStr, 0));
 

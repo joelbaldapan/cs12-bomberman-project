@@ -15,6 +15,7 @@ import {
   BotType,
   BotInternalState,
   WanderState,
+  RainbowPowerup,
 } from "../model";
 import { generateId } from "./id_gen";
 
@@ -137,7 +138,7 @@ const _makePowerup = (
 // EFFECT FACTORY
 
 export const makeEffect = (
-  duration: Option.Option<number>,
+  duration: Option.Option<number>, // in terms of frames
   speedDelta: number,
   bombsDelta: number,
   rangeDelta: number
@@ -149,6 +150,9 @@ export const makeEffect = (
     rangeDelta,
   });
 
+/*
+const _makePowerup: (row: number, col: number, type: PowerUpType, effect: Effect) => PowerUp
+*/
 
 export const makeFireUp = (row: number, col: number, fps: number) =>
   _makePowerup(row, col, FirePowerup.make({}), makeEffect(Option.none(), 0, 0, 1));
@@ -159,4 +163,7 @@ export const makeBombUp = (row: number, col: number, fps: number) =>
 export const makeSpeedUp = (row: number, col: number, fps: number) =>
   _makePowerup(row, col, SpeedPowerup.make({}), makeEffect(Option.none(), 2, 0, 0));
 
-export const choicePowerups = [makeFireUp, makeBombUp, makeSpeedUp]
+export const makeRainbow = (row: number, col: number, fps: number) =>
+  _makePowerup(row, col, RainbowPowerup.make({}), makeEffect(Option.some(10 * fps), 2, 1, 1));
+
+export const choicePowerups = [makeFireUp, makeBombUp, makeSpeedUp, makeRainbow]
