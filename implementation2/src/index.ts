@@ -9,7 +9,7 @@ const root = document.getElementById("app")!;
 
 const ROWS = 13
 const COLS = 15
-const FPS = 60
+const FPS = 30
 const SETTINGS_URL = "/settings.json";
 
 async function main() {
