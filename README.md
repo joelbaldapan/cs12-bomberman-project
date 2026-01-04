@@ -21,7 +21,7 @@ A multiplayer Bomberman clone developed for CS 12 25.1. This repository contains
 
 - Added `MsgKeyUp` and `MsgMouseUp` in `CanvasMsg` ([eed897b](https://github.com/joelbaldapan/cs12251-mvu/commit/eed897bb15a495f50193463fe44769cf4eedf1e2) and [0ea18ac](https://github.com/joelbaldapan/cs12251-mvu/commit/0ea18ac0d521e79e7d3916acc7f8ee65555777bd))
 
-This was done because there was no _reliable_ way to detect when the user had stopped pressing a given key. An alternative would be to set _timeouts_ per `MsgKeyDown` presses. But this implementation led to clunky gameplay, and a not-so-fun experience.
+This was done because there was no _reliable_ way to detect when the user had stopped pressing a given key. An alternative would be to set _timeouts_ per `MsgKeyDown` presses. But this implementation led to clunky gameplay.
 
 The fork of such repository may be found [here](https://github.com/joelbaldapan/cs12251-mvu).
 
@@ -150,6 +150,14 @@ Both implementations are controlled via a `settings.json` file located in their 
    ```bash
    npx vite
    ```
+
+## External References
+
+- [Level up your code with game programming patterns: Command pattern | Tutorial](https://www.youtube.com/watch?v=attURV3JWKQ)
+- [How to Program in Unity: Command Pattern Explained](https://www.youtube.com/watch?v=oLRINAn0cuw&t=428s)
+- [Level up your code with game programming patterns: Factory pattern | Tutorial](https://www.youtube.com/watch?v=lJMY0YdaY9c)
+- [An introduction to finite state machines and the state pattern for game development](https://www.youtube.com/watch?v=-ZP2Xm-mY4E)
+- [How NES Games Use State Machines For Everything](https://www.youtube.com/watch?v=8lZ53Sx5oc0)
 
 ## LLM Policy & Attribution
 
