@@ -1,4 +1,4 @@
-import { HashSet, Option } from "effect";
+import { HashSet, Match, Option, Array } from "effect";
 import {
   Block,
   Bomb,
@@ -109,15 +109,16 @@ export const makePlayer = (
     isExpired: false,
     activeBombs: [],
     effects: [],
-    speed: 10.0,
+    speed: 20.0,
 
     vx: 0,
     vy: 0,
   });
 
-// POWERUP FACTORY
 
-// Helper to avoid repetition
+// Helper
+
+
 const _makePowerup = (
   row: number,
   col: number,
@@ -135,31 +136,41 @@ const _makePowerup = (
 
 
 // EFFECT FACTORY
-
-export const makePowerupEffect = (
-  duration: Option.Option<number>, // in terms of frames
-  speedDelta: number,
-  bombsDelta: number,
-  rangeDelta: number
-) =>
-  PowerupEffect.make({
-    timeRemaining: duration,
-    speedDelta,
-    bombsDelta,
-    rangeDelta,
-  });
+const getPowerUpEffect = (powerup: PowerUpType): PowerupEffect =>
+  Match.value(powerup).pipe(
+    Match.tag("Fire Powerup",  () => PowerupEffect.make({
+      timeRemaining: Option.none(),
+      speedDelta: 0,
+      bombsDelta: 0,
+      rangeDelta: 1,
+    })),
+        Match.tag("Bomb Powerup",  () => PowerupEffect.make({
+      timeRemaining: Option.none(),
+      speedDelta: 0,
+      bombsDelta: 1,
+      rangeDelta: 0,
+    })),
+        Match.tag("Speed Powerup", () => PowerupEffect.make({
+      timeRemaining: Option.none(),
+      speedDelta: 2,
+      bombsDelta: 0,
+      rangeDelta: 0,
+    })),
+    Match.exhaustive
+  );
 
 /*
 const _makePowerup: (row: number, col: number, type: PowerUpType, effect: PowerupEffect) => PowerUp
 */
 
 export const makeFireUp = (row: number, col: number, fps: number) =>
-  _makePowerup(row, col, FirePowerup.make({}), makePowerupEffect(Option.none(), 0, 0, 1));
+  _makePowerup(row, col, FirePowerup.make({}), getPowerUpEffect(FirePowerup.make({})));
 
 export const makeBombUp = (row: number, col: number, fps: number) =>
-  _makePowerup(row, col, BombPowerup.make({}), makePowerupEffect(Option.none(), 0, 1, 0));
+  _makePowerup(row, col, BombPowerup.make({}), getPowerUpEffect(BombPowerup.make({})));
 
 export const makeSpeedUp = (row: number, col: number, fps: number) =>
-  _makePowerup(row, col, SpeedPowerup.make({}), makePowerupEffect(Option.none(), 2, 0, 0));
+  _makePowerup(row, col, SpeedPowerup.make({}), getPowerUpEffect(SpeedPowerup.make({})));
+
 
 export const choicePowerups = [makeFireUp, makeBombUp, makeSpeedUp]
