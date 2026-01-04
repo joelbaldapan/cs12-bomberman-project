@@ -49,41 +49,41 @@ class Powerup:
             result.add_event(RemoveEvent(self))
         return result
 
-# @dataclass(eq=False)
-# class FireUp(Powerup):
-#     def __init__(self, row: int, col: int, fps: int):
-#         super().__init__(row, col, fps)
-#         self._effect: EffectInfo = EffectFactory.make(None, 0, 0, 1)
-#     @property
-#     def powerup_type(self) -> PowerUpType:
-#         return PowerUpType.FIRE
+@dataclass(eq=False)
+class FireUp(Powerup):
+    def __init__(self, row: int, col: int, fps: int):
+        super().__init__(row, col, fps)
+        self._effect: EffectInfo = EffectFactory.make(None, 0, 0, 1, False)
+    @property
+    def powerup_type(self) -> PowerUpType:
+        return PowerUpType.FIRE
 
-# @dataclass(eq=False)
-# class BombUp(Powerup):
-#     def __init__(self, row: int, col: int, fps: int):
-#         super().__init__(row, col, fps)
-#         self._effect: EffectInfo = EffectFactory.make(None, 0, 1, 0)
-#     @property
-#     def powerup_type(self) -> PowerUpType:
-#         return PowerUpType.BOMB
+@dataclass(eq=False)
+class BombUp(Powerup):
+    def __init__(self, row: int, col: int, fps: int):
+        super().__init__(row, col, fps)
+        self._effect: EffectInfo = EffectFactory.make(None, 0, 1, 0, False)
+    @property
+    def powerup_type(self) -> PowerUpType:
+        return PowerUpType.BOMB
     
-# @dataclass(eq=False)
-# class SpeedUp(Powerup):
-#     def __init__(self, row: int, col: int, fps: int):
-#         super().__init__(row, col, fps)
-#         self._effect: EffectInfo = EffectFactory.make(None, 0.2, 0, 0)
-#     @property
-#     def powerup_type(self) -> PowerUpType:
-#         return PowerUpType.SPEED
+@dataclass(eq=False)
+class SpeedUp(Powerup):
+    def __init__(self, row: int, col: int, fps: int):
+        super().__init__(row, col, fps)
+        self._effect: EffectInfo = EffectFactory.make(None, 0.2, 0, 0, False)
+    @property
+    def powerup_type(self) -> PowerUpType:
+        return PowerUpType.SPEED
 
-# @dataclass(eq=False)
-# class Rainbow(Powerup):
-#     def __init__(self, row: int, col: int, fps: int):
-#         super().__init__(row, col, fps)
-#         self._effect: EffectInfo = EffectFactory.make(10*fps, 0.2, 1, 1)
-#     @property
-#     def powerup_type(self) -> PowerUpType:
-#         return PowerUpType.RAINBOW
+@dataclass(eq=False)
+class Rainbow(Powerup):
+    def __init__(self, row: int, col: int, fps: int):
+        super().__init__(row, col, fps)
+        self._effect: EffectInfo = EffectFactory.make(10*fps, 0.2, 1, 1, False)
+    @property
+    def powerup_type(self) -> PowerUpType:
+        return PowerUpType.RAINBOW
 
 class Vest(Powerup):
     def __init__(self, row: int, col: int, fps: int):
@@ -106,32 +106,32 @@ class Effect:
             return
         self.time_remaining -= dt
 
-# class FireUpFactory():
-#     @staticmethod
-#     def make(row: int, col: int, fps: int) -> PowerupInfo:
-#         return FireUp(row, col, fps)
+class FireUpFactory():
+    @staticmethod
+    def make(row: int, col: int, fps: int) -> PowerupInfo:
+        return FireUp(row, col, fps)
 
-# class BombUpFactory():
-#     @staticmethod
-#     def make(row: int, col: int, fps: int) -> PowerupInfo:
-#         return BombUp(row, col, fps)
+class BombUpFactory():
+    @staticmethod
+    def make(row: int, col: int, fps: int) -> PowerupInfo:
+        return BombUp(row, col, fps)
 
-# class SpeedUpFactory():
-#     @staticmethod
-#     def make(row: int, col: int, fps: int) -> PowerupInfo:
-#         return SpeedUp(row, col, fps)
+class SpeedUpFactory():
+    @staticmethod
+    def make(row: int, col: int, fps: int) -> PowerupInfo:
+        return SpeedUp(row, col, fps)
 
-# class RainbowFactory():
-#     @staticmethod
-#     def make(row: int, col: int, fps: int) -> PowerupInfo:
-#         return Rainbow(row, col, fps)
+class RainbowFactory():
+    @staticmethod
+    def make(row: int, col: int, fps: int) -> PowerupInfo:
+        return Rainbow(row, col, fps)
 
 class VestFactory():
     @staticmethod
     def make(row: int, col: int, fps: int) -> PowerupInfo:
         return Vest(row, col, fps)
 
-Powerup_Factories: tuple[PowerupSpawner, *tuple[PowerupSpawner,...]] = (VestFactory, )
+Powerup_Factories: tuple[PowerupSpawner, *tuple[PowerupSpawner,...]] = (FireUpFactory, BombUpFactory, SpeedUpFactory, RainbowFactory, VestFactory )
 
 class EffectFactory():
     @classmethod
