@@ -626,7 +626,10 @@ const renderResultScreen = (model: Model): CanvasElement[] => {
 
   yOffset += FONT_MEDIUM * 1.5;
 
-  for (let playerId = 0; playerId < 4; playerId++) {
+  const allPlayerIds = Array.fromIterable(HashMap.keys(model.scores));
+  const totalPlayers = model.config.numHumanPlayers + model.config.botTypes.length;
+  
+  for (let playerId = 0; playerId < totalPlayers; playerId++) {
     const score = HashMap.get(model.scores, playerId);
     const scoreValue = Option.getOrElse(score, () => 0);
     const scoreText = `P${playerId + 1}: ${scoreValue}`;
