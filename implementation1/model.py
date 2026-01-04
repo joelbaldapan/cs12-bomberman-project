@@ -477,6 +477,7 @@ class Model:
         self._map_gen.generate(self._world)
         self._round_mgr.start_new_round()
         self._debug = False
+        self._event_buffer.clear()
         for p in self._players:
             p.reset_for_new_round()
 
