@@ -47,7 +47,7 @@ Alternate `ESCAPE` implementations could:
 | **Aranas, John Ray**      | **Option 3: extreme bot type (Python)**           |
 | **Baldapan, Joel Angelo** | **add ur option guys**           |
 | **Crucero Robert Rohan**  | **add ur option guys**           |
-| **Gonzalez Dayshaun**     | **add ur option guys**           |
+| **Gonzalez Dayshaun**     | **Option 1: Rainbow powerup (Python)**           |
 
 ## Highest Phase Accomplished
 
