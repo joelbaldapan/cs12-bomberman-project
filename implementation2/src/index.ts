@@ -35,7 +35,13 @@ async function main() {
         padding-top: 50px;
         text-align: center;
       ">
-        <h1 style="color: #e74c3c;">🔪WARNING🔪</h1>
+        <h1 style="color: #e74c3c;"><span style="color: initial; font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;">
+            \u26A0\uFE0F
+          </span>
+          WARNING
+          <span style="color: initial; font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;">
+            \u26A0\uFE0F
+          </span></h1>
         <p style="font-size: 1.2rem; color: #e74c3c; margin: 10px 0;">
           ${e.message}
         </p>
