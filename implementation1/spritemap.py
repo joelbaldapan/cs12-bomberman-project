@@ -433,6 +433,10 @@ class SpriteMap:
                 match frame:
                         case 0: return SpriteMap.POWERUP_RAINBOW
                         case _: return SpriteMap.POWERUP_RAINBOW_2
+            case "VEST":
+                match frame:
+                        case 0: return SpriteMap.POWERUP_VEST
+                        case _: return SpriteMap.POWERUP_VEST_2    
             case _: # "SPEED"
                 match frame:
                         case 0: return SpriteMap.POWERUP_SPEED

@@ -349,6 +349,8 @@ class View:
                 sprite = SpriteMap.POWERUP_SPEED
             case PowerUpType.RAINBOW:
                 sprite = SpriteMap.POWERUP_RAINBOW
+            case PowerUpType.VEST:
+                sprite = SpriteMap.POWERUP_VEST
             case _:
                 sprite = SpriteMap.POWERUP_FIRE
         
@@ -427,6 +429,9 @@ class View:
         label_x = x + 4
         label_y = y - 6
         pyxel.text(label_x, label_y, label, 4)
+
+        if player.is_invincible:
+            pyxel.circ(x, y, 2, 10)
     
     def _is_player_moving(self, player: PlayerInfo, player_id: int) -> bool:
         current_pos = (player.x, player.y)
@@ -480,6 +485,8 @@ class View:
                 powerup_str = "SPEED"
             case PowerUpType.RAINBOW:
                 powerup_str = "RAINBOW"
+            case PowerUpType.VEST:
+                powerup_str = "VEST"
             case _:
                 powerup_str = "FIRE" 
         

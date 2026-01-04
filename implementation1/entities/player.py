@@ -120,6 +120,10 @@ class Player():
             speed_value += effect.speed_delta
         return speed_value
     
+    @property
+    def is_invincible(self) -> bool:
+        return any(effect.invincible for effect in self._effects)
+    
     def get_overlapping_cells(self) -> set[GridCoords]:
         """Returns all grid cells overlapped by the player's hitbox."""
         cells: set[GridCoords] = set()
@@ -282,7 +286,7 @@ class Player():
         self._active_bombs.add(bomb)
 
     def on_explosion_hit(self) -> None:
-        if not self._alive:
+        if not self._alive or self.is_invincible:
             return
         self._alive = False
 
