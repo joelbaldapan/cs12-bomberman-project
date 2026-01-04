@@ -1,4 +1,13 @@
-# Bomberman Clone (CS 12 25.1)
+# Bomberman Clone in MVU/MVC! (CS 12 25.1 MP)
+
+<p align="center">
+  <img src="assets/header.png" alt="Header" style="width:80%; max-width:500px;"/>
+</p>
+
+<p align="center">
+  <img src="assets/game.png" alt="Game" style="width:50%; max-width:400px;"/>
+</p>
+
 
 A multiplayer Bomberman clone developed for CS 12 25.1. This repository contains two separate implementations of the game: 
 1. **Python (Pyxel + MVC)**
