@@ -35,7 +35,7 @@ async function main() {
         padding-top: 50px;
         text-align: center;
       ">
-        <h1 style="color: #e74c3c;">🔪Configuration Error🔪</h1>
+        <h1 style="color: #e74c3c;">🔪WARNING🔪</h1>
         <p style="font-size: 1.2rem; color: #e74c3c; margin: 10px 0;">
           ${e.message}
         </p>
