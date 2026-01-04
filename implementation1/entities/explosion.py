@@ -24,11 +24,14 @@ class Explosion:
     @property
     def col(self) -> int:
         return self._col
-    
+
     @property
     def current_timer(self) -> int:
         return self._current_timer
 
+    @property
+    def full_timer(self) -> int:
+        return self._full_timer
     @property
     def entity_type(self) -> EntityType:
         return EntityType.EXPLOSION

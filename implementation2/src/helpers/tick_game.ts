@@ -186,7 +186,7 @@ export function updateEntities(model: Model, dt: number): Model {
   let newEntities = model.world.entities;
 
   // since the game is in a very unoptimized state,
-  // our group decided to opt out of using Effect Array for this part:
+  // our group decided to opt out of using PowerupEffect Array for this part:
   //  since pushing to a JS array is O(1), while spreading [...] is O(N)
   const newEvents: EventType[] = [...model.eventBuffer];
   const newSfx: SoundType[] = [...model.sfxBuffer];

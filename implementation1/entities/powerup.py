@@ -80,7 +80,7 @@ class SpeedUp(Powerup):
 class Rainbow(Powerup):
     def __init__(self, row: int, col: int, fps: int):
         super().__init__(row, col, fps)
-        self._effect: EffectInfo = EffectFactory.make(10*fps, 0.2, 1, 1, False)
+        self._effect: EffectInfo = EffectFactory.make(10*fps, 0.6, 3, 3, False)
     @property
     def powerup_type(self) -> PowerUpType:
         return PowerUpType.RAINBOW

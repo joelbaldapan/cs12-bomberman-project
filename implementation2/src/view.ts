@@ -20,7 +20,7 @@ const ROWS = 15;
 const COLS = 13;
 const SCREEN_WIDTH = TILE_SIZE * ROWS;
 const SCREEN_HEIGHT = TILE_SIZE * COLS;
-const FPS = 60;
+const FPS = 30;
 const BACKGROUND_COLOR = "#70C6A9"; 
 
 const FONT_SMALL = Math.floor(TILE_SIZE * 0.25);
