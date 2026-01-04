@@ -58,13 +58,13 @@ class View:
             case SoundType.DEATH:
                 pyxel.playm(2)
     
-    def draw(self, entities: set[EntityInfo], players: list[PlayerInfo], timer: int, state: ModelState, results: RoundResult|None, countdown: int, scores: dict[int,int], debug_mode: bool):
+    def draw(self, entities: set[EntityInfo], players: list[PlayerInfo], timer: int, state: ModelState, results: RoundResult|None, countdown: int, scores: dict[int,int], debug_mode: bool, num_players: int):
         pyxel.cls(0)
 
         if state == ModelState.TRANSITION:
             self._active_animations.clear()
             if results is not None:
-                self._draw_result_screen(results, scores)
+                self._draw_result_screen(results, scores, num_players)
                 return
             
         self._draw_grid()
@@ -149,7 +149,7 @@ class View:
         
         pyxel.text(x, y, message, 7)
 
-    def _draw_result_screen(self, result: RoundResult, scores: dict[int,int]):
+    def _draw_result_screen(self, result: RoundResult, scores: dict[int,int], num_players: int):
         pyxel.cls(0)
 
         center_x = self._display_width // 2
@@ -176,7 +176,7 @@ class View:
         
         y_offset += 15
         
-        for player_id in range(1, 5):
+        for player_id in range(1, num_players + 1):
             score = scores.get(player_id, 0)
             score_text = f"P{player_id}: {score}"
             text_width = len(score_text) * 4
