@@ -63,7 +63,7 @@ By requiring a click to start, we make sure that audio playback works consistent
 | :---------------------------- | :----------------------------------------- |
 | **Aranas, John Ray**          | **Option 3: `extreme` bot type (Python)**  |
 | **Baldapan, Joel Angelo**     | **Option 2: Rainbow powerup (Typescript)** |
-| **Crucero, Robert Rohan**     | **Option 5: Vest powerup (Typescript)**    |
+| **Crucero, Robert Rohan**     | **Option 5: Vest powerup (Python)**    |
 | **Gonzalez, Dayshaun Justin** | **Option 1: Rainbow powerup (Python)**     |
 
 ## Highest Phase Accomplished
