@@ -85,6 +85,7 @@ class Rainbow(Powerup):
     def powerup_type(self) -> PowerUpType:
         return PowerUpType.RAINBOW
 
+@dataclass(eq=False)
 class Vest(Powerup):
     def __init__(self, row: int, col: int, fps: int):
         super().__init__(row, col, fps)
