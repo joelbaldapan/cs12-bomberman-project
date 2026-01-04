@@ -853,7 +853,8 @@ function _start_new_round(model: Model): Model {
     globalFrameCount: 0,
     tempWinner: -1,
     roundResult: Option.none(),
-    botInternals: newBotInternals
+    botInternals: newBotInternals,
+    debugMode: false
   };
 }
 function _tick_game(model: Model, dt: number): Model {
