@@ -15,7 +15,6 @@ import {
   BotType,
   BotInternalState,
   WanderState,
-  RainbowPowerup,
 } from "../model";
 import { generateId } from "./id_gen";
 
@@ -163,7 +162,4 @@ export const makeBombUp = (row: number, col: number, fps: number) =>
 export const makeSpeedUp = (row: number, col: number, fps: number) =>
   _makePowerup(row, col, SpeedPowerup.make({}), makePowerupEffect(Option.none(), 2, 0, 0));
 
-export const makeRainbow = (row: number, col: number, fps: number) =>
-  _makePowerup(row, col, RainbowPowerup.make({}), makePowerupEffect(Option.some(10 * fps), 2, 1, 1));
-
-export const choicePowerups = [makeFireUp, makeBombUp, makeSpeedUp, makeRainbow]
+export const choicePowerups = [makeFireUp, makeBombUp, makeSpeedUp]

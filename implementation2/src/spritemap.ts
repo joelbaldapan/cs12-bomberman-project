@@ -215,7 +215,6 @@ export const powerupToStr = (powerupType: PowerUpType): string =>
     Match.tag("Fire Powerup", () => "fire"),
     Match.tag("Bomb Powerup", () => "bomb"),
     Match.tag("Speed Powerup", () => "speed"),
-    Match.tag("Rainbow Powerup", () => "rainbow"),
     Match.exhaustive
   );
 
