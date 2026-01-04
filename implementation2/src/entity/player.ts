@@ -158,6 +158,7 @@ export const updatePlayer = (
   dt: number
 ): [Player, UpdateResult] => {
   let result = UpdateResult.make({ events: [], sounds: [], animations: [] });
+  console.log(ent.effects)
   
   const tickedPowerupEffects = ent.effects.map((e) => tickPowerupEffect(dt, e));
   const remainingPowerupEffects = tickedPowerupEffects.filter((e) =>

@@ -138,11 +138,13 @@ export const PowerUpType = S.Union(
   S.TaggedStruct("Fire Powerup", {}),
   S.TaggedStruct("Bomb Powerup", {}),
   S.TaggedStruct("Speed Powerup", {}),
+  S.TaggedStruct("Rainbow Powerup", {}),
 );
-export const [FirePowerup, BombPowerup, SpeedPowerup] = PowerUpType.members;
+export const [FirePowerup, BombPowerup, SpeedPowerup, RainbowPowerup] = PowerUpType.members;
 export type FirePowerup = typeof FirePowerup.Type;
 export type BombPowerup = typeof BombPowerup.Type;
 export type SpeedPowerup = typeof SpeedPowerup.Type;
+export type RainbowPowerup = typeof RainbowPowerup.Type;
 
 // Explosion Orientations
 export const ExplosionOrientation = S.Union(
