@@ -82,8 +82,8 @@ class SpriteMap:
     POWERUP_BOMB_2 = SpriteCoords(128, 0, 16, 16)
     POWERUP_FIRE_2 = SpriteCoords(144, 0, 16, 16)
     POWERUP_SPEED_2 = SpriteCoords(160, 0, 16, 16)
-    POWERUP_RAINBOW_2 = SpriteCoords(176, 0, 16, 16)
-    POWERUP_VEST_2 = SpriteCoords(192, 0, 16, 16)  
+    POWERUP_RAINBOW_2 = SpriteCoords(192, 0, 16, 16)
+    POWERUP_VEST_2 = SpriteCoords(176, 0, 16, 16)
 
     # p1
     P1_SOUTH = SpriteCoords(16, 32, 16, 24)
