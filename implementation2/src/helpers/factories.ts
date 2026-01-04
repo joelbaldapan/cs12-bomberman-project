@@ -136,7 +136,7 @@ const _makePowerup = (
 
 
 // EFFECT FACTORY
-const getPowerUpEffect = (powerup: PowerUpType): PowerupEffect =>
+const getPowerUpEffect = (powerup: PowerUpType, fps: number): PowerupEffect =>
   Match.value(powerup).pipe(
     Match.tag("Fire Powerup",  () => PowerupEffect.make({
       timeRemaining: Option.none(),
@@ -164,13 +164,13 @@ const _makePowerup: (row: number, col: number, type: PowerUpType, effect: Poweru
 */
 
 export const makeFireUp = (row: number, col: number, fps: number) =>
-  _makePowerup(row, col, FirePowerup.make({}), getPowerUpEffect(FirePowerup.make({})));
+  _makePowerup(row, col, FirePowerup.make({}), getPowerUpEffect(FirePowerup.make({}), fps));
 
 export const makeBombUp = (row: number, col: number, fps: number) =>
-  _makePowerup(row, col, BombPowerup.make({}), getPowerUpEffect(BombPowerup.make({})));
+  _makePowerup(row, col, BombPowerup.make({}), getPowerUpEffect(BombPowerup.make({}), fps));
 
 export const makeSpeedUp = (row: number, col: number, fps: number) =>
-  _makePowerup(row, col, SpeedPowerup.make({}), getPowerUpEffect(SpeedPowerup.make({})));
+  _makePowerup(row, col, SpeedPowerup.make({}), getPowerUpEffect(SpeedPowerup.make({}), fps));
 
 
 export const choicePowerups = [makeFireUp, makeBombUp, makeSpeedUp]
