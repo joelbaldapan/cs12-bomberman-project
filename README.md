@@ -77,10 +77,10 @@ Both implementations are controlled via a `settings.json` file located in their 
 
 | Key Name            | Type         | Value Range                    | Description                                                                                               |
 | :------------------ | :----------- | :----------------------------- | :-------------------------------------------------------------------------------------------------------- |
-| `soft_block_chance` | Integer      | `0` to `100`                   | Percentage chance a soft block spawns in a valid cell.                                                    |
-| `powerup_chance`    | Integer      | `0` to `100`                   | Percentage chance a powerup spawns when a block is destroyed.                                             |
+| `soft_block_spawn_chance` | Integer      | `0` to `100`                   | Percentage chance a soft block spawns in a valid cell.                                                    |
+| `powerup_spawn_chance`    | Integer      | `0` to `100`                   | Percentage chance a powerup spawns when a block is destroyed.                                             |
 | `timer_seconds`     | Integer      | `30` to `600`                  | Duration of the round in seconds.                                                                         |
-| `human_players`     | Integer      | `1` or `2`                     | Number of human-controlled players.                                                                       |
+| `num_human_players`     | Integer      | `1` or `2`                     | Number of human-controlled players.                                                                       |
 | `bot_types`         | List[String] | `hostile`, `careful`, `greedy` | Strategies for the bots. The list length depends on `human_players`. (e.g., If 1 human, provide 3 types). |
 | `rounds_to_win`     | Integer      | `1` to `4`                     | Number of round wins required to win the overall match.                                                   |
 
@@ -90,12 +90,12 @@ Both implementations are controlled via a `settings.json` file located in their 
 
 ```json
 {
-  "soft_block_chance": 50,
-  "powerup_chance": 20,
+  "soft_block_spawn_chance": 50,
+  "powerup_spawn_chance": 20,
   "timer_seconds": 180,
-  "human_players": 1,
-  "bot_types": ["hostile", "careful", "greedy"],
-  "rounds_to_win": 2
+  "num_human_players": 1,
+  "bot_types": [ "hostile" ,"careful", "greedy"],
+  "rounds_to_win": 3
 }
 ```
 
