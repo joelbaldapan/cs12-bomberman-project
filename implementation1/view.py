@@ -1,7 +1,7 @@
 from typing import Callable
 import pyxel
 from common_types import AnimationCmd, AnimationType, CoordMode, ModelState, RoundResult, ResultType, DrawType, EntityInfo, PlayerInfo, BombInfo, BlockInfo, ExplosionInfo, PowerupInfo, PowerUpType, Direction, ExplosionOrientation, SoundType, BotPlayerInfo
-from spritemap import SpriteMap, Animation, get_player_sprite, get_player_idle, get_bomb_sprite, get_explosion_sprite, get_soft_block_sprite, get_player_death_sprite, get_powerup_sprite
+from spritemap import SpriteMap, Animation
 from entities.block import HardBlock, SoftBlock
 from entities.bomb import Bomb
 from entities.explosion import Explosion
@@ -310,7 +310,7 @@ class View:
         
         # 8 ticks per frame, 6 frames
         sprite_frame = min(frame // 8, 5)
-        sprite = get_player_death_sprite(cmd.id, sprite_frame)
+        sprite = SpriteMap.get_player_death_sprite(cmd.id, sprite_frame)
         
         pyxel.blt(x, y, sprite.img, sprite.u, sprite.v, sprite.w, sprite.h, 11)
 
@@ -323,7 +323,7 @@ class View:
         
         # 3 ticks per frame, 5 frames total
         sprite_frame = min(frame // 3, 4)
-        sprite = get_soft_block_sprite(sprite_frame)
+        sprite = SpriteMap.get_soft_block_sprite(sprite_frame)
         
         pyxel.blt(x, y, sprite.img, sprite.u, sprite.v, sprite.w, sprite.h, 11)
 
@@ -370,7 +370,7 @@ class View:
         x, y = self._grid.cell_to_pixel(bomb.row, bomb.col)
         
         frame = self._animation.get_bomb_frame()
-        sprite = get_bomb_sprite(frame)
+        sprite = SpriteMap.get_bomb_sprite(frame)
         
         pyxel.blt(x, y, sprite.img, sprite.u, sprite.v, sprite.w, sprite.h, 11)
 
@@ -391,10 +391,10 @@ class View:
                 if is_endpoint:
                     orientation_str = "END"
                 
-                sprite = get_explosion_sprite(orientation_str, direction_str or "", frame)
+                sprite = SpriteMap.get_explosion_sprite(orientation_str, direction_str or "", frame)
             case _:
                 frame = (self._animation.frame // 7) % 4
-                sprite = get_explosion_sprite("CENTER", "", frame)
+                sprite = SpriteMap.get_explosion_sprite("CENTER", "", frame)
         
         pyxel.blt(x, y, sprite.img, sprite.u, sprite.v, sprite.w, sprite.h, 11)
 
@@ -448,11 +448,11 @@ class View:
             case True:
                 # animation frame
                 frame = self._animation.get_walk_frame()
-                sprites = get_player_sprite(player_id, direction_str)
+                sprites = SpriteMap.get_player_sprite(player_id, direction_str)
                 return sprites[frame]
             case False:
                 # idle sprite
-                return get_player_idle(player_id, direction_str)
+                return SpriteMap.get_player_idle(player_id, direction_str)
     
     def _direction_to_str(self, direction: Direction) -> str:
         match direction:
@@ -483,7 +483,7 @@ class View:
             case _:
                 powerup_str = "FIRE" 
         
-        sprite = get_powerup_sprite(frame, powerup_str)
+        sprite = SpriteMap.get_powerup_sprite(frame, powerup_str)
 
         pyxel.blt(x, y, sprite.img, sprite.u, sprite.v, sprite.w, sprite.h, 14)
 

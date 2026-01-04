@@ -181,261 +181,262 @@ class SpriteMap:
     P4_DEATH_5 = SpriteCoords(64, 200, 16, 24)
     P4_DEATH_6 = SpriteCoords(80, 200, 16, 24)
 
-@staticmethod
-def get_player_sprite(player: int, direction: str) -> list[SpriteCoords]:
-    match player:
-        case 1:
-            match direction:
-                case "NORTH":
-                    return [SpriteMap.P1_NORTH, SpriteMap.P1_WALK_NORTH_1, SpriteMap.P1_NORTH, SpriteMap.P1_WALK_NORTH_2]
-                case "SOUTH":
-                    return [SpriteMap.P1_SOUTH, SpriteMap.P1_WALK_SOUTH_1, SpriteMap.P1_SOUTH, SpriteMap.P1_WALK_SOUTH_2]
-                case "EAST":
-                    return [SpriteMap.P1_EAST, SpriteMap.P1_WALK_EAST_1, SpriteMap.P1_EAST, SpriteMap.P1_WALK_EAST_2]
-                case _:  # "WEST"
-                    return [SpriteMap.P1_WEST, SpriteMap.P1_WALK_WEST_1, SpriteMap.P1_WEST, SpriteMap.P1_WALK_WEST_2]
-        case 2:
-            match direction:
-                case "NORTH":
-                    return [SpriteMap.P2_NORTH, SpriteMap.P2_WALK_NORTH_1, SpriteMap.P2_NORTH, SpriteMap.P2_WALK_NORTH_2]
-                case "SOUTH":
-                    return [SpriteMap.P2_SOUTH, SpriteMap.P2_WALK_SOUTH_1, SpriteMap.P2_SOUTH, SpriteMap.P2_WALK_SOUTH_2]
-                case "EAST":
-                    return [SpriteMap.P2_EAST, SpriteMap.P2_WALK_EAST_1, SpriteMap.P2_EAST, SpriteMap.P2_WALK_EAST_2]
-                case _:  # "WEST"
-                    return [SpriteMap.P2_WEST, SpriteMap.P2_WALK_WEST_1, SpriteMap.P2_WEST, SpriteMap.P2_WALK_WEST_2]
-        case 3:
-            match direction:
-                case "NORTH":
-                    return [SpriteMap.P3_NORTH, SpriteMap.P3_WALK_NORTH_1, SpriteMap.P3_NORTH, SpriteMap.P3_WALK_NORTH_2]
-                case "SOUTH":
-                    return [SpriteMap.P3_SOUTH, SpriteMap.P3_WALK_SOUTH_1, SpriteMap.P3_SOUTH, SpriteMap.P3_WALK_SOUTH_2]
-                case "EAST":
-                    return [SpriteMap.P3_EAST, SpriteMap.P3_WALK_EAST_1, SpriteMap.P3_EAST, SpriteMap.P3_WALK_EAST_2]
-                case _:  # "WEST"
-                    return [SpriteMap.P3_WEST, SpriteMap.P3_WALK_WEST_1, SpriteMap.P3_WEST, SpriteMap.P3_WALK_WEST_2]
-        case _:  # player == 4
-            match direction:
-                case "NORTH":
-                    return [SpriteMap.P4_NORTH, SpriteMap.P4_WALK_NORTH_1, SpriteMap.P4_NORTH, SpriteMap.P4_WALK_NORTH_2]
-                case "SOUTH":
-                    return [SpriteMap.P4_SOUTH, SpriteMap.P4_WALK_SOUTH_1, SpriteMap.P4_SOUTH, SpriteMap.P4_WALK_SOUTH_2]
-                case "EAST":
-                    return [SpriteMap.P4_EAST, SpriteMap.P4_WALK_EAST_1, SpriteMap.P4_EAST, SpriteMap.P4_WALK_EAST_2]
-                case _:  # "WEST"
-                    return [SpriteMap.P4_WEST, SpriteMap.P4_WALK_WEST_1, SpriteMap.P4_WEST, SpriteMap.P4_WALK_WEST_2]
+    @staticmethod
+    def get_player_sprite(player: int, direction: str) -> list[SpriteCoords]:
+        match player:
+            case 1:
+                match direction:
+                    case "NORTH":
+                        return [SpriteMap.P1_NORTH, SpriteMap.P1_WALK_NORTH_1, SpriteMap.P1_NORTH, SpriteMap.P1_WALK_NORTH_2]
+                    case "SOUTH":
+                        return [SpriteMap.P1_SOUTH, SpriteMap.P1_WALK_SOUTH_1, SpriteMap.P1_SOUTH, SpriteMap.P1_WALK_SOUTH_2]
+                    case "EAST":
+                        return [SpriteMap.P1_EAST, SpriteMap.P1_WALK_EAST_1, SpriteMap.P1_EAST, SpriteMap.P1_WALK_EAST_2]
+                    case _:  # "WEST"
+                        return [SpriteMap.P1_WEST, SpriteMap.P1_WALK_WEST_1, SpriteMap.P1_WEST, SpriteMap.P1_WALK_WEST_2]
+            case 2:
+                match direction:
+                    case "NORTH":
+                        return [SpriteMap.P2_NORTH, SpriteMap.P2_WALK_NORTH_1, SpriteMap.P2_NORTH, SpriteMap.P2_WALK_NORTH_2]
+                    case "SOUTH":
+                        return [SpriteMap.P2_SOUTH, SpriteMap.P2_WALK_SOUTH_1, SpriteMap.P2_SOUTH, SpriteMap.P2_WALK_SOUTH_2]
+                    case "EAST":
+                        return [SpriteMap.P2_EAST, SpriteMap.P2_WALK_EAST_1, SpriteMap.P2_EAST, SpriteMap.P2_WALK_EAST_2]
+                    case _:  # "WEST"
+                        return [SpriteMap.P2_WEST, SpriteMap.P2_WALK_WEST_1, SpriteMap.P2_WEST, SpriteMap.P2_WALK_WEST_2]
+            case 3:
+                match direction:
+                    case "NORTH":
+                        return [SpriteMap.P3_NORTH, SpriteMap.P3_WALK_NORTH_1, SpriteMap.P3_NORTH, SpriteMap.P3_WALK_NORTH_2]
+                    case "SOUTH":
+                        return [SpriteMap.P3_SOUTH, SpriteMap.P3_WALK_SOUTH_1, SpriteMap.P3_SOUTH, SpriteMap.P3_WALK_SOUTH_2]
+                    case "EAST":
+                        return [SpriteMap.P3_EAST, SpriteMap.P3_WALK_EAST_1, SpriteMap.P3_EAST, SpriteMap.P3_WALK_EAST_2]
+                    case _:  # "WEST"
+                        return [SpriteMap.P3_WEST, SpriteMap.P3_WALK_WEST_1, SpriteMap.P3_WEST, SpriteMap.P3_WALK_WEST_2]
+            case _:  # player == 4
+                match direction:
+                    case "NORTH":
+                        return [SpriteMap.P4_NORTH, SpriteMap.P4_WALK_NORTH_1, SpriteMap.P4_NORTH, SpriteMap.P4_WALK_NORTH_2]
+                    case "SOUTH":
+                        return [SpriteMap.P4_SOUTH, SpriteMap.P4_WALK_SOUTH_1, SpriteMap.P4_SOUTH, SpriteMap.P4_WALK_SOUTH_2]
+                    case "EAST":
+                        return [SpriteMap.P4_EAST, SpriteMap.P4_WALK_EAST_1, SpriteMap.P4_EAST, SpriteMap.P4_WALK_EAST_2]
+                    case _:  # "WEST"
+                        return [SpriteMap.P4_WEST, SpriteMap.P4_WALK_WEST_1, SpriteMap.P4_WEST, SpriteMap.P4_WALK_WEST_2]
 
-@staticmethod
-def get_player_idle(player: int, direction: str) -> SpriteCoords:
-    match player:
-        case 1:
-            match direction:
-                case "NORTH":
-                    return SpriteMap.P1_NORTH
-                case "SOUTH":
-                    return SpriteMap.P1_SOUTH
-                case "EAST":
-                    return SpriteMap.P1_EAST
-                case _:  # "WEST"
-                    return SpriteMap.P1_WEST
-        case 2:
-            match direction:
-                case "NORTH":
-                    return SpriteMap.P2_NORTH
-                case "SOUTH":
-                    return SpriteMap.P2_SOUTH
-                case "EAST":
-                    return SpriteMap.P2_EAST
-                case _:  # "WEST"
-                    return SpriteMap.P2_WEST    
-        case 3:
-            match direction:
-                case "NORTH":
-                    return SpriteMap.P3_NORTH
-                case "SOUTH":
-                    return SpriteMap.P3_SOUTH
-                case "EAST":
-                    return SpriteMap.P3_EAST
-                case _:  # "WEST"
-                    return SpriteMap.P3_WEST    
-        case _:  # player == 4
-            match direction:
-                case "NORTH":
-                    return SpriteMap.P4_NORTH
-                case "SOUTH":
-                    return SpriteMap.P4_SOUTH
-                case "EAST":
-                    return SpriteMap.P4_EAST
-                case _:  # "WEST"
-                    return SpriteMap.P4_WEST
+    @staticmethod
+    def get_player_idle(player: int, direction: str) -> SpriteCoords:
+        match player:
+            case 1:
+                match direction:
+                    case "NORTH":
+                        return SpriteMap.P1_NORTH
+                    case "SOUTH":
+                        return SpriteMap.P1_SOUTH
+                    case "EAST":
+                        return SpriteMap.P1_EAST
+                    case _:  # "WEST"
+                        return SpriteMap.P1_WEST
+            case 2:
+                match direction:
+                    case "NORTH":
+                        return SpriteMap.P2_NORTH
+                    case "SOUTH":
+                        return SpriteMap.P2_SOUTH
+                    case "EAST":
+                        return SpriteMap.P2_EAST
+                    case _:  # "WEST"
+                        return SpriteMap.P2_WEST    
+            case 3:
+                match direction:
+                    case "NORTH":
+                        return SpriteMap.P3_NORTH
+                    case "SOUTH":
+                        return SpriteMap.P3_SOUTH
+                    case "EAST":
+                        return SpriteMap.P3_EAST
+                    case _:  # "WEST"
+                        return SpriteMap.P3_WEST    
+            case _:  # player == 4
+                match direction:
+                    case "NORTH":
+                        return SpriteMap.P4_NORTH
+                    case "SOUTH":
+                        return SpriteMap.P4_SOUTH
+                    case "EAST":
+                        return SpriteMap.P4_EAST
+                    case _:  # "WEST"
+                        return SpriteMap.P4_WEST
 
-@staticmethod
-def get_player_death_sprite(player: int, frame: int) -> SpriteCoords: 
-    frame = max(0, min(frame, 5))
-    death_sprite_loop: list[SpriteCoords] = []
+    @staticmethod
+    def get_player_death_sprite(player: int, frame: int) -> SpriteCoords: 
+        frame = max(0, min(frame, 5))
+        death_sprite_loop: list[SpriteCoords] = []
 
-    match player:
-        case 1:
-            death_sprite_loop = [SpriteMap.P1_DEATH_1, SpriteMap.P1_DEATH_2, SpriteMap.P1_DEATH_3,
-                            SpriteMap.P1_DEATH_4, SpriteMap.P1_DEATH_5, SpriteMap.P1_DEATH_6]
-        case 2:
-            death_sprite_loop = [SpriteMap.P2_DEATH_1, SpriteMap.P2_DEATH_2, SpriteMap.P2_DEATH_3,
-                            SpriteMap.P2_DEATH_4, SpriteMap.P2_DEATH_5, SpriteMap.P2_DEATH_6]
-        case 3:
-            death_sprite_loop = [SpriteMap.P3_DEATH_1, SpriteMap.P3_DEATH_2, SpriteMap.P3_DEATH_3,
-                            SpriteMap.P3_DEATH_4, SpriteMap.P3_DEATH_5, SpriteMap.P3_DEATH_6]
-        case _:  # player == 4
-            death_sprite_loop = [SpriteMap.P4_DEATH_1, SpriteMap.P4_DEATH_2, SpriteMap.P4_DEATH_3,
-                            SpriteMap.P4_DEATH_4, SpriteMap.P4_DEATH_5, SpriteMap.P4_DEATH_6]
-    
-    return death_sprite_loop[frame]
-
-@staticmethod
-def get_bomb_sprite(frame: int) -> SpriteCoords: 
-    frame = frame % 3 # needed in order to cycle the 3 animations
-    match frame:
-        case 0:
-            return SpriteMap.BOMB_FRAME_1
-        case 1:
-            return SpriteMap.BOMB_FRAME_2
-        case _:
-            return SpriteMap.BOMB_FRAME_3
-
-@staticmethod
-def get_explosion_sprite(orientation: str, direction: str, frame: int) -> SpriteCoords:
-    frame = max(0, min(frame, 3))
-    match orientation:
-        case "CENTER":
-            match frame:
-                case 0: return SpriteMap.EXPLOSION_MIDDLE_1
-                case 1: return SpriteMap.EXPLOSION_MIDDLE_2
-                case 2: return SpriteMap.EXPLOSION_MIDDLE_3
-                case 3: return SpriteMap.EXPLOSION_MIDDLE_4
-                case _: return SpriteMap.EXPLOSION_MIDDLE_1 
+        match player:
+            case 1:
+                death_sprite_loop = [SpriteMap.P1_DEATH_1, SpriteMap.P1_DEATH_2, SpriteMap.P1_DEATH_3,
+                                SpriteMap.P1_DEATH_4, SpriteMap.P1_DEATH_5, SpriteMap.P1_DEATH_6]
+            case 2:
+                death_sprite_loop = [SpriteMap.P2_DEATH_1, SpriteMap.P2_DEATH_2, SpriteMap.P2_DEATH_3,
+                                SpriteMap.P2_DEATH_4, SpriteMap.P2_DEATH_5, SpriteMap.P2_DEATH_6]
+            case 3:
+                death_sprite_loop = [SpriteMap.P3_DEATH_1, SpriteMap.P3_DEATH_2, SpriteMap.P3_DEATH_3,
+                                SpriteMap.P3_DEATH_4, SpriteMap.P3_DEATH_5, SpriteMap.P3_DEATH_6]
+            case _:  # player == 4
+                death_sprite_loop = [SpriteMap.P4_DEATH_1, SpriteMap.P4_DEATH_2, SpriteMap.P4_DEATH_3,
+                                SpriteMap.P4_DEATH_4, SpriteMap.P4_DEATH_5, SpriteMap.P4_DEATH_6]
         
-        case "VERTICAL":
-            match direction:
-                case "NORTH":
-                    match frame:
-                        case 0: return SpriteMap.EXPLOSION_NORTH_SEGMENT_1
-                        case 1: return SpriteMap.EXPLOSION_NORTH_SEGMENT_2
-                        case 2: return SpriteMap.EXPLOSION_NORTH_SEGMENT_3
-                        case 3: return SpriteMap.EXPLOSION_NORTH_SEGMENT_4
-                        case _: return SpriteMap.EXPLOSION_NORTH_SEGMENT_1
-                
-                case "SOUTH":
-                    match frame:
-                        case 0: return SpriteMap.EXPLOSION_SOUTH_SEGMENT_1
-                        case 1: return SpriteMap.EXPLOSION_SOUTH_SEGMENT_2
-                        case 2: return SpriteMap.EXPLOSION_SOUTH_SEGMENT_3
-                        case 3: return SpriteMap.EXPLOSION_SOUTH_SEGMENT_4
-                        case _: return SpriteMap.EXPLOSION_SOUTH_SEGMENT_1
-                
-                case _:  # Default vertical
-                    match frame:
-                        case 0: return SpriteMap.EXPLOSION_NORTH_SEGMENT_1
-                        case 1: return SpriteMap.EXPLOSION_NORTH_SEGMENT_2
-                        case 2: return SpriteMap.EXPLOSION_NORTH_SEGMENT_3
-                        case 3: return SpriteMap.EXPLOSION_NORTH_SEGMENT_4
-                        case _: return SpriteMap.EXPLOSION_NORTH_SEGMENT_1
-        
-        case "HORIZONTAL":
-            match direction:
-                case "WEST":
-                    match frame:
-                        case 0: return SpriteMap.EXPLOSION_WEST_SEGMENT_1
-                        case 1: return SpriteMap.EXPLOSION_WEST_SEGMENT_2
-                        case 2: return SpriteMap.EXPLOSION_WEST_SEGMENT_3
-                        case 3: return SpriteMap.EXPLOSION_WEST_SEGMENT_4
-                        case _: return SpriteMap.EXPLOSION_WEST_SEGMENT_1
-                
-                case _: # "EAST"
-                    match frame:
-                        case 0: return SpriteMap.EXPLOSION_EAST_SEGMENT_1
-                        case 1: return SpriteMap.EXPLOSION_EAST_SEGMENT_2
-                        case 2: return SpriteMap.EXPLOSION_EAST_SEGMENT_3
-                        case 3: return SpriteMap.EXPLOSION_EAST_SEGMENT_4
-                        case _: return SpriteMap.EXPLOSION_EAST_SEGMENT_1
-        
-        case "END":
-            match direction:
-                case "NORTH":
-                    match frame:
-                        case 0: return SpriteMap.EXPLOSION_NORTH_END_1
-                        case 1: return SpriteMap.EXPLOSION_NORTH_END_2
-                        case 2: return SpriteMap.EXPLOSION_NORTH_END_3
-                        case 3: return SpriteMap.EXPLOSION_NORTH_END_4
-                        case _: return SpriteMap.EXPLOSION_NORTH_END_1
-                
-                case "SOUTH":
-                    match frame:
-                        case 0: return SpriteMap.EXPLOSION_SOUTH_END_1
-                        case 1: return SpriteMap.EXPLOSION_SOUTH_END_2
-                        case 2: return SpriteMap.EXPLOSION_SOUTH_END_3
-                        case 3: return SpriteMap.EXPLOSION_SOUTH_END_4
-                        case _: return SpriteMap.EXPLOSION_SOUTH_END_1
-                
-                case "WEST":
-                    match frame:
-                        case 0: return SpriteMap.EXPLOSION_WEST_END_1
-                        case 1: return SpriteMap.EXPLOSION_WEST_END_2
-                        case 2: return SpriteMap.EXPLOSION_WEST_END_3
-                        case 3: return SpriteMap.EXPLOSION_WEST_END_4
-                        case _: return SpriteMap.EXPLOSION_WEST_END_1
-                
-                case _: # "EAST"
-                    match frame:
-                        case 0: return SpriteMap.EXPLOSION_EAST_END_1
-                        case 1: return SpriteMap.EXPLOSION_EAST_END_2
-                        case 2: return SpriteMap.EXPLOSION_EAST_END_3
-                        case 3: return SpriteMap.EXPLOSION_EAST_END_4
-                        case _: return SpriteMap.EXPLOSION_EAST_END_1
-        
-        case _:  # defaults to middle
-            match frame:
-                case 0: return SpriteMap.EXPLOSION_MIDDLE_1
-                case 1: return SpriteMap.EXPLOSION_MIDDLE_2
-                case 2: return SpriteMap.EXPLOSION_MIDDLE_3
-                case 3: return SpriteMap.EXPLOSION_MIDDLE_4
-                case _: return SpriteMap.EXPLOSION_MIDDLE_1
-        
+        return death_sprite_loop[frame]
 
-@staticmethod
-def get_soft_block_sprite(frame: int) -> SpriteCoords:
-    frame = max(0, min(frame, 4))
-    match frame:
-        case 0:
-            return SpriteMap.SOFT_BLOCK  
-        case 1:
-            return SpriteMap.SOFT_ON_HIT_2  
-        case 2:
-            return SpriteMap.SOFT_ON_HIT_3 
-        case 3:
-            return SpriteMap.SOFT_ON_HIT_4 
-        case 4:
-            return SpriteMap.SOFT_ON_HIT_5 
-        case _:
-            return SpriteMap.SOFT_BLOCK  # fallback frame
+    @staticmethod
+    def get_bomb_sprite(frame: int) -> SpriteCoords: 
+        frame = frame % 3 # needed in order to cycle the 3 animations
+        match frame:
+            case 0:
+                return SpriteMap.BOMB_FRAME_1
+            case 1:
+                return SpriteMap.BOMB_FRAME_2
+            case _:
+                return SpriteMap.BOMB_FRAME_3
 
-def get_powerup_sprite(frame: int, powerup: str) -> SpriteCoords: 
-    frame = frame % 2 # needed in order to cycle the 2 animations
-    match powerup:
-        case "FIRE":
-            match frame:
-                    case 0: return SpriteMap.POWERUP_FIRE
-                    case _: return SpriteMap.POWERUP_FIRE_2
-        case "BOMB":
-            match frame:
-                    case 0: return SpriteMap.POWERUP_BOMB
-                    case _: return SpriteMap.POWERUP_BOMB_2
-        case "RAINBOW":
-            match frame:
-                    case 0: return SpriteMap.POWERUP_RAINBOW
-                    case _: return SpriteMap.POWERUP_RAINBOW_2
-        case _: # "SPEED"
-            match frame:
-                    case 0: return SpriteMap.POWERUP_SPEED
-                    case _: return SpriteMap.POWERUP_SPEED_2
+    @staticmethod
+    def get_explosion_sprite(orientation: str, direction: str, frame: int) -> SpriteCoords:
+        frame = max(0, min(frame, 3))
+        match orientation:
+            case "CENTER":
+                match frame:
+                    case 0: return SpriteMap.EXPLOSION_MIDDLE_1
+                    case 1: return SpriteMap.EXPLOSION_MIDDLE_2
+                    case 2: return SpriteMap.EXPLOSION_MIDDLE_3
+                    case 3: return SpriteMap.EXPLOSION_MIDDLE_4
+                    case _: return SpriteMap.EXPLOSION_MIDDLE_1 
+            
+            case "VERTICAL":
+                match direction:
+                    case "NORTH":
+                        match frame:
+                            case 0: return SpriteMap.EXPLOSION_NORTH_SEGMENT_1
+                            case 1: return SpriteMap.EXPLOSION_NORTH_SEGMENT_2
+                            case 2: return SpriteMap.EXPLOSION_NORTH_SEGMENT_3
+                            case 3: return SpriteMap.EXPLOSION_NORTH_SEGMENT_4
+                            case _: return SpriteMap.EXPLOSION_NORTH_SEGMENT_1
+                    
+                    case "SOUTH":
+                        match frame:
+                            case 0: return SpriteMap.EXPLOSION_SOUTH_SEGMENT_1
+                            case 1: return SpriteMap.EXPLOSION_SOUTH_SEGMENT_2
+                            case 2: return SpriteMap.EXPLOSION_SOUTH_SEGMENT_3
+                            case 3: return SpriteMap.EXPLOSION_SOUTH_SEGMENT_4
+                            case _: return SpriteMap.EXPLOSION_SOUTH_SEGMENT_1
+                    
+                    case _:  # Default vertical
+                        match frame:
+                            case 0: return SpriteMap.EXPLOSION_NORTH_SEGMENT_1
+                            case 1: return SpriteMap.EXPLOSION_NORTH_SEGMENT_2
+                            case 2: return SpriteMap.EXPLOSION_NORTH_SEGMENT_3
+                            case 3: return SpriteMap.EXPLOSION_NORTH_SEGMENT_4
+                            case _: return SpriteMap.EXPLOSION_NORTH_SEGMENT_1
+            
+            case "HORIZONTAL":
+                match direction:
+                    case "WEST":
+                        match frame:
+                            case 0: return SpriteMap.EXPLOSION_WEST_SEGMENT_1
+                            case 1: return SpriteMap.EXPLOSION_WEST_SEGMENT_2
+                            case 2: return SpriteMap.EXPLOSION_WEST_SEGMENT_3
+                            case 3: return SpriteMap.EXPLOSION_WEST_SEGMENT_4
+                            case _: return SpriteMap.EXPLOSION_WEST_SEGMENT_1
+                    
+                    case _: # "EAST"
+                        match frame:
+                            case 0: return SpriteMap.EXPLOSION_EAST_SEGMENT_1
+                            case 1: return SpriteMap.EXPLOSION_EAST_SEGMENT_2
+                            case 2: return SpriteMap.EXPLOSION_EAST_SEGMENT_3
+                            case 3: return SpriteMap.EXPLOSION_EAST_SEGMENT_4
+                            case _: return SpriteMap.EXPLOSION_EAST_SEGMENT_1
+            
+            case "END":
+                match direction:
+                    case "NORTH":
+                        match frame:
+                            case 0: return SpriteMap.EXPLOSION_NORTH_END_1
+                            case 1: return SpriteMap.EXPLOSION_NORTH_END_2
+                            case 2: return SpriteMap.EXPLOSION_NORTH_END_3
+                            case 3: return SpriteMap.EXPLOSION_NORTH_END_4
+                            case _: return SpriteMap.EXPLOSION_NORTH_END_1
+                    
+                    case "SOUTH":
+                        match frame:
+                            case 0: return SpriteMap.EXPLOSION_SOUTH_END_1
+                            case 1: return SpriteMap.EXPLOSION_SOUTH_END_2
+                            case 2: return SpriteMap.EXPLOSION_SOUTH_END_3
+                            case 3: return SpriteMap.EXPLOSION_SOUTH_END_4
+                            case _: return SpriteMap.EXPLOSION_SOUTH_END_1
+                    
+                    case "WEST":
+                        match frame:
+                            case 0: return SpriteMap.EXPLOSION_WEST_END_1
+                            case 1: return SpriteMap.EXPLOSION_WEST_END_2
+                            case 2: return SpriteMap.EXPLOSION_WEST_END_3
+                            case 3: return SpriteMap.EXPLOSION_WEST_END_4
+                            case _: return SpriteMap.EXPLOSION_WEST_END_1
+                    
+                    case _: # "EAST"
+                        match frame:
+                            case 0: return SpriteMap.EXPLOSION_EAST_END_1
+                            case 1: return SpriteMap.EXPLOSION_EAST_END_2
+                            case 2: return SpriteMap.EXPLOSION_EAST_END_3
+                            case 3: return SpriteMap.EXPLOSION_EAST_END_4
+                            case _: return SpriteMap.EXPLOSION_EAST_END_1
+            
+            case _:  # defaults to middle
+                match frame:
+                    case 0: return SpriteMap.EXPLOSION_MIDDLE_1
+                    case 1: return SpriteMap.EXPLOSION_MIDDLE_2
+                    case 2: return SpriteMap.EXPLOSION_MIDDLE_3
+                    case 3: return SpriteMap.EXPLOSION_MIDDLE_4
+                    case _: return SpriteMap.EXPLOSION_MIDDLE_1
+            
+
+    @staticmethod
+    def get_soft_block_sprite(frame: int) -> SpriteCoords:
+        frame = max(0, min(frame, 4))
+        match frame:
+            case 0:
+                return SpriteMap.SOFT_BLOCK  
+            case 1:
+                return SpriteMap.SOFT_ON_HIT_2  
+            case 2:
+                return SpriteMap.SOFT_ON_HIT_3 
+            case 3:
+                return SpriteMap.SOFT_ON_HIT_4 
+            case 4:
+                return SpriteMap.SOFT_ON_HIT_5 
+            case _:
+                return SpriteMap.SOFT_BLOCK  # fallback frame
+
+    @staticmethod
+    def get_powerup_sprite(frame: int, powerup: str) -> SpriteCoords: 
+        frame = frame % 2 # needed in order to cycle the 2 animations
+        match powerup:
+            case "FIRE":
+                match frame:
+                        case 0: return SpriteMap.POWERUP_FIRE
+                        case _: return SpriteMap.POWERUP_FIRE_2
+            case "BOMB":
+                match frame:
+                        case 0: return SpriteMap.POWERUP_BOMB
+                        case _: return SpriteMap.POWERUP_BOMB_2
+            case "RAINBOW":
+                match frame:
+                        case 0: return SpriteMap.POWERUP_RAINBOW
+                        case _: return SpriteMap.POWERUP_RAINBOW_2
+            case _: # "SPEED"
+                match frame:
+                        case 0: return SpriteMap.POWERUP_SPEED
+                        case _: return SpriteMap.POWERUP_SPEED_2
                 
 class Animation:
     def __init__(self, fps: int = 30):
