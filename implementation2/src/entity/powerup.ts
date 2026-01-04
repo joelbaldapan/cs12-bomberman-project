@@ -7,7 +7,7 @@ import { Model,
   Entity,
   World,
   UpdateResult,
-  Effect,
+  PowerupEffect,
   RemoveEvent,
   SoundType,
   PowerupSound
@@ -38,7 +38,7 @@ export const onPickup = (ent: Powerup, player: Player): [Player, UpdateResult] =
 }
 
 
-export const tickEffect = (dt: number, effect: Effect): Effect => {
+export const tickPowerupEffect = (dt: number, effect: PowerupEffect): PowerupEffect => {
   return pipe(
   effect.timeRemaining,
   Option.match({

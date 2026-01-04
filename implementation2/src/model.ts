@@ -24,7 +24,7 @@ export type UpdateResult = typeof UpdateResult.Type;
 export type CoordMode = typeof CoordMode.Type;
 export type RoundResult = typeof RoundResult.Type;
 export type AnimationCmd = typeof AnimationCmd.Type;
-export type Effect = typeof Effect.Type;
+export type PowerupEffect = typeof PowerupEffect.Type;
 export type Direction = typeof Direction.Type;
 export type ExplosionOrientation = typeof ExplosionOrientation.Type;
 
@@ -127,7 +127,7 @@ export type CellMode = typeof CellMode.Type;
 export type PixelMode = typeof PixelMode.Type;
 
 // Power-ups
-export const Effect = S.Struct({
+export const PowerupEffect = S.Struct({
   timeRemaining: S.Option(S.Number),
   speedDelta: S.Number,
   bombsDelta: S.Number,
@@ -223,7 +223,7 @@ export const Player = S.TaggedStruct("Player", {
 
   speed: S.Int,
   directionFacing: Direction,
-  effects: S.Array(Effect),
+  effects: S.Array(PowerupEffect),
   isAlive: S.Boolean,
   activeBombs: S.Array(S.Int),
 
@@ -245,7 +245,7 @@ export const Block = S.TaggedStruct("Block", {
 export const Powerup = S.TaggedStruct("Powerup", {
   ...EntityFields,
   powerupType: PowerUpType,
-  effect: Effect,
+  effect: PowerupEffect,
 });
 export const Entity = S.Union(Explosion, Bomb, Block, Player, Powerup);
 export const [

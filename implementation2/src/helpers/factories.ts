@@ -5,7 +5,7 @@ import {
   Explosion,
   Player,
   Powerup,
-  Effect,
+  PowerupEffect,
   ExplosionOrientation,
   SouthDirection,
   BombPowerup,
@@ -123,7 +123,7 @@ const _makePowerup = (
   row: number,
   col: number,
   type: PowerUpType,
-  effect: Effect
+  effect: PowerupEffect
 ) =>
   Powerup.make({
     id: generateId(row, col),
@@ -137,13 +137,13 @@ const _makePowerup = (
 
 // EFFECT FACTORY
 
-export const makeEffect = (
+export const makePowerupEffect = (
   duration: Option.Option<number>, // in terms of frames
   speedDelta: number,
   bombsDelta: number,
   rangeDelta: number
 ) =>
-  Effect.make({
+  PowerupEffect.make({
     timeRemaining: duration,
     speedDelta,
     bombsDelta,
@@ -151,19 +151,19 @@ export const makeEffect = (
   });
 
 /*
-const _makePowerup: (row: number, col: number, type: PowerUpType, effect: Effect) => PowerUp
+const _makePowerup: (row: number, col: number, type: PowerUpType, effect: PowerupEffect) => PowerUp
 */
 
 export const makeFireUp = (row: number, col: number, fps: number) =>
-  _makePowerup(row, col, FirePowerup.make({}), makeEffect(Option.none(), 0, 0, 1));
+  _makePowerup(row, col, FirePowerup.make({}), makePowerupEffect(Option.none(), 0, 0, 1));
 
 export const makeBombUp = (row: number, col: number, fps: number) =>
-  _makePowerup(row, col, BombPowerup.make({}), makeEffect(Option.none(), 0, 1, 0));
+  _makePowerup(row, col, BombPowerup.make({}), makePowerupEffect(Option.none(), 0, 1, 0));
 
 export const makeSpeedUp = (row: number, col: number, fps: number) =>
-  _makePowerup(row, col, SpeedPowerup.make({}), makeEffect(Option.none(), 2, 0, 0));
+  _makePowerup(row, col, SpeedPowerup.make({}), makePowerupEffect(Option.none(), 2, 0, 0));
 
 export const makeRainbow = (row: number, col: number, fps: number) =>
-  _makePowerup(row, col, RainbowPowerup.make({}), makeEffect(Option.some(10 * fps), 2, 1, 1));
+  _makePowerup(row, col, RainbowPowerup.make({}), makePowerupEffect(Option.some(10 * fps), 2, 1, 1));
 
 export const choicePowerups = [makeFireUp, makeBombUp, makeSpeedUp, makeRainbow]

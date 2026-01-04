@@ -9,14 +9,14 @@ import {
   Entity,
   World,
   UpdateResult,
-  Effect,
+  PowerupEffect,
   DeathSound,
   DeathAnimation,
   AnimationCmd,
   PixelMode,
   GridCoords,
 } from "../model";
-import { tickEffect } from "./powerup";
+import { tickPowerupEffect } from "./powerup";
 import { Array , Option} from "effect";
 import { pixelToCell } from "../helpers/grid_adapter";
 import { isCellBlocking } from "../helpers/world";
@@ -160,8 +160,8 @@ export const updatePlayer = (
   let result = UpdateResult.make({ events: [], sounds: [], animations: [] });
   console.log(ent.effects)
   
-  const tickedEffects = ent.effects.map((e) => tickEffect(dt, e));
-  const remainingEffects = tickedEffects.filter((e) =>
+  const tickedPowerupEffects = ent.effects.map((e) => tickPowerupEffect(dt, e));
+  const remainingPowerupEffects = tickedPowerupEffects.filter((e) =>
     Option.getOrElse(e.timeRemaining, () => 1) > 0
   );
   if (ent.isExpired) {
@@ -184,7 +184,7 @@ export const updatePlayer = (
       animations: Array.append(result.animations, animation),
     };
     return [
-      Player.make({ ...ent, effects: remainingEffects, isExpired: true }),
+      Player.make({ ...ent, effects: remainingPowerupEffects, isExpired: true }),
       result,
     ];
   }
@@ -203,7 +203,7 @@ export const updatePlayer = (
           y: nextY, 
           row: newRow,
           col: newCol,
-          effects: remainingEffects 
+          effects: remainingPowerupEffects 
       }), 
       result
   ];
