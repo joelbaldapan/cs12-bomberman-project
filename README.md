@@ -80,7 +80,8 @@ By requiring a click to start, we make sure that audio playback works consistent
 │   ├── settings.json       # Configuration file for Python version
 │   └── ...
 ├── implementation2/        # TypeScript-based implementation (MVU)
-│   ├── settings.json       # Configuration file for TS version
+│   ├── public/
+│   │   └── settings.json   # Configuration file for TS version
 │   └── ...
 ├── live-demos/             # Video recordings for Part 2 Implementation
 │   └── ...
