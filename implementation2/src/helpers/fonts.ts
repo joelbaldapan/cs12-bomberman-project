@@ -1,4 +1,4 @@
-const FONT_URL = "/fonts/RetroPixel.otf";
+const FONT_URL = "./fonts/RetroPixel.otf";
 const FONT_FAMILY = "RetroPixel";
 
 export const loadFonts = async () => {

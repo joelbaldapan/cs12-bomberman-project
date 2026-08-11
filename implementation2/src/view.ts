@@ -34,9 +34,9 @@ const QUARTER_TILE = TILE_SIZE / 4;
 
 export const soundToPath = (sound: SoundType): string =>
   Match.value(sound).pipe(
-    Match.tag("Explosion Sound", () => "sounds/explosion.mp3"),
-    Match.tag("PowerupGet Sound", () => "sounds/powerup.mp3"),
-    Match.tag("Death Sound", () => "sounds/death.mp3"),
+    Match.tag("Explosion Sound", () => "./sounds/explosion.mp3"),
+    Match.tag("PowerupGet Sound", () => "./sounds/powerup.mp3"),
+    Match.tag("Death Sound", () => "./sounds/death.mp3"),
     Match.exhaustive
   );
 
@@ -103,16 +103,16 @@ export const updateBGM = (model: Model): void => {
   lastGameState = currentState;
 
   if (currentState === "Countdown Model") {
-    playBGM("/sounds/stage_start.mp3", false, 1);
+    playBGM("./sounds/stage_start.mp3", false, 1);
     
     if (currentBGM) {
       currentBGM.onended = () => {
-        playBGM("/sounds/battle_bgm.mp3", true, 0.7);
+        playBGM("./sounds/battle_bgm.mp3", true, 0.7);
       };
     }
   } else if (currentState === "Playing Model") {
     if (!currentBGM || currentBGM.paused) {
-      playBGM("/sounds/battle_bgm.mp3", true, 0.7);
+      playBGM("./sounds/battle_bgm.mp3", true, 0.7);
     }
   } else if (currentState === "Transition Model") {
     stopBGM();
